@@ -1,7 +1,7 @@
 # Chrono Slide — Task Breakdown
 
 - **Project:** Chrono Slide
-- **Engine / Tech Target:** HTML5 / JavaScript Web Build *(or adapt to chosen engine if needed)*
+- **Engine / Tech Target:** Godot engine
 - **Art Direction:** Minimalist neon grid / readable top-down puzzle tiles
 - **Last Updated:** 2026-05-16
 - **GDD Reference:** `GDD Chrono.md` (v0.1)
