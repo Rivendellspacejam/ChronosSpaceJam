@@ -8,25 +8,25 @@ extends Control
 var return_target : Control = null
 
 # --- Audio controls ---
-@onready var master_slider : HSlider     = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MasterRow/MasterSlider
-@onready var music_slider  : HSlider     = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MusicRow/MusicSlider
-@onready var sfx_slider    : HSlider     = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/SFXRow/SFXSlider
-@onready var mute_button   : CheckButton = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MuteRow/MuteButton
-@onready var master_value_label : Label = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MasterRow/MasterValueLabel
-@onready var music_value_label  : Label = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MusicRow/MusicValueLabel
-@onready var sfx_value_label    : Label = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/SFXRow/SFXValueLabel
+@onready var master_slider : HSlider     = $VBoxContainer/MasterRow/MasterSlider
+@onready var music_slider  : HSlider     = $VBoxContainer/MusicRow/MusicSlider
+@onready var sfx_slider    : HSlider     = $VBoxContainer/SFXRow/SFXSlider
+@onready var mute_button   : CheckButton = $VBoxContainer/MuteRow/MuteButton
+@onready var master_value_label : Label = $VBoxContainer/MasterRow/MasterValueLabel
+@onready var music_value_label  : Label = $VBoxContainer/MusicRow/MusicValueLabel
+@onready var sfx_value_label    : Label = $VBoxContainer/SFXRow/SFXValueLabel
 
 # --- Display controls ---
-@onready var fullscreen_button : CheckButton = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/FullscreenRow/FullscreenButton
-@onready var vsync_button      : CheckButton = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/VSyncRow/VSyncButton
+@onready var fullscreen_button : CheckButton = $VBoxContainer/FullscreenRow/FullscreenButton
+@onready var vsync_button      : CheckButton = $VBoxContainer/VSyncRow/VSyncButton
 
 # --- Gameplay controls ---
-@onready var shake_button    : CheckButton = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeRow/ShakeButton
-@onready var shake_slider    : HSlider     = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow/ShakeSlider
-@onready var shake_value_label : Label = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow/ShakeValueLabel
-@onready var shake_intensity_row : Control = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow
+@onready var shake_button    : CheckButton = $VBoxContainer/ShakeRow/ShakeButton
+@onready var shake_slider    : HSlider     = $VBoxContainer/ShakeIntensityRow/ShakeSlider
+@onready var shake_value_label : Label = $VBoxContainer/ShakeIntensityRow/ShakeValueLabel
+@onready var shake_intensity_row : Control = $VBoxContainer/ShakeIntensityRow
 
-@onready var back_button : Button = $CenterContainer/PanelContainer/MarginContainer/VBoxContainer/BackButton
+@onready var back_button : Button = $VBoxContainer/BackButton
 
 func _ready() -> void:
 	# Populate controls from current settings
