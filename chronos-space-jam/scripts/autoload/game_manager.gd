@@ -65,6 +65,7 @@ func can_accept_input() -> bool:
 # --- Level Progression ---
 func load_level(index : int) -> void:
 	current_level_index = clampi(index, 0, TOTAL_LEVELS - 1)
+	clear_level_cache()
 	level_loaded.emit(current_level_index)
 
 func next_level() -> void:
