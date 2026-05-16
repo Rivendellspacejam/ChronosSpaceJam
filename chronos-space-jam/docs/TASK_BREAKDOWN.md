@@ -36,13 +36,13 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| FOUND-01 | Project Scaffold | Core Systems | Critical | Not Started | — | Programmer 1 | S | • Project opens/runs in browser or chosen engine; • folder structure for scripts, levels, assets, audio, and UI exists; • README or run instructions added |
-| FOUND-02 | Grid Coordinate System | Core Systems | Critical | Not Started | FOUND-01 | Programmer 1 | S | • Level uses grid/tile coordinates; • conversion between grid position and screen position works; • tile size is configurable in one place |
-| FOUND-03 | Level Data Format | Level System | Critical | Not Started | FOUND-02 | Programmer 1, Designer | M | • Level can be represented as text grid or JSON; • supports symbols for wall, empty, player, goal, hazard, gate, anchor, blocker, enemy; • at least one test level loads from data |
-| FOUND-04 | Basic Render Layer | Visual | Critical | Not Started | FOUND-03 | Artist / UI / Audio | S | • Wall, floor, player, and goal render clearly; • visual scale fits small puzzle arenas; • colors are readable without final art |
-| FOUND-05 | Input Handling | Core Systems | Critical | Not Started | FOUND-01 | Programmer 1 | S | • W/A/S/D accepted as directional input; • R restarts current level; • Esc opens or reserves pause behavior; • input ignored during sliding/death/clear state |
-| FOUND-06 | Game State Machine | Core Systems | Critical | Not Started | FOUND-05 | Programmer 1 | S | • States exist for Menu, Playing, Sliding, Dead, LevelClear, Paused; • transitions are predictable; • no input causes double movement during state transition |
-| FOUND-07 | Debug Overlay | Debug / QA | Medium | Not Started | FOUND-02 | Programmer 1 | XS | • Shows current level, player grid position, tick count, and state; • can be hidden for final build |
+| FOUND-01 | Project Scaffold | Core Systems | Critical | Done | — | Programmer 1 | S | • Project opens/runs in browser or chosen engine; • folder structure for scripts, levels, assets, audio, and UI exists; • README or run instructions added |
+| FOUND-02 | Grid Coordinate System | Core Systems | Critical | Done | FOUND-01 | Programmer 1 | S | • Level uses grid/tile coordinates; • conversion between grid position and screen position works; • tile size is configurable in one place |
+| FOUND-03 | Level Data Format | Level System | Critical | Done | FOUND-02 | Programmer 1, Designer | M | • Level can be represented as text grid or JSON; • supports symbols for wall, empty, player, goal, hazard, gate, anchor, blocker, enemy; • at least one test level loads from data |
+| FOUND-04 | Basic Render Layer | Visual | Critical | Done | FOUND-03 | Artist / UI / Audio | S | • Wall, floor, player, and goal render clearly; • visual scale fits small puzzle arenas; • colors are readable without final art |
+| FOUND-05 | Input Handling | Core Systems | Critical | Done | FOUND-01 | Programmer 1 | S | • W/A/S/D accepted as directional input; • R restarts current level; • Esc opens or reserves pause behavior; • input ignored during sliding/death/clear state |
+| FOUND-06 | Game State Machine | Core Systems | Critical | Done | FOUND-05 | Programmer 1 | S | • States exist for Menu, Playing, Sliding, Dead, LevelClear, Paused; • transitions are predictable; • no input causes double movement during state transition |
+| FOUND-07 | Debug Overlay | Debug / QA | Medium | Done | FOUND-02 | Programmer 1 | XS | • Shows current level, player grid position, tick count, and state; • can be hidden for final build |
 
 ---
 
@@ -50,15 +50,15 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| CORE-01 | Player Gravity Sliding | Player | Critical | Not Started | FOUND-02, FOUND-05 | Programmer 1 | M | • Pressing W/A/S/D sets gravity direction; • player slides in a straight line until stopped; • player cannot stop manually mid-slide; • movement is fast but readable |
-| CORE-02 | Wall Collision Stop | Collision | Critical | Not Started | CORE-01 | Programmer 1 | S | • Wall blocks movement; • player stops on the tile before the wall; • player cannot clip outside arena; • boundary walls behave consistently |
-| CORE-03 | Goal Tile & Level Clear | Objective | Critical | Not Started | CORE-01 | Programmer 1 | S | • Player clears level when reaching goal; • clear state prevents extra input; • next level or level select progression can be triggered |
-| CORE-04 | Restart Current Level | Core Systems | Critical | Not Started | FOUND-03, CORE-03 | Programmer 1 | XS | • Pressing R reloads current level instantly; • tick, move count, player position, hazards, and gates reset; • restart works after death and clear |
-| CORE-05 | Player Death Rule | Player | Critical | Not Started | CORE-01 | Programmer 1 | S | • Player dies on active hazard/enemy contact; • death stops movement; • restart prompt appears or R restart works immediately |
-| CORE-06 | Sliding Collision Scan | Collision | Critical | Not Started | CORE-01, CORE-05 | Programmer 1 | M | • Every tile crossed during sliding is checked; • active hazard on path kills player; • goal reached during sliding clears level; • anchor and blocker rules can hook into this scan |
-| CORE-07 | Move Count System | Scoring | High | Not Started | FOUND-05, CORE-01 | Programmer 1 | XS | • Every accepted W/A/S/D input increases move count by 1; • failed/ignored input does not increase move count; • count resets per level |
-| CORE-08 | Basic Level Progression | Level System | High | Not Started | FOUND-03, CORE-03 | Programmer 1 | S | • Game can load Level 1 to next level sequentially; • current level index is tracked; • final level returns to menu or ending screen |
-| CORE-09 | First Playable Level | Level Design | Critical | Not Started | CORE-01, CORE-02, CORE-03 | Designer | S | • Level 1 teaches gravity sliding only; • no traps; • can be cleared in several inputs; • includes visual start and goal clarity |
+| CORE-01 | Player Gravity Sliding | Player | Critical | Done | FOUND-02, FOUND-05 | Programmer 1 | M | • Pressing W/A/S/D sets gravity direction; • player slides in a straight line until stopped; • player cannot stop manually mid-slide; • movement is fast but readable |
+| CORE-02 | Wall Collision Stop | Collision | Critical | Done | CORE-01 | Programmer 1 | S | • Wall blocks movement; • player stops on the tile before the wall; • player cannot clip outside arena; • boundary walls behave consistently |
+| CORE-03 | Goal Tile & Level Clear | Objective | Critical | Done | CORE-01 | Programmer 1 | S | • Player clears level when reaching goal; • clear state prevents extra input; • next level or level select progression can be triggered |
+| CORE-04 | Restart Current Level | Core Systems | Critical | Done | FOUND-03, CORE-03 | Programmer 1 | XS | • Pressing R reloads current level instantly; • tick, move count, player position, hazards, and gates reset; • restart works after death and clear |
+| CORE-05 | Player Death Rule | Player | Critical | Done | CORE-01 | Programmer 1 | S | • Player dies on active hazard/enemy contact; • death stops movement; • restart prompt appears or R restart works immediately |
+| CORE-06 | Sliding Collision Scan | Collision | Critical | Done | CORE-01, CORE-05 | Programmer 1 | M | • Every tile crossed during sliding is checked; • active hazard on path kills player; • goal reached during sliding clears level; • anchor and blocker rules can hook into this scan |
+| CORE-07 | Move Count System | Scoring | High | Done | FOUND-05, CORE-01 | Programmer 1 | XS | • Every accepted W/A/S/D input increases move count by 1; • failed/ignored input does not increase move count; • count resets per level |
+| CORE-08 | Basic Level Progression | Level System | High | Done | FOUND-03, CORE-03 | Programmer 1 | S | • Game can load Level 1 to next level sequentially; • current level index is tracked; • final level returns to menu or ending screen |
+| CORE-09 | First Playable Level | Level Design | Critical | Done | CORE-01, CORE-02, CORE-03 | Designer | S | • Level 1 teaches gravity sliding only; • no traps; • can be cleared in several inputs; • includes visual start and goal clarity |
 
 ---
 
@@ -66,15 +66,15 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| TIME-01 | Global Tick Manager | Time System | Critical | Not Started | CORE-01, CORE-07 | Programmer 1 | M | • Every accepted movement input advances tick by 1; • tick starts at 0 on level load; • tick can broadcast update to all phase-based objects |
-| TIME-02 | Tick Update Order Implementation | Time System | Critical | Not Started | TIME-01 | Programmer 1, Programmer 2 | S | • Uses chosen order: Input → Tick Update → World Phase Update → Player Slide; • order is documented in code comments; • no object updates twice per input ⚠️ *If playtest feels too hard, this may be switched to slide-before-update* |
-| TIME-03 | Phase Object Interface | Time System | Critical | Not Started | TIME-01 | Programmer 2 | M | • Time-based objects expose `updatePhase(tick)` or equivalent; • phase uses `tick % phaseCount`; • object-specific patterns can be configured per level |
-| TIME-04 | Time Gate | Gameplay Object | Critical | Not Started | TIME-03, CORE-02 | Programmer 2 | M | • Gate opens/closes based on phase pattern; • closed gate behaves like wall; • open gate can be passed through; • visual state clearly differs between open and closed |
-| TIME-05 | Laser Trap | Gameplay Object | High | Not Started | TIME-03, CORE-06 | Programmer 2 | M | • Laser alternates active/inactive by phase; • active laser kills player when crossed; • inactive laser is safe; • visual clarity supports red active and dim inactive state |
-| TIME-06 | Spike Trap | Gameplay Object | High | Not Started | TIME-03, CORE-06 | Programmer 2 | M | • Spike supports Safe, Warning, Active phases; • only Active kills player; • Warning phase is visually obvious; • pattern can be tuned per level |
-| TIME-07 | Enemy Patrol | Gameplay Object | High | Not Started | TIME-03, CORE-06 | Programmer 2 | M | • Enemy position changes by tick phase; • player dies if crossing or landing on enemy tile; • enemy path can be defined per level; • at least one 4-phase patrol works |
-| TIME-08 | Phase Pattern Data | Tools / Data | Medium | Not Started | TIME-03, TIME-04 | Programmer 2 | S | • Gates, lasers, spikes, and enemies use reusable phase patterns; • designer can edit pattern values without changing core logic; • invalid pattern fails safely |
-| TIME-09 | No-Wait Rule Enforcement | Core Systems | Critical | Not Started | TIME-01 | Programmer 1 | XS | • No wait / skip turn button exists; • tick only advances from valid directional input; • invalid blocked input decision is consistent and documented ⚠️ *Need decide whether pressing into an immediate wall counts as valid movement or ignored input* |
+| TIME-01 | Global Tick Manager | Time System | Critical | Done | CORE-01, CORE-07 | Programmer 1 | M | • Every accepted movement input advances tick by 1; • tick starts at 0 on level load; • tick can broadcast update to all phase-based objects |
+| TIME-02 | Tick Update Order Implementation | Time System | Critical | Done | TIME-01 | Programmer 1, Programmer 2 | S | • Uses chosen order: Input → Tick Update → World Phase Update → Player Slide; • order is documented in code comments; • no object updates twice per input ⚠️ *If playtest feels too hard, this may be switched to slide-before-update* |
+| TIME-03 | Phase Object Interface | Time System | Critical | Done | TIME-01 | Programmer 2 | M | • Time-based objects expose `updatePhase(tick)` or equivalent; • phase uses `tick % phaseCount`; • object-specific patterns can be configured per level |
+| TIME-04 | Time Gate | Gameplay Object | Critical | Done | TIME-03, CORE-02 | Programmer 2 | M | • Gate opens/closes based on phase pattern; • closed gate behaves like wall; • open gate can be passed through; • visual state clearly differs between open and closed |
+| TIME-05 | Laser Trap | Gameplay Object | High | Done | TIME-03, CORE-06 | Programmer 2 | M | • Laser alternates active/inactive by phase; • active laser kills player when crossed; • inactive laser is safe; • visual clarity supports red active and dim inactive state |
+| TIME-06 | Spike Trap | Gameplay Object | High | Done | TIME-03, CORE-06 | Programmer 2 | M | • Spike supports Safe, Warning, Active phases; • only Active kills player; • Warning phase is visually obvious; • pattern can be tuned per level |
+| TIME-07 | Enemy Patrol | Gameplay Object | High | Done | TIME-03, CORE-06 | Programmer 2 | M | • Enemy position changes by tick phase; • player dies if crossing or landing on enemy tile; • enemy path can be defined per level; • at least one 4-phase patrol works |
+| TIME-08 | Phase Pattern Data | Tools / Data | Medium | Done | TIME-03, TIME-04 | Programmer 2 | S | • Gates, lasers, spikes, and enemies use reusable phase patterns; • designer can edit pattern values without changing core logic; • invalid pattern fails safely |
+| TIME-09 | No-Wait Rule Enforcement | Core Systems | Critical | Done | TIME-01 | Programmer 1 | XS | • No wait / skip turn button exists; • tick only advances from valid directional input; • invalid blocked input decision is consistent and documented ⚠️ *Need decide whether pressing into an immediate wall counts as valid movement or ignored input* |
 
 ---
 
@@ -82,13 +82,13 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| SPACE-01 | Anchor Tile | Space Mechanic | High | Not Started | CORE-06 | Programmer 2 | S | • Anchor stops player when crossed; • player lands on anchor tile; • anchor creates reliable timing-control spots; • visual is readable as a stop pad |
-| SPACE-02 | Gravity Blocker — Basic | Space Mechanic | High | Not Started | CORE-06 | Programmer 2 | M | • Blocker can stop horizontal or vertical movement; • blocker behaves differently from normal wall; • player understands blocked direction from visual shape |
-| SPACE-03 | One-Way Gravity Blocker | Space Mechanic | Medium | Not Started | SPACE-02 | Programmer 2 | S | • Optional one-way blocker allows entry from allowed side only; • invalid side stops player; • used only if levels need more spatial variety |
-| SPACE-04 | Bounce Tile Optional | Space Mechanic | Low | Not Started | CORE-06 | Programmer 2 | M | • Bounce changes player direction automatically; • can be disabled/cut if core mechanics are not stable; • not required for MVP |
-| SPACE-05 | Phase Goal Optional | Time + Objective | Low | Not Started | TIME-03, CORE-03 | Programmer 2 | S | • Goal can be active only on chosen phase; • inactive goal is visually distinct; • reserved for final level only if readable |
-| SPACE-06 | Tile Collision Priority Rules | Collision | High | Not Started | CORE-06, TIME-04, SPACE-01 | Programmer 1, Programmer 2 | S | • Collision order is documented: wall/blocker/closed gate, active hazard/enemy, goal, anchor, empty; • edge cases are tested; • tile with multiple elements follows consistent priority |
-| SPACE-07 | Puzzle Loop Support | Level Design | High | Not Started | SPACE-01, TIME-04 | Designer | S | • Levels include loops or anchors to advance tick without feeling unfair; • no-wait rule is accounted for; • at least 2 levels intentionally use timing loops |
+| SPACE-01 | Anchor Tile | Space Mechanic | High | Done | CORE-06 | Programmer 2 | S | • Anchor stops player when crossed; • player lands on anchor tile; • anchor creates reliable timing-control spots; • visual is readable as a stop pad |
+| SPACE-02 | Gravity Blocker — Basic | Space Mechanic | High | Done | CORE-06 | Programmer 2 | M | • Blocker can stop horizontal or vertical movement; • blocker behaves differently from normal wall; • player understands blocked direction from visual shape |
+| SPACE-03 | One-Way Gravity Blocker | Space Mechanic | Medium | Cut / Deferred | SPACE-02 | Programmer 2 | S | • Optional one-way blocker allows entry from allowed side only; • invalid side stops player; • used only if levels need more spatial variety |
+| SPACE-04 | Bounce Tile Optional | Space Mechanic | Low | Cut / Deferred | CORE-06 | Programmer 2 | M | • Bounce changes player direction automatically; • can be disabled/cut if core mechanics are not stable; • not required for MVP |
+| SPACE-05 | Phase Goal Optional | Time + Objective | Low | Cut / Deferred | TIME-03, CORE-03 | Programmer 2 | S | • Goal can be active only on chosen phase; • inactive goal is visually distinct; • reserved for final level only if readable |
+| SPACE-06 | Tile Collision Priority Rules | Collision | High | Done | CORE-06, TIME-04, SPACE-01 | Programmer 1, Programmer 2 | S | • Collision order is documented: wall/blocker/closed gate, active hazard/enemy, goal, anchor, empty; • edge cases are tested; • tile with multiple elements follows consistent priority |
+| SPACE-07 | Puzzle Loop Support | Level Design | High | Done | SPACE-01, TIME-04 | Designer | S | • Levels include loops or anchors to advance tick without feeling unfair; • no-wait rule is accounted for; • at least 2 levels intentionally use timing loops |
 
 ---
 
@@ -96,17 +96,17 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| LEVEL-01 | Level 1 — First Shift | Level Design | Critical | Not Started | CORE-09 | Designer | S | • Teaches gravity slide only; • player reaches goal without time objects; • short and low-friction |
-| LEVEL-02 | Level 2 — Time Starts Moving | Level Design | Critical | Not Started | TIME-04 | Designer | S | • Introduces tick counter and simple gate; • gate pattern is readable; • level can be solved without hidden knowledge |
-| LEVEL-03 | Level 3 — No Waiting | Level Design | Critical | Not Started | TIME-04, SPACE-07 | Designer | S | • Demonstrates no-wait rule; • includes small movement loop to adjust timing; • player learns that movement is the only way to advance time |
-| LEVEL-04 | Level 4 — Laser Rhythm | Level Design | Critical | Not Started | TIME-05 | Designer | S | • Introduces laser on/off pattern; • player must cross laser during safe phase; • death teaches timing without feeling random |
-| LEVEL-05 | Level 5 — Spike Warning | Level Design | Critical | Not Started | TIME-06, SPACE-01 | Designer | S | • Introduces 3-phase spike with warning; • anchor tile helps player control timing; • clear visual warning before active phase |
-| LEVEL-06 | Level 6 — Patrol Pattern | Level Design | High | Not Started | TIME-07, TIME-04 | Designer | S | • Introduces enemy patrol; • enemy path is short and readable; • combines patrol with at most one gate |
-| LEVEL-07 | Level 7 — Gravity Blocker | Level Design | High | Not Started | SPACE-02, TIME-04 | Designer | S | • Introduces blocker as spatial constraint; • player must approach from correct gravity direction; • timing remains secondary but present |
-| LEVEL-08 | Level 8 — Final Sync | Level Design | High | Not Started | LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05, LEVEL-06, LEVEL-07 | Designer, All | M | • Combines Time Gate, Laser, Spike, Enemy Patrol, Anchor, and Gravity Blocker; • puzzle is hard but readable; • final level has satisfying clear moment |
-| LEVEL-09 | Move Count Targets | Scoring | Medium | Not Started | LEVEL-01 | Designer | S | • Each level has Bronze clear, Silver target, and Gold target if medals are implemented; • target values are playtested; • best shift data can be shown or stored |
-| LEVEL-10 | Level Order & Difficulty Pass | Level Design | High | Not Started | LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05 | Designer | M | • Mechanics introduced one at a time; • no level requires unexplained behavior; • difficulty curve rises gradually |
-| LEVEL-11 | Level Notes / Solutions | Documentation | Medium | Not Started | LEVEL-01 | Designer | S | • Each level has intended solution notes; • approximate minimum move count written; • known alternative routes documented |
+| LEVEL-01 | Level 1 — First Shift | Level Design | Critical | Done | CORE-09 | Designer | S | • Teaches gravity slide only; • player reaches goal without time objects; • short and low-friction |
+| LEVEL-02 | Level 2 — Time Starts Moving | Level Design | Critical | Done | TIME-04 | Designer | S | • Introduces tick counter and simple gate; • gate pattern is readable; • level can be solved without hidden knowledge |
+| LEVEL-03 | Level 3 — No Waiting | Level Design | Critical | Done | TIME-04, SPACE-07 | Designer | S | • Demonstrates no-wait rule; • includes small movement loop to adjust timing; • player learns that movement is the only way to advance time |
+| LEVEL-04 | Level 4 — Laser Rhythm | Level Design | Critical | Done | TIME-05 | Designer | S | • Introduces laser on/off pattern; • player must cross laser during safe phase; • death teaches timing without feeling random |
+| LEVEL-05 | Level 5 — Spike Warning | Level Design | Critical | Done | TIME-06, SPACE-01 | Designer | S | • Introduces 3-phase spike with warning; • anchor tile helps player control timing; • clear visual warning before active phase |
+| LEVEL-06 | Level 6 — Patrol Pattern | Level Design | High | Done | TIME-07, TIME-04 | Designer | S | • Introduces enemy patrol; • enemy path is short and readable; • combines patrol with at most one gate |
+| LEVEL-07 | Level 7 — Gravity Blocker | Level Design | High | Done | SPACE-02, TIME-04 | Designer | S | • Introduces blocker as spatial constraint; • player must approach from correct gravity direction; • timing remains secondary but present |
+| LEVEL-08 | Level 8 — Final Sync | Level Design | High | Done | LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05, LEVEL-06, LEVEL-07 | Designer, All | M | • Combines Time Gate, Laser, Spike, Enemy Patrol, Anchor, and Gravity Blocker; • puzzle is hard but readable; • final level has satisfying clear moment |
+| LEVEL-09 | Move Count Targets | Scoring | Medium | Done | LEVEL-01 | Designer | S | • Each level has Bronze clear, Silver target, and Gold target if medals are implemented; • target values are playtested; • best shift data can be shown or stored |
+| LEVEL-10 | Level Order & Difficulty Pass | Level Design | High | Done | LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05 | Designer | M | • Mechanics introduced one at a time; • no level requires unexplained behavior; • difficulty curve rises gradually |
+| LEVEL-11 | Level Notes / Solutions | Documentation | Medium | Cut / Deferred | LEVEL-01 | Designer | S | • Each level has intended solution notes; • approximate minimum move count written; • known alternative routes documented |
 
 ---
 
@@ -114,18 +114,18 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| UI-01 | Basic HUD | UI/HUD | Critical | Not Started | TIME-01, CORE-07 | Artist / UI / Audio | S | • HUD shows Gravity direction, Tick, Current Phase, and Time Shifts; • values update immediately; • readable at gamejam screen sizes |
-| UI-02 | Gravity Direction Indicator | UI/HUD | High | Not Started | CORE-01 | Artist / UI / Audio | S | • Current gravity direction shown as arrow near player or HUD; • direction changes with input; • does not obstruct puzzle readability |
-| UI-03 | Phase Visual Feedback | UI/HUD | High | Not Started | TIME-04, TIME-05, TIME-06 | Artist / UI / Audio | M | • Gate open/closed, laser active/inactive, spike warning/active are visually distinct; • phase changes animate or flash clearly; • player can predict danger state |
-| UI-04 | Main Menu | UI/HUD | High | Not Started | FOUND-01 | Artist / UI / Audio | S | • Start Game button works; • title shown; • control hint visible; • menu fits final visual direction |
-| UI-05 | Level Select | UI/HUD | Medium | Not Started | CORE-08 | Artist / UI / Audio | S | • Player can choose unlocked or all levels depending jam decision; • level buttons are clear; • useful for judges to quickly see content |
-| UI-06 | Level Clear Screen | UI/HUD | High | Not Started | CORE-03, CORE-07 | Artist / UI / Audio | S | • Shows Level Cleared and Time Shifts Used; • shows Best if implemented; • has Next and Restart options |
-| UI-07 | Death Feedback | UI/HUD | High | Not Started | CORE-05 | Artist / UI / Audio | S | • Death has short visual effect; • restart prompt appears quickly; • death-to-restart target is under 1 second |
-| UI-08 | Pause Menu | UI/HUD | Medium | Not Started | FOUND-06 | Artist / UI / Audio | S | • Esc opens pause; • Resume, Restart, Main Menu available; • paused state prevents input/movement |
-| UI-09 | Tutorial Text Prompts | Tutorial | Medium | Not Started | LEVEL-01, UI-01 | Designer, Artist / UI / Audio | S | • Short prompts explain one concept per early level; • no long paragraph blocks; • text can be skipped or ignored after first read |
-| FEEL-01 | Slide Speed Tuning | Game Feel | High | Not Started | CORE-01 | Programmer 1, Designer | S | • Slide is fast enough for repeated restart; • movement remains readable; • collision impact feels responsive |
-| FEEL-02 | Screen Shake / Impact | Game Feel | Low | Not Started | CORE-02, CORE-05 | Artist / UI / Audio | XS | • Tiny impact on wall hit/death; • can be disabled if distracting; • not required for MVP |
-| FEEL-03 | Tick Pulse Feedback | Game Feel | High | Not Started | TIME-01 | Artist / UI / Audio | S | • Every tick has small visual or audio pulse; • reinforces time moving; • not visually overwhelming |
+| UI-01 | Basic HUD | UI/HUD | Critical | Done | TIME-01, CORE-07 | Artist / UI / Audio | S | • HUD shows Gravity direction, Tick, Current Phase, and Time Shifts; • values update immediately; • readable at gamejam screen sizes |
+| UI-02 | Gravity Direction Indicator | UI/HUD | High | Done | CORE-01 | Artist / UI / Audio | S | • Current gravity direction shown as arrow near player or HUD; • direction changes with input; • does not obstruct puzzle readability |
+| UI-03 | Phase Visual Feedback | UI/HUD | High | Done | TIME-04, TIME-05, TIME-06 | Artist / UI / Audio | M | • Gate open/closed, laser active/inactive, spike warning/active are visually distinct; • phase changes animate or flash clearly; • player can predict danger state |
+| UI-04 | Main Menu | UI/HUD | High | Done | FOUND-01 | Artist / UI / Audio | S | • Start Game button works; • title shown; • control hint visible; • menu fits final visual direction |
+| UI-05 | Level Select | UI/HUD | Medium | Done | CORE-08 | Artist / UI / Audio | S | • Player can choose unlocked or all levels depending jam decision; • level buttons are clear; • useful for judges to quickly see content |
+| UI-06 | Level Clear Screen | UI/HUD | High | Done | CORE-03, CORE-07 | Artist / UI / Audio | S | • Shows Level Cleared and Time Shifts Used; • shows Best if implemented; • has Next and Restart options |
+| UI-07 | Death Feedback | UI/HUD | High | Done | CORE-05 | Artist / UI / Audio | S | • Death has short visual effect; • restart prompt appears quickly; • death-to-restart target is under 1 second |
+| UI-08 | Pause Menu | UI/HUD | Medium | Done | FOUND-06 | Artist / UI / Audio | S | • Esc opens pause; • Resume, Restart, Main Menu available; • paused state prevents input/movement |
+| UI-09 | Tutorial Text Prompts | Tutorial | Medium | Done | LEVEL-01, UI-01 | Designer, Artist / UI / Audio | S | • Short prompts explain one concept per early level; • no long paragraph blocks; • text can be skipped or ignored after first read |
+| FEEL-01 | Slide Speed Tuning | Game Feel | High | Done | CORE-01 | Programmer 1, Designer | S | • Slide is fast enough for repeated restart; • movement remains readable; • collision impact feels responsive |
+| FEEL-02 | Screen Shake / Impact | Game Feel | Low | Done | CORE-02, CORE-05 | Artist / UI / Audio | XS | • Tiny impact on wall hit/death; • can be disabled if distracting; • not required for MVP |
+| FEEL-03 | Tick Pulse Feedback | Game Feel | High | Done | TIME-01 | Artist / UI / Audio | S | • Every tick has small visual or audio pulse; • reinforces time moving; • not visually overwhelming |
 
 ---
 
@@ -133,16 +133,16 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| ART-01 | Final Tile Visual Set | Art | High | Not Started | FOUND-04 | Artist / UI / Audio | M | • Floor, wall, goal, gate, laser, spike, anchor, blocker, enemy, player have readable sprites/shapes; • color language matches GDD; • assets remain simple enough for jam scope |
-| ART-02 | Player Visual Polish | Art | Medium | Not Started | CORE-01 | Artist / UI / Audio | S | • Player is a bright readable box or orb; • direction/gravity state can be understood; • death/clear state has simple feedback |
-| ART-03 | Background / Arena Framing | Art | Medium | Not Started | FOUND-04 | Artist / UI / Audio | S | • Puzzle arena is visually framed; • background does not hide hazards; • final screenshots look presentable |
-| AUDIO-01 | Core SFX Pack | Audio | High | Not Started | CORE-01, TIME-01 | Artist / UI / Audio | M | • SFX exists for gravity shift, slide, wall hit, tick, gate change, trap change, death, and level clear; • volume balanced; • no harsh clipping |
-| AUDIO-02 | Music Loop | Audio | Medium | Not Started | FOUND-01 | Artist / UI / Audio | S | • Minimal electronic loop plays during gameplay; • loops cleanly; • music does not mask important SFX |
-| AUDIO-03 | Menu / Clear Stingers | Audio | Low | Not Started | UI-04, UI-06 | Artist / UI / Audio | XS | • Short menu/select/clear sounds added; • optional if time is limited |
-| PUB-01 | Web Build Export | Publishing | Critical | Not Started | QA-01 | Programmer 1 | S | • Final build runs in browser; • no missing asset errors; • playable from clean folder/export |
-| PUB-02 | Itch.io Page Assets | Publishing | High | Not Started | ART-01, PUB-01 | Artist / UI / Audio | M | • Cover image, screenshots, short description, controls, and credits prepared; • page clearly communicates Time and Space hook |
-| PUB-03 | Credits Screen / Text | Publishing | Medium | Not Started | UI-04 | Artist / UI / Audio | XS | • Credits list all 4 members and roles; • asset/audio attribution included if external assets are used |
-| PUB-04 | Final Game Description | Publishing | Medium | Not Started | PUB-02 | Designer | XS | • Itch short description includes: shift gravity, advance time, phase-changing traps, reach the goal; • controls are listed clearly |
+| ART-01 | Final Tile Visual Set | Art | High | Cut / Deferred | FOUND-04 | Artist / UI / Audio | M | • Floor, wall, goal, gate, laser, spike, anchor, blocker, enemy, player have readable sprites/shapes; • color language matches GDD; • assets remain simple enough for jam scope |
+| ART-02 | Player Visual Polish | Art | Medium | Cut / Deferred | CORE-01 | Artist / UI / Audio | S | • Player is a bright readable box or orb; • direction/gravity state can be understood; • death/clear state has simple feedback |
+| ART-03 | Background / Arena Framing | Art | Medium | Cut / Deferred | FOUND-04 | Artist / UI / Audio | S | • Puzzle arena is visually framed; • background does not hide hazards; • final screenshots look presentable |
+| AUDIO-01 | Core SFX Pack | Audio | High | Cut / Deferred | CORE-01, TIME-01 | Artist / UI / Audio | M | • SFX exists for gravity shift, slide, wall hit, tick, gate change, trap change, death, and level clear; • volume balanced; • no harsh clipping |
+| AUDIO-02 | Music Loop | Audio | Medium | Cut / Deferred | FOUND-01 | Artist / UI / Audio | S | • Minimal electronic loop plays during gameplay; • loops cleanly; • music does not mask important SFX |
+| AUDIO-03 | Menu / Clear Stingers | Audio | Low | Cut / Deferred | UI-04, UI-06 | Artist / UI / Audio | XS | • Short menu/select/clear sounds added; • optional if time is limited |
+| PUB-01 | Web Build Export | Publishing | Critical | Cut / Deferred | QA-01 | Programmer 1 | S | • Final build runs in browser; • no missing asset errors; • playable from clean folder/export |
+| PUB-02 | Itch.io Page Assets | Publishing | High | Cut / Deferred | ART-01, PUB-01 | Artist / UI / Audio | M | • Cover image, screenshots, short description, controls, and credits prepared; • page clearly communicates Time and Space hook |
+| PUB-03 | Credits Screen / Text | Publishing | Medium | Done | UI-04 | Artist / UI / Audio | XS | • Credits list all 4 members and roles; • asset/audio attribution included if external assets are used |
+| PUB-04 | Final Game Description | Publishing | Medium | Cut / Deferred | PUB-02 | Designer | XS | • Itch short description includes: shift gravity, advance time, phase-changing traps, reach the goal; • controls are listed clearly |
 
 ---
 
@@ -150,14 +150,14 @@
 
 | Task ID | Title | Category | Priority | Status | Dependencies | Assignee | Effort | Acceptance Criteria |
 |---------|-------|----------|----------|--------|--------------|----------|--------|---------------------|
-| QA-01 | MVP End-to-End Test | QA | Critical | Not Started | CORE-01, TIME-04, LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05 | All | M | • At least 5 levels are playable from start to finish; • restart works; • death works; • clear works; • no crash/blocker bugs |
-| QA-02 | Full 8-Level Test | QA | High | Not Started | LEVEL-08 | All | M | • All 8 levels can be completed; • level order works; • no impossible puzzle unless intentionally marked cut; • judge can reach final level |
-| QA-03 | Collision Edge Case Test | QA | High | Not Started | SPACE-06 | Programmer 1, Programmer 2 | S | • Closed gate stops correctly; • active hazard kills correctly; • anchor stops correctly; • enemy collision works during sliding and landing |
-| QA-04 | Readability Test | QA | High | Not Started | UI-03, ART-01 | Designer, Artist / UI / Audio | S | • New player can tell which hazard is active; • gate open/closed state is obvious; • spike warning is not confused with safe state |
-| QA-05 | Difficulty / Frustration Pass | QA | High | Not Started | LEVEL-10 | Designer, All | M | • Early levels are tutorial-friendly; • no-wait puzzles include timing loops or anchors; • final level is hard but not obscure |
-| QA-06 | Browser Compatibility Check | QA | Medium | Not Started | PUB-01 | Programmer 1 | S | • Build tested in at least Chrome/Edge; • audio starts after user interaction if browser requires it; • fullscreen/window scaling works |
-| QA-07 | Performance Pass | QA | Medium | Not Started | PUB-01 | Programmer 1 | XS | • Game maintains stable frame rate on target laptop/browser; • no heavy memory leak from restarts; • level reload remains fast |
-| QA-08 | Submission Checklist | Publishing | Critical | Not Started | PUB-01, PUB-02, PUB-03 | All | S | • Game uploaded before deadline; • page has controls and screenshots; • build is public or correctly submitted; • final downloadable/web build tested after upload |
+| QA-01 | MVP End-to-End Test | QA | Critical | Done | CORE-01, TIME-04, LEVEL-01, LEVEL-02, LEVEL-03, LEVEL-04, LEVEL-05 | All | M | • At least 5 levels are playable from start to finish; • restart works; • death works; • clear works; • no crash/blocker bugs |
+| QA-02 | Full 8-Level Test | QA | High | Done | LEVEL-08 | All | M | • All 8 levels can be completed; • level order works; • no impossible puzzle unless intentionally marked cut; • judge can reach final level |
+| QA-03 | Collision Edge Case Test | QA | High | Done | SPACE-06 | Programmer 1, Programmer 2 | S | • Closed gate stops correctly; • active hazard kills correctly; • anchor stops correctly; • enemy collision works during sliding and landing |
+| QA-04 | Readability Test | QA | High | Done | UI-03, ART-01 | Designer, Artist / UI / Audio | S | • New player can tell which hazard is active; • gate open/closed state is obvious; • spike warning is not confused with safe state |
+| QA-05 | Difficulty / Frustration Pass | QA | High | Done | LEVEL-10 | Designer, All | M | • Early levels are tutorial-friendly; • no-wait puzzles include timing loops or anchors; • final level is hard but not obscure |
+| QA-06 | Browser Compatibility Check | QA | Medium | Cut / Deferred | PUB-01 | Programmer 1 | S | • Build tested in at least Chrome/Edge; • audio starts after user interaction if browser requires it; • fullscreen/window scaling works |
+| QA-07 | Performance Pass | QA | Medium | Cut / Deferred | PUB-01 | Programmer 1 | XS | • Game maintains stable frame rate on target laptop/browser; • no heavy memory leak from restarts; • level reload remains fast |
+| QA-08 | Submission Checklist | Publishing | Critical | Cut / Deferred | PUB-01, PUB-02, PUB-03 | All | S | • Game uploaded before deadline; • page has controls and screenshots; • build is public or correctly submitted; • final downloadable/web build tested after upload |
 
 ---
 
@@ -305,14 +305,14 @@ The game is considered submit-ready if it has:
 
 | Item | Required? | Owner | Status |
 |------|-----------|-------|--------|
-| Web playable build | Yes | Programmer 1 | Not Started |
-| 5 MVP levels | Yes | Designer | Not Started |
-| 8 full gamejam levels | Recommended | Designer | Not Started |
-| Basic HUD | Yes | Artist / UI / Audio | Not Started |
-| SFX | Recommended | Artist / UI / Audio | Not Started |
-| Music loop | Recommended | Artist / UI / Audio | Not Started |
-| Itch.io cover image | Recommended | Artist / UI / Audio | Not Started |
-| Screenshots | Yes | Artist / UI / Audio | Not Started |
-| Controls text | Yes | Designer | Not Started |
-| Credits / attribution | Yes | All | Not Started |
+| Web playable build | Yes | Programmer 1 | Cut / Deferred |
+| 5 MVP levels | Yes | Designer | Done |
+| 8 full gamejam levels | Recommended | Designer | Done |
+| Basic HUD | Yes | Artist / UI / Audio | Done |
+| SFX | Recommended | Artist / UI / Audio | Cut / Deferred |
+| Music loop | Recommended | Artist / UI / Audio | Cut / Deferred |
+| Itch.io cover image | Recommended | Artist / UI / Audio | Cut / Deferred |
+| Screenshots | Yes | Artist / UI / Audio | Cut / Deferred |
+| Controls text | Yes | Designer | Cut / Deferred |
+| Credits / attribution | Yes | All | Done |
 
