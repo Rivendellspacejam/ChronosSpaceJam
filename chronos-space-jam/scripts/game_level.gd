@@ -60,7 +60,9 @@ func _process(delta: float) -> void:
 			camera.offset = Vector2.ZERO
 
 func apply_shake(intensity: float, duration: float) -> void:
-	_shake_intensity = intensity
+	if not SettingsManager.screen_shake_enabled:
+		return
+	_shake_intensity = intensity * (SettingsManager.screen_shake_intensity / 100.0)
 	_shake_duration = duration
 
 func _on_tick_advanced(_tick: int) -> void:

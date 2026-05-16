@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="2"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -71,6 +72,12 @@ custom_minimum_size = Vector2(0, 45)
 theme_override_font_sizes/font_size = 20
 text = "CREDITS"
 
+[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 45)
+theme_override_font_sizes/font_size = 20
+text = "SETTINGS"
+
 [node name="QuitButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
@@ -94,3 +101,7 @@ theme_override_colors/font_color = Color(0.4, 0.4, 0.5, 0.7)
 theme_override_font_sizes/font_size = 14
 text = "WASD: Shift Gravity | R: Restart | Esc: Pause"
 horizontal_alignment = 1
+
+[node name="SettingsMenu" parent="." instance=ExtResource("2")]
+visible = false
+
