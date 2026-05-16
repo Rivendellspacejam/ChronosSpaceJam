@@ -6,9 +6,9 @@ extends Node
 signal settings_changed
 
 # --- Audio ---
-var master_volume : float = 100.0
-var music_volume  : float = 100.0
-var sfx_volume    : float = 100.0
+var master_volume : float = 50.0
+var music_volume  : float = 50.0
+var sfx_volume    : float = 50.0
 var mute_all      : bool  = false
 
 # --- Display ---
@@ -17,7 +17,7 @@ var vsync      : bool = true
 
 # --- Gameplay ---
 var screen_shake_enabled   : bool  = true
-var screen_shake_intensity : float = 100.0
+var screen_shake_intensity : float = 50.0
 
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -110,13 +110,13 @@ func load_settings() -> void:
 	if cfg.load(SETTINGS_PATH) != OK:
 		return  # file doesn't exist yet — keep defaults
 
-	master_volume = cfg.get_value("audio", "master_volume", 100.0)
-	music_volume  = cfg.get_value("audio", "music_volume",  100.0)
-	sfx_volume    = cfg.get_value("audio", "sfx_volume",    100.0)
+	master_volume = cfg.get_value("audio", "master_volume", 50.0)
+	music_volume  = cfg.get_value("audio", "music_volume",  50.0)
+	sfx_volume    = cfg.get_value("audio", "sfx_volume",    50.0)
 	mute_all      = cfg.get_value("audio", "mute_all",      false)
 
 	fullscreen = cfg.get_value("display", "fullscreen", false)
 	vsync      = cfg.get_value("display", "vsync",      true)
 
 	screen_shake_enabled   = cfg.get_value("gameplay", "screen_shake",           true)
-	screen_shake_intensity = cfg.get_value("gameplay", "screen_shake_intensity", 100.0)
+	screen_shake_intensity = cfg.get_value("gameplay", "screen_shake_intensity", 50.0)

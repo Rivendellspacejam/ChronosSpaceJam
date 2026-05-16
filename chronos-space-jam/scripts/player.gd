@@ -78,6 +78,7 @@ func _unhandled_input(event : InputEvent) -> void:
 func _start_slide(direction : Vector2i) -> void:
 	state = PlayerState.SLIDING
 	GameManager.set_state(GameManager.GameState.SLIDING)
+	AudioManager.play_slide_start()
 	slide_started.emit(direction)
 	_slide_direction = direction
 

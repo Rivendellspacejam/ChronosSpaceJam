@@ -1,9 +1,78 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/settings_menu.gd" id="1"]
 
+[sub_resource type="StyleBoxFlat" id="SettingsCardStyle"]
+bg_color = Color(0.055, 0.058, 0.078, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.22, 0.78, 0.92, 0.28)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.42)
+shadow_size = 18
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="SectionCardStyle"]
+bg_color = Color(0.09, 0.095, 0.125, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.38, 0.56, 0.26)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormalStyle"]
+bg_color = Color(0.08, 0.11, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.72, 0.86, 0.45)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="ButtonHoverStyle"]
+bg_color = Color(0.11, 0.18, 0.23, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.34, 0.92, 1, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="SliderStyle"]
+bg_color = Color(0.2, 0.24, 0.31, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxFlat" id="SliderFillStyle"]
+bg_color = Color(0.27, 0.9, 1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+
 [node name="SettingsMenu" type="Control"]
-process_mode = 0
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,7 +88,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.04, 0.08, 0.95)
+color = Color(0.015, 0.018, 0.032, 0.94)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -31,210 +100,309 @@ grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(480, 0)
+custom_minimum_size = Vector2(620, 0)
+theme_override_styles/panel = SubResource("SettingsCardStyle")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.34, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 34
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="Spacer0" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
-
-[node name="AudioSection" type="VBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="AudioHeader" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.6, 0.8, 0.6)
+theme_override_colors/font_color = Color(0.58, 0.67, 0.86, 0.74)
 theme_override_font_sizes/font_size = 14
+text = "Tune the feel of the run"
+horizontal_alignment = 1
+
+[node name="AudioSection" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SectionCardStyle")
+
+[node name="AudioMargin" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="AudioVBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AudioHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.86, 1, 0.88)
+theme_override_font_sizes/font_size = 13
 text = "AUDIO"
 
-[node name="MasterRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection"]
+[node name="MasterRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
-[node name="MasterLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MasterRow"]
+[node name="MasterLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MasterRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Master Volume"
 vertical_alignment = 1
 
-[node name="MasterSlider" type="HSlider" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MasterRow"]
+[node name="MasterSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MasterRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(230, 30)
+theme_override_styles/slider = SubResource("SliderStyle")
+theme_override_styles/grabber_area = SubResource("SliderFillStyle")
+theme_override_styles/grabber_area_highlight = SubResource("SliderFillStyle")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
-value = 100.0
+value = 50.0
 
-[node name="MusicRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection"]
+[node name="MasterValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MasterRow"]
 layout_mode = 2
-theme_override_constants/separation = 12
+custom_minimum_size = Vector2(54, 30)
+theme_override_colors/font_color = Color(0.72, 0.84, 0.95, 0.9)
+theme_override_font_sizes/font_size = 15
+text = "50%"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="MusicLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MusicRow"]
+[node name="MusicRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+theme_override_constants/separation = 14
+
+[node name="MusicLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MusicRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Music Volume"
 vertical_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MusicRow"]
+[node name="MusicSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MusicRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(230, 30)
+theme_override_styles/slider = SubResource("SliderStyle")
+theme_override_styles/grabber_area = SubResource("SliderFillStyle")
+theme_override_styles/grabber_area_highlight = SubResource("SliderFillStyle")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
-value = 100.0
+value = 50.0
 
-[node name="SFXRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection"]
+[node name="MusicValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MusicRow"]
 layout_mode = 2
-theme_override_constants/separation = 12
+custom_minimum_size = Vector2(54, 30)
+theme_override_colors/font_color = Color(0.72, 0.84, 0.95, 0.9)
+theme_override_font_sizes/font_size = 15
+text = "50%"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="SFXLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/SFXRow"]
+[node name="SFXRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+theme_override_constants/separation = 14
+
+[node name="SFXLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/SFXRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "SFX Volume"
 vertical_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/SFXRow"]
+[node name="SFXSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/SFXRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(230, 30)
+theme_override_styles/slider = SubResource("SliderStyle")
+theme_override_styles/grabber_area = SubResource("SliderFillStyle")
+theme_override_styles/grabber_area_highlight = SubResource("SliderFillStyle")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
-value = 100.0
+value = 50.0
 
-[node name="MuteRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection"]
+[node name="SFXValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/SFXRow"]
 layout_mode = 2
-theme_override_constants/separation = 12
+custom_minimum_size = Vector2(54, 30)
+theme_override_colors/font_color = Color(0.72, 0.84, 0.95, 0.9)
+theme_override_font_sizes/font_size = 15
+text = "50%"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="MuteLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MuteRow"]
+[node name="MuteRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+theme_override_constants/separation = 14
+
+[node name="MuteLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MuteRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Mute All"
 vertical_alignment = 1
 
-[node name="MuteButton" type="CheckButton" parent="CenterContainer/PanelContainer/VBoxContainer/AudioSection/MuteRow"]
+[node name="MuteSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MuteRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+size_flags_horizontal = 3
 
-[node name="Spacer1" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="MuteButton" type="CheckButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/AudioSection/AudioMargin/AudioVBox/MuteRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+theme_override_font_sizes/font_size = 17
 
-[node name="DisplaySection" type="VBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="DisplaySection" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_styles/panel = SubResource("SectionCardStyle")
 
-[node name="DisplayHeader" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection"]
+[node name="DisplayMargin" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.6, 0.8, 0.6)
-theme_override_font_sizes/font_size = 14
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="DisplayVBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DisplayHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.86, 1, 0.88)
+theme_override_font_sizes/font_size = 13
 text = "DISPLAY"
 
-[node name="FullscreenRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection"]
+[node name="FullscreenRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
-[node name="FullscreenLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection/FullscreenRow"]
+[node name="FullscreenLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/FullscreenRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Fullscreen"
 vertical_alignment = 1
 
-[node name="FullscreenButton" type="CheckButton" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection/FullscreenRow"]
+[node name="FullscreenSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/FullscreenRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+size_flags_horizontal = 3
 
-[node name="VSyncRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection"]
+[node name="FullscreenButton" type="CheckButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/FullscreenRow"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_font_sizes/font_size = 17
 
-[node name="VSyncLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection/VSyncRow"]
+[node name="VSyncRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+theme_override_constants/separation = 14
+
+[node name="VSyncLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/VSyncRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "VSync"
 vertical_alignment = 1
 
-[node name="VSyncButton" type="CheckButton" parent="CenterContainer/PanelContainer/VBoxContainer/DisplaySection/VSyncRow"]
+[node name="VSyncSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/VSyncRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+size_flags_horizontal = 3
+
+[node name="VSyncButton" type="CheckButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/DisplaySection/DisplayMargin/DisplayVBox/VSyncRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
 button_pressed = true
 
-[node name="Spacer2" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="GameplaySection" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+theme_override_styles/panel = SubResource("SectionCardStyle")
 
-[node name="GameplaySection" type="VBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="GameplayMargin" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
 
-[node name="GameplayHeader" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection"]
+[node name="GameplayVBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.6, 0.8, 0.6)
-theme_override_font_sizes/font_size = 14
+theme_override_constants/separation = 10
+
+[node name="GameplayHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.86, 1, 0.88)
+theme_override_font_sizes/font_size = 13
 text = "GAMEPLAY"
 
-[node name="ShakeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection"]
+[node name="ShakeRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
-[node name="ShakeLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection/ShakeRow"]
+[node name="ShakeLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Screen Shake"
 vertical_alignment = 1
 
-[node name="ShakeButton" type="CheckButton" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection/ShakeRow"]
+[node name="ShakeSpacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+size_flags_horizontal = 3
+
+[node name="ShakeButton" type="CheckButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
 button_pressed = true
 
-[node name="ShakeIntensityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection"]
+[node name="ShakeIntensityRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
-[node name="ShakeIntensityLabel" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection/ShakeIntensityRow"]
+[node name="ShakeIntensityLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 0)
-theme_override_font_sizes/font_size = 18
+custom_minimum_size = Vector2(170, 30)
+theme_override_font_sizes/font_size = 17
 text = "Shake Intensity"
 vertical_alignment = 1
 
-[node name="ShakeSlider" type="HSlider" parent="CenterContainer/PanelContainer/VBoxContainer/GameplaySection/ShakeIntensityRow"]
+[node name="ShakeSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(230, 30)
+theme_override_styles/slider = SubResource("SliderStyle")
+theme_override_styles/grabber_area = SubResource("SliderFillStyle")
+theme_override_styles/grabber_area_highlight = SubResource("SliderFillStyle")
 min_value = 0.0
 max_value = 100.0
 step = 1.0
-value = 100.0
+value = 50.0
 
-[node name="Spacer3" type="Control" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="ShakeValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/GameplaySection/GameplayMargin/GameplayVBox/ShakeIntensityRow"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(54, 30)
+theme_override_colors/font_color = Color(0.72, 0.84, 0.95, 0.9)
+theme_override_font_sizes/font_size = 15
+text = "50%"
+horizontal_alignment = 2
+vertical_alignment = 1
 
-[node name="BackButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="BackButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 45)
-theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 20
+custom_minimum_size = Vector2(0, 44)
+theme_override_colors/font_color = Color(0.34, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("ButtonNormalStyle")
+theme_override_styles/hover = SubResource("ButtonHoverStyle")
+theme_override_styles/pressed = SubResource("ButtonHoverStyle")
 text = "BACK"

@@ -13,9 +13,11 @@ var _shake_intensity : float = 0.0
 var _shake_duration : float = 0.0
 
 func _ready() -> void:
+	AudioManager.stop_music()
 	player.add_to_group("player")
 	GameManager.level_loaded.connect(_on_level_loaded)
 	GameManager.player_died.connect(_on_player_died)
+	GameManager.level_cleared.connect(_on_level_cleared)
 	TickManager.tick_advanced.connect(_on_tick_advanced)
 
 	# Load first level
@@ -66,6 +68,7 @@ func apply_shake(intensity: float, duration: float) -> void:
 	_shake_duration = duration
 
 func _on_tick_advanced(_tick: int) -> void:
+	AudioManager.play_tick()
 	# Subtle shake on tick
 	apply_shake(2.0, 0.1)
 
@@ -73,25 +76,33 @@ func _on_level_loaded(_level_index: int) -> void:
 	_load_current_level()
 
 func _on_player_died() -> void:
+	AudioManager.play_death()
 	# Strong shake on death
 	apply_shake(15.0, 0.4)
+
+func _on_level_cleared(_move_count: int, _best_moves: int, _target: int) -> void:
+	AudioManager.play_level_clear()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("restart"):
 		if GameManager.current_state == GameManager.GameState.DEAD or \
 		   GameManager.current_state == GameManager.GameState.LEVEL_CLEAR or \
 		   GameManager.current_state == GameManager.GameState.PLAYING:
+			AudioManager.play_ui_click()
 			GameManager.restart_level()
 	elif event.is_action_pressed("ui_accept"):
 		if GameManager.current_state == GameManager.GameState.LEVEL_CLEAR:
+			AudioManager.play_ui_click()
 			GameManager.next_level()
 	elif event.is_action_pressed("ui_cancel"):
 		if GameManager.current_state == GameManager.GameState.PLAYING:
+			AudioManager.play_ui_click()
 			GameManager.set_state(GameManager.GameState.PAUSED)
 			get_tree().paused = true
 			if pause_menu:
 				pause_menu.visible = true
 		elif GameManager.current_state == GameManager.GameState.PAUSED:
+			AudioManager.play_ui_back()
 			GameManager.set_state(GameManager.GameState.PLAYING)
 			get_tree().paused = false
 			if pause_menu:
