@@ -4,9 +4,9 @@
 extends Node
 
 # --- Signals ---
-signal state_changed(new_state: GameState)
-signal level_loaded(level_index: int)
-signal level_cleared(move_count: int, best_moves: int)
+signal state_changed(new_state : int)
+signal level_loaded(level_index : int)
+signal level_cleared(move_count : int, best_moves : int, target : int)
 signal player_died()
 
 # --- Enums ---
@@ -20,22 +20,34 @@ enum GameState {
 }
 
 # --- Constants ---
-const LEVEL_DIR := "res://levels/"
-const TOTAL_LEVELS := 8
+const LEVEL_DIR : String = "res://levels/"
+const TOTAL_LEVELS : int = 8
+
+# --- Level Metadata (LEVEL-09) ---
+const LEVEL_TARGETS : Dictionary = {
+	0: 3,  # Level 1
+	1: 5,  # Level 2
+	2: 12, # Level 3
+	3: 8,  # Level 4
+	4: 15, # Level 5
+	5: 18, # Level 6
+	6: 10, # Level 7
+	7: 25, # Level 8
+}
 
 # --- State ---
-var current_state: GameState = GameState.MENU
-var current_level_index: int = 0
-var best_moves: Dictionary = {}  # level_index -> best move count
+var current_state : int = GameState.MENU
+var current_level_index : int = 0
+var best_moves : Dictionary = {}  # level_index -> best move count
 
 # --- Level Data Cache ---
-var _level_data_cache: Dictionary = {}
+var _level_data_cache : Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 # --- State Machine ---
-func set_state(new_state: GameState) -> void:
+func set_state(new_state : int) -> void:
 	if current_state == new_state:
 		return
 	current_state = new_state
@@ -51,7 +63,7 @@ func can_accept_input() -> bool:
 	return current_state == GameState.PLAYING
 
 # --- Level Progression ---
-func load_level(index: int) -> void:
+func load_level(index : int) -> void:
 	current_level_index = clampi(index, 0, TOTAL_LEVELS - 1)
 	level_loaded.emit(current_level_index)
 
@@ -66,35 +78,36 @@ func next_level() -> void:
 func restart_level() -> void:
 	load_level(current_level_index)
 
-func on_level_cleared(move_count: int) -> void:
+func on_level_cleared(move_count : int) -> void:
 	# Track best moves
 	if not best_moves.has(current_level_index) or move_count < best_moves[current_level_index]:
 		best_moves[current_level_index] = move_count
 	set_state(GameState.LEVEL_CLEAR)
-	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count))
+	var target = LEVEL_TARGETS.get(current_level_index, 0)
+	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count), target)
 
 func on_player_died() -> void:
 	set_state(GameState.DEAD)
 	player_died.emit()
 
 # --- Level Data Loading ---
-func get_level_path(index: int) -> String:
-	return LEVEL_DIR + "level_%d.txt" % (index + 1)
+func get_level_path(index : int) -> String:
+	return LEVEL_DIR + "level_" + str(index + 1) + ".txt"
 
-func load_level_data(index: int) -> Array:
-	"""Load level grid data from text file. Returns array of strings (rows)."""
-	var path := get_level_path(index)
+func load_level_data(index : int) -> Array:
+	# Load level grid data from text file. Returns array of strings (rows).
+	var path = get_level_path(index)
 	if _level_data_cache.has(index):
 		return _level_data_cache[index]
 
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
-		push_error("Cannot open level file: %s" % path)
+		push_error("Cannot open level file: " + path)
 		return []
 
-	var rows: Array = []
+	var rows : Array = []
 	while not file.eof_reached():
-		var line := file.get_line().strip_edges()
+		var line = file.get_line().strip_edges()
 		if line.length() > 0:
 			rows.append(line)
 	file.close()

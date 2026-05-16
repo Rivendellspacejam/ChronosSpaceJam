@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://hud_scene"]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1")
@@ -25,7 +26,7 @@ text = "Level 1"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 18
-text = "Gravity: — NONE"
+text = "Gravity: NONE"
 
 [node name="TickLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -106,11 +107,18 @@ theme_override_font_sizes/font_size = 18
 text = "Best: 0"
 horizontal_alignment = 1
 
+[node name="TargetValue" type="Label" parent="ClearPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1.0, 1)
+theme_override_font_sizes/font_size = 16
+text = "Target: 0"
+horizontal_alignment = 1
+
 [node name="ContinueHint" type="Label" parent="ClearPanel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
 theme_override_font_sizes/font_size = 14
-text = "Enter → Next Level | R → Restart"
+text = "Enter: Next Level | R: Restart"
 horizontal_alignment = 1
 
 [node name="TutorialLabel" type="Label" parent="."]
@@ -131,3 +139,6 @@ text = "Tutorial text here"
 horizontal_alignment = 1
 vertical_alignment = 2
 autowrap_mode = 2
+
+[node name="PauseMenu" parent="." instance=ExtResource("2")]
+visible = false

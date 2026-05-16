@@ -3,40 +3,39 @@
 extends Node2D
 
 # --- Config ---
-@export var phase_count: int = 2
-## Pattern: array of booleans, true = active (kills), false = inactive (safe)
-## Default: [false, true] = safe on even ticks, active on odd ticks
-@export var active_pattern: Array[bool] = [false, true]
+@export var phase_count : int = 2
+@export var active_pattern : Array[bool] = [false, true]
 
 # --- State ---
-var grid_pos: Vector2i = Vector2i.ZERO
-var current_phase: int = 0
-var _is_active_state: bool = false
+var grid_pos : Vector2i = Vector2i.ZERO
+var current_phase : int = 0
+var _is_active_state : bool = false
 
 # --- Visual ---
-var _visual_rect: ColorRect
-var _beam_rect: ColorRect
+var _visual_rect : ColorRect = null
+var _beam_rect : ColorRect = null
 
-const TILE_SIZE := 64
+const TILE_SIZE : int = 64
 
 func _ready() -> void:
 	_build_visual()
 	update_phase(0)
 
 func _build_visual() -> void:
+	var ts = float(TILE_SIZE)
 	# Base tile
 	_visual_rect = ColorRect.new()
-	_visual_rect.size = Vector2(TILE_SIZE - 4, TILE_SIZE - 4)
-	_visual_rect.position = Vector2(-TILE_SIZE / 2.0 + 2, -TILE_SIZE / 2.0 + 2)
+	_visual_rect.size = Vector2(ts - 4.0, ts - 4.0)
+	_visual_rect.position = Vector2(-ts / 2.0 + 2.0, -ts / 2.0 + 2.0)
 	add_child(_visual_rect)
 
 	# Beam/laser center
 	_beam_rect = ColorRect.new()
-	_beam_rect.size = Vector2(TILE_SIZE - 16, TILE_SIZE - 16)
-	_beam_rect.position = Vector2(-TILE_SIZE / 2.0 + 8, -TILE_SIZE / 2.0 + 8)
+	_beam_rect.size = Vector2(ts - 16.0, ts - 16.0)
+	_beam_rect.position = Vector2(-ts / 2.0 + 8.0, -ts / 2.0 + 8.0)
 	add_child(_beam_rect)
 
-func update_phase(current_tick: int) -> void:
+func update_phase(current_tick : int) -> void:
 	if phase_count <= 0:
 		phase_count = active_pattern.size()
 	current_phase = current_tick % phase_count
@@ -50,6 +49,8 @@ func is_active() -> bool:
 	return _is_active_state
 
 func _update_visual() -> void:
+	if _visual_rect == null or _beam_rect == null:
+		return
 	if _is_active_state:
 		# Active: bright red, deadly
 		_visual_rect.color = Color(1.0, 0.1, 0.1, 0.6)
