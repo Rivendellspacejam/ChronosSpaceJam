@@ -7,8 +7,7 @@ const TUTORIAL_TEXTS: Dictionary = {
 	3: "Traps change phase every tick.\nRead the rhythm. Cross when safe.",
 	4: "Spikes warn before striking.\nWatch for the yellow flash.",
 	5: "Enemies patrol on a fixed pattern.\nTime your moves to avoid them.",
-	6: "Blockers restrict movement by direction.\nApproach from the right angle.",
-	7: "Everything combines here.\nMaster both space and time.",
+	6: "The chambers start bending wider.\nTrace your stops before you shift.",
 }
 
 const GRAVITY_LABELS: Dictionary = {
@@ -29,18 +28,41 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var clear_best_label = $ClearPanel/VBoxContainer/BestValue
 @onready var clear_target_label = $ClearPanel/VBoxContainer/TargetValue
 @onready var tutorial_label = $TutorialLabel
+@onready var story_panel = $StoryPanel
+@onready var story_speaker_label = $StoryPanel/MarginContainer/VBoxContainer/SpeakerLabel
+@onready var story_body_label = $StoryPanel/MarginContainer/VBoxContainer/BodyLabel
+@onready var story_hint_label = $StoryPanel/MarginContainer/VBoxContainer/HintLabel
+
+const STORY_TYPE_SPEED: float = 48.0
+
+var _story_lines: Array[String] = []
+var _story_index: int = 0
+var _story_visible_chars: float = 0.0
+var _story_typing: bool = false
+var _story_finished_callback: Callable
 
 func _ready() -> void:
+	_apply_panel_style(death_panel, Color(0.08, 0.015, 0.025, 0.92), Color(1.0, 0.18, 0.22, 0.95))
+	_apply_panel_style(clear_panel, Color(0.015, 0.08, 0.055, 0.92), Color(0.22, 1.0, 0.72, 0.95))
+	_apply_panel_style(story_panel, Color(0.015, 0.018, 0.032, 0.96), Color(0.58, 0.95, 1.0, 0.95))
 	death_panel.visible = false
 	clear_panel.visible = false
 	tutorial_label.visible = false
+	story_panel.visible = false
 	GameManager.state_changed.connect(_on_state_changed)
 	GameManager.level_cleared.connect(_on_level_cleared)
 	GameManager.level_loaded.connect(_on_level_loaded)
 	TickManager.tick_advanced.connect(_on_tick_pulse)
 
 func _process(_delta: float) -> void:
+	_update_story_typewriter(_delta)
 	_update_hud()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not story_panel.visible:
+		return
+	if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel") or _is_click(event):
+		_advance_story()
 
 func _update_hud() -> void:
 	var player = get_tree().get_first_node_in_group("player")
@@ -49,7 +71,19 @@ func _update_hud() -> void:
 	gravity_label.text = "Gravity: " + str(GRAVITY_LABELS.get(gravity, "NONE"))
 	tick_label.text = "Tick: " + str(TickManager.current_tick)
 	shifts_label.text = "Time Shifts: " + str(TickManager.move_count)
-	level_label.text = "Level " + str(GameManager.current_level_index + 1)
+	level_label.text = "Level " + str(GameManager.current_level_index + 1) + ": " + StoryManager.get_level_name(GameManager.current_level_index)
+
+func show_level_story(level_index: int, finished_callback: Callable) -> void:
+	_story_lines = StoryManager.get_level_story(level_index)
+	_story_finished_callback = finished_callback
+	_story_index = 0
+	story_panel.visible = not _story_lines.is_empty()
+
+	if _story_lines.is_empty():
+		_finish_story()
+		return
+
+	_show_story_line(_story_index)
 
 func _on_tick_pulse(_tick: int) -> void:
 	var tween = create_tween()
@@ -73,7 +107,7 @@ func _on_level_loaded(level_index: int) -> void:
 
 	tutorial_label.text = TUTORIAL_TEXTS[level_index]
 	tutorial_label.visible = true
-	tutorial_label.modulate.a = 1.0
+	_set_canvas_item_alpha(tutorial_label, 1.0)
 
 	var tween = create_tween()
 	tween.tween_interval(4.0)
@@ -82,4 +116,83 @@ func _on_level_loaded(level_index: int) -> void:
 
 func _hide_tutorial() -> void:
 	tutorial_label.visible = false
-	tutorial_label.modulate.a = 1.0
+	_set_canvas_item_alpha(tutorial_label, 1.0)
+
+func _update_story_typewriter(delta: float) -> void:
+	if not _story_typing:
+		return
+
+	var previous_count := int(_story_visible_chars)
+	_story_visible_chars = minf(_story_visible_chars + STORY_TYPE_SPEED * delta, float(story_body_label.text.length()))
+	story_body_label.visible_characters = int(_story_visible_chars)
+
+	if int(_story_visible_chars) > previous_count and _should_story_blip(story_body_label.visible_characters - 1):
+		AudioManager.play_dialog_blip()
+
+	if story_body_label.visible_characters >= story_body_label.text.length():
+		_story_typing = false
+		story_hint_label.text = "Enter / Click"
+
+func _advance_story() -> void:
+	if _story_typing:
+		story_body_label.visible_characters = story_body_label.text.length()
+		_story_typing = false
+		story_hint_label.text = "Enter / Click"
+		return
+
+	_story_index += 1
+	if _story_index >= _story_lines.size():
+		_finish_story()
+		return
+
+	_show_story_line(_story_index)
+
+func _show_story_line(index: int) -> void:
+	var text := _story_lines[index]
+	var split_at := text.find(":")
+	if split_at >= 0:
+		story_speaker_label.text = text.substr(0, split_at)
+		story_body_label.text = text.substr(split_at + 1).strip_edges()
+	else:
+		story_speaker_label.text = "SYSTEM"
+		story_body_label.text = text
+
+	story_body_label.visible_characters = 0
+	_story_visible_chars = 0.0
+	_story_typing = true
+	story_hint_label.text = ""
+
+func _finish_story() -> void:
+	story_panel.visible = false
+	_story_lines.clear()
+	if _story_finished_callback.is_valid():
+		_story_finished_callback.call()
+
+func _is_click(event: InputEvent) -> bool:
+	return event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+
+func _should_story_blip(char_index: int) -> bool:
+	if char_index < 0 or char_index >= story_body_label.text.length():
+		return false
+	return not (story_body_label.text[char_index] in [" ", "\n", ".", ","])
+
+func _apply_panel_style(panel: PanelContainer, fill: Color, border: Color) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 10
+	panel.add_theme_stylebox_override("panel", style)
+
+func _set_canvas_item_alpha(item: CanvasItem, alpha: float) -> void:
+	var item_modulate := item.modulate
+	item_modulate.a = alpha
+	item.modulate = item_modulate

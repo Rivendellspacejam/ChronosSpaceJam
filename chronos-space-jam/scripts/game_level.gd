@@ -3,7 +3,9 @@ extends Node2D
 @onready var level_manager = $LevelManager
 @onready var player = $Player
 @onready var camera = $Camera2D
+@onready var hud = $HUD
 @onready var pause_menu = $HUD/PauseMenu
+@onready var arena_backdrop = $ArenaBackdrop
 
 var _shake_intensity: float = 0.0
 var _shake_duration: float = 0.0
@@ -47,13 +49,14 @@ func _load_current_level() -> void:
 	TickManager.reset()
 	var start_pos = level_manager.load_level(GameManager.current_level_index)
 	player.init_player(start_pos, level_manager)
+	_configure_arena_backdrop()
 	_center_camera_on_level()
 
 	if pause_menu:
 		pause_menu.visible = false
 
-	GameManager.set_state(GameManager.GameState.PLAYING)
 	get_tree().paused = false
+	_start_level_story_or_play()
 
 func _center_camera_on_level() -> void:
 	var level_size = Vector2(
@@ -66,11 +69,16 @@ func _center_camera_on_level() -> void:
 	var target_zoom = 800.0 / (max_dim * float(level_manager.TILE_SIZE))
 	camera.zoom = Vector2.ONE * clampf(target_zoom, 0.5, 2.0)
 
+func _configure_arena_backdrop() -> void:
+	if arena_backdrop and arena_backdrop.has_method("configure"):
+		arena_backdrop.configure(level_manager.grid_width, level_manager.grid_height)
+
 func _can_restart() -> bool:
 	return GameManager.current_state in [
 		GameManager.GameState.DEAD,
 		GameManager.GameState.LEVEL_CLEAR,
 		GameManager.GameState.PLAYING,
+		GameManager.GameState.STORY,
 	]
 
 func _toggle_pause() -> void:
@@ -86,6 +94,18 @@ func _set_paused(paused: bool) -> void:
 	get_tree().paused = paused
 	if pause_menu:
 		pause_menu.visible = paused
+
+func _start_level_story_or_play() -> void:
+	if hud and StoryManager.should_show_level_story(GameManager.current_level_index):
+		GameManager.set_state(GameManager.GameState.STORY)
+		hud.show_level_story(GameManager.current_level_index, _on_level_story_finished)
+		return
+
+	GameManager.set_state(GameManager.GameState.PLAYING)
+
+func _on_level_story_finished() -> void:
+	StoryManager.mark_level_story_seen(GameManager.current_level_index)
+	GameManager.set_state(GameManager.GameState.PLAYING)
 
 func _on_tick_advanced(_tick: int) -> void:
 	AudioManager.play_tick()

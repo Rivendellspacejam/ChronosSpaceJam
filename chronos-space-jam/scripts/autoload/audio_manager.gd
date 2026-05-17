@@ -44,6 +44,9 @@ func play_death() -> void:
 func play_level_clear() -> void:
 	_play_sfx(LEVEL_CLEAR, -4.0)
 
+func play_dialog_blip() -> void:
+	_play_sfx(TICK, -18.0, randf_range(1.6, 2.1))
+
 func _setup_music_player() -> void:
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = "Music"
@@ -64,7 +67,7 @@ func _looping_menu_music() -> AudioStream:
 		music_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	return music_stream
 
-func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
+func _play_sfx(stream: AudioStream, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
 	if _sfx_players.is_empty():
 		return
 
@@ -73,4 +76,5 @@ func _play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	player.stop()
 	player.stream = stream
 	player.volume_db = volume_db
+	player.pitch_scale = pitch_scale
 	player.play()

@@ -19,6 +19,10 @@ var _slide_index: int = 0
 var _slide_from: Vector2 = Vector2.ZERO
 var _slide_to: Vector2 = Vector2.ZERO
 var _slide_progress: float = 0.0
+var _glow_phase: float = 0.0
+
+@onready var _visual: ColorRect = $PlayerVisual
+@onready var _glow: ColorRect = $PlayerGlow
 
 func init_player(start_grid_pos: Vector2i, lvl_manager) -> void:
 	grid_pos = start_grid_pos
@@ -45,6 +49,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	_start_slide(direction)
 
 func _process(delta: float) -> void:
+	_update_visual_pulse(delta)
+
 	if state != PlayerState.SLIDING:
 		return
 
@@ -112,6 +118,7 @@ func _begin_slide_segment() -> void:
 	_slide_from = position
 	_slide_to = level_manager.grid_to_world(_slide_path[_slide_index])
 	_slide_progress = 0.0
+	_drop_trail()
 
 func _arrive_at_tile() -> void:
 	grid_pos = _slide_path[_slide_index]
@@ -154,3 +161,28 @@ func _reach_goal() -> void:
 	state = PlayerState.LEVEL_CLEAR
 	GameManager.on_level_cleared(TickManager.move_count)
 	player_reached_goal.emit()
+
+func _update_visual_pulse(delta: float) -> void:
+	if _glow == null or _visual == null:
+		return
+
+	_glow_phase += delta * (6.0 if state == PlayerState.SLIDING else 2.4)
+	var pulse := (sin(_glow_phase) + 1.0) * 0.5
+	var glow_modulate := _glow.modulate
+	glow_modulate.a = lerpf(0.45, 0.95, pulse)
+	_glow.modulate = glow_modulate
+	_visual.modulate = Color(0.85, 1.0, 1.0, 1.0) if state == PlayerState.SLIDING else Color.WHITE
+
+func _drop_trail() -> void:
+	if level_manager == null:
+		return
+
+	var trail := ColorRect.new()
+	trail.size = Vector2(34.0, 34.0)
+	trail.position = position - Vector2(17.0, 17.0)
+	trail.color = Color(0.2, 0.9, 1.0, 0.22)
+	level_manager.add_child(trail)
+
+	var tween := create_tween()
+	tween.tween_property(trail, "modulate:a", 0.0, 0.22)
+	tween.tween_callback(trail.queue_free)

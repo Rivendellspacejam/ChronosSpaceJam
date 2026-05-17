@@ -9,22 +9,27 @@ enum GameState {
 	MENU,
 	PLAYING,
 	SLIDING,
+	STORY,
 	DEAD,
 	LEVEL_CLEAR,
 	PAUSED,
 }
 
 const LEVEL_DIR: String = "res://levels/"
-const TOTAL_LEVELS: int = 8
+const TOTAL_LEVELS: int = 12
 const LEVEL_TARGETS: Dictionary = {
 	0: 3,
-	1: 5,
-	2: 12,
-	3: 8,
-	4: 15,
-	5: 18,
-	6: 10,
-	7: 25,
+	1: 3,
+	2: 5,
+	3: 5,
+	4: 8,
+	5: 8,
+	6: 9,
+	7: 10,
+	8: 11,
+	9: 12,
+	10: 14,
+	11: 15,
 }
 
 var current_state: int = GameState.MENU
@@ -63,7 +68,7 @@ func next_level() -> void:
 		return
 
 	set_state(GameState.MENU)
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/ending.tscn")
 
 func restart_level() -> void:
 	load_level(current_level_index)
