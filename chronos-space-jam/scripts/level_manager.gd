@@ -24,24 +24,15 @@ const SYM_ANCHOR : String = "A"
 
 const SYM_LASER : String = "L"
 # LINE HAZARD. Fires a beam along a row or column when active.
-# → Does NOT block movement.
-# → Does NOT kill by standing on the laser tile itself.
-# → Kills the player if the slide PATH crosses an ACTIVE beam cell.
-# → Safe to cross when inactive.
 
 const SYM_SPIKE : String = "S"
 # STOP-POSITION HAZARD. Cycles: Safe → Warning → Active.
-# → Does NOT block movement.
-# → Does NOT kill during the slide path (player can slide over it freely).
-# → Only kills if the player's FINAL STOP POSITION is on an ACTIVE spike.
 
 const SYM_ENEMY : String = "E"
 # Time-based enemy tile. Kills the player and may move/change position each tick.
 
 const SYM_TIME_GATE : String = "T"
 # TIMED BLOCKER. Never a hazard — never kills the player.
-# → When CLOSED: acts exactly like a wall. Player stops before it.
-# → When OPEN:   acts like empty floor. Player passes through freely.
 
 const SYM_BLOCKER_H : String = "-"
 # Horizontal gravity blocker. Blocks left/right sliding movement, but allows vertical movement.
