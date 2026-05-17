@@ -25,13 +25,24 @@ func reset() -> void:
 
 func advance_tick() -> void:
 	# Called when player makes a valid directional input.
-	# Order: Input -> Tick++ -> Phase Update -> Player Slide (GDD 7.2.4)
+	# Correct order: Input -> Tick++ -> Phase Update -> Player Slide.
+	#
+	# IMPORTANT:
+	# Phase objects must update BEFORE tick_advanced is emitted.
+	# Otherwise listeners can start player movement while gates/traps are still
+	# using the previous tick state, causing visual-open gates to still block.
 	current_tick += 1
 	move_count += 1
-	tick_advanced.emit(current_tick)
-	# Update all registered phase-based objects
+
+	# Update all registered phase-based objects first.
 	_update_all_phase_objects()
+
+	# Optional signal for any object that chooses signal-based phase updates.
+	# Emit before tick_advanced so world phase is finalized before UI/player reactions.
 	phase_update_requested.emit(current_tick)
+
+	# Emit last. UI/SFX and other listeners now observe the finalized tick state.
+	tick_advanced.emit(current_tick)
 
 func _update_all_phase_objects() -> void:
 	for obj in _phase_objects:

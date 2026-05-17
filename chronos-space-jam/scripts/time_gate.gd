@@ -1,4 +1,7 @@
-## TimeGate — Opens/closes based on tick phase
+## TimeGate — Timed blocker. NOT a hazard. Never kills the player.
+## When CLOSED: behaves exactly like a wall — player stops before it.
+## When OPEN:   behaves like empty floor — player passes through freely.
+## State flips each tick based on open_pattern.
 ## Covers: TIME-04 (Time Gate)
 extends Node2D
 
@@ -35,15 +38,21 @@ func update_phase(current_tick : int) -> void:
 		_is_open = false
 	_update_visual()
 
+# Returns true when the gate is CLOSED (acts as a wall / blocker).
+# Used by level_manager.is_blocked() during slide collision.
 func is_closed() -> bool:
 	return not _is_open
+
+# Convenience: returns true when open (pass-through).
+func is_open() -> bool:
+	return _is_open
 
 func _update_visual() -> void:
 	if _sprite == null:
 		return
 	if _is_open:
-		# Open gate: dim/transparent
-		_sprite.modulate = Color(1.0, 1.0, 1.0, 0.2)
+		# Open: nearly transparent — clearly passable
+		_sprite.modulate = Color(0.4, 1.0, 0.6, 0.25)
 	else:
-		# Closed gate: solid
-		_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		# Closed: solid / opaque — clearly a wall
+		_sprite.modulate = Color(0.4, 0.8, 1.0, 1.0)
