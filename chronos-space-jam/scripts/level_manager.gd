@@ -4,7 +4,7 @@
 extends Node2D
 
 # --- Constants ---
-const TILE_SIZE : int = 64  # pixels per grid cell
+const TILE_SIZE : int = 48  # pixels per grid cell
 
 # --- Tile Type Symbols ---
 const SYM_WALL : String = "#"
@@ -227,50 +227,28 @@ func _build_visuals() -> void:
 
 # --- Tile Creation Functions ---
 func _create_floor_tile(world_pos : Vector2) -> void:
-	var rect = ColorRect.new()
-	var ts = float(TILE_SIZE)
-	rect.size = Vector2(ts - 2.0, ts - 2.0)
-	rect.position = world_pos - Vector2(ts / 2.0 - 1.0, ts / 2.0 - 1.0)
-	rect.color = Color(0.08, 0.08, 0.14, 1.0)  # dark floor
-	floors_container.add_child(rect)
+	var sprite = Sprite2D.new()
+	sprite.texture = load("res://assets/floor_tile.png")
+	sprite.position = world_pos
+	floors_container.add_child(sprite)
 
 func _create_wall_tile(world_pos : Vector2) -> void:
-	var ts = float(TILE_SIZE)
-	var rect = ColorRect.new()
-	rect.size = Vector2(ts, ts)
-	rect.position = world_pos - Vector2(ts / 2.0, ts / 2.0)
-	rect.color = Color(0.18, 0.18, 0.25, 1.0)  # dark wall
-	walls_container.add_child(rect)
-
-	# Wall border highlight
-	var border = ColorRect.new()
-	border.size = Vector2(ts - 4.0, ts - 4.0)
-	border.position = world_pos - Vector2(ts / 2.0 - 2.0, ts / 2.0 - 2.0)
-	border.color = Color(0.25, 0.25, 0.35, 1.0)
-	walls_container.add_child(border)
+	var sprite = Sprite2D.new()
+	sprite.texture = load("res://assets/wall_tile.png")
+	sprite.position = world_pos
+	walls_container.add_child(sprite)
 
 func _create_goal_tile(world_pos : Vector2) -> void:
-	var ts = float(TILE_SIZE)
-	var rect = ColorRect.new()
-	rect.size = Vector2(ts - 4.0, ts - 4.0)
-	rect.position = world_pos - Vector2(ts / 2.0 - 2.0, ts / 2.0 - 2.0)
-	rect.color = Color(0.1, 0.9, 0.6, 0.8)  # green/cyan glow
-	objects_container.add_child(rect)
+	var sprite = Sprite2D.new()
+	sprite.texture = load("res://assets/goal_tile.png")
+	sprite.position = world_pos
+	objects_container.add_child(sprite)
 
 func _create_anchor_tile(world_pos : Vector2) -> void:
-	var ts = float(TILE_SIZE)
-	var rect = ColorRect.new()
-	rect.size = Vector2(ts - 8.0, ts - 8.0)
-	rect.position = world_pos - Vector2(ts / 2.0 - 4.0, ts / 2.0 - 4.0)
-	rect.color = Color(0.2, 0.5, 1.0, 0.7)  # blue anchor
-	objects_container.add_child(rect)
-
-	# Inner circle indicator
-	var inner = ColorRect.new()
-	inner.size = Vector2(ts - 24.0, ts - 24.0)
-	inner.position = world_pos - Vector2(ts / 2.0 - 12.0, ts / 2.0 - 12.0)
-	inner.color = Color(0.3, 0.6, 1.0, 0.9)
-	objects_container.add_child(inner)
+	var sprite = Sprite2D.new()
+	sprite.texture = load("res://assets/anchor_tile.png")
+	sprite.position = world_pos
+	objects_container.add_child(sprite)
 
 func _create_blocker_tile(world_pos : Vector2, horizontal : bool) -> void:
 	var ts = float(TILE_SIZE)

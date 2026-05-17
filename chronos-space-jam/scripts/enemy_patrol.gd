@@ -19,7 +19,7 @@ var current_phase : int = 0
 var _visual_rect : ColorRect = null
 var _inner_rect : ColorRect = null
 
-const TILE_SIZE : int = 64
+const TILE_SIZE : int = 48
 
 func _ready() -> void:
 	_build_visual()

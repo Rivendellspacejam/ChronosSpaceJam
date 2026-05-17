@@ -21,17 +21,17 @@ script = ExtResource("2")
 script = ExtResource("3")
 
 [node name="PlayerVisual" type="ColorRect" parent="Player"]
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+color = Color(0.95, 0.95, 1, 1)
+
+[node name="PlayerGlow" type="ColorRect" parent="Player"]
 offset_left = -24.0
 offset_top = -24.0
 offset_right = 24.0
 offset_bottom = 24.0
-color = Color(0.95, 0.95, 1, 1)
-
-[node name="PlayerGlow" type="ColorRect" parent="Player"]
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
 color = Color(0.7, 0.8, 1, 0.6)
 
 [node name="Camera2D" type="Camera2D" parent="."]
