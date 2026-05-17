@@ -20,6 +20,7 @@ var _slide_from: Vector2 = Vector2.ZERO
 var _slide_to: Vector2 = Vector2.ZERO
 var _slide_progress: float = 0.0
 var _glow_phase: float = 0.0
+var _move_tick_committed: bool = false
 
 @onready var _visual: ColorRect = $PlayerVisual
 @onready var _glow: ColorRect = $PlayerGlow
@@ -41,11 +42,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	var direction = _input_to_direction(event)
-	if direction == Vector2i.ZERO or _is_blocked_before_tick(direction):
+	if direction == Vector2i.ZERO:
 		return
 
-	gravity_direction = direction
-	TickManager.advance_tick()
 	_start_slide(direction)
 
 func _process(delta: float) -> void:
@@ -80,17 +79,21 @@ func _is_blocked_before_tick(direction: Vector2i) -> bool:
 	return level_manager.is_static_blocked_before_tick(grid_pos + direction, direction)
 
 func _start_slide(direction: Vector2i) -> void:
+	level_manager.set_slide_direction(direction)
+	_slide_path = _build_slide_path(direction)
+
+	# Invalid inputs that do not move the player should not advance time.
+	# This prevents walls, blockers, or closed time gates from becoming a wait button.
+	if _slide_path.is_empty():
+		level_manager.set_slide_direction(Vector2i.ZERO)
+		return
+
+	gravity_direction = direction
+	_move_tick_committed = false
 	state = PlayerState.SLIDING
 	GameManager.set_state(GameManager.GameState.SLIDING)
 	AudioManager.play_slide_start()
 	slide_started.emit(direction)
-
-	level_manager.set_slide_direction(direction)
-	_slide_path = _build_slide_path(direction)
-
-	if _slide_path.is_empty():
-		_finish_slide()
-		return
 
 	_slide_index = 0
 	_begin_slide_segment()
@@ -145,19 +148,34 @@ func _arrive_at_tile() -> void:
 func _finish_slide() -> void:
 	var final_info = level_manager.get_tile_info(grid_pos)
 	if final_info.kills_on_stop:
+		_commit_move_tick()
+		level_manager.set_slide_direction(Vector2i.ZERO)
 		_die()
 		return
 
+	_commit_move_tick()
+	level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.IDLE
 	GameManager.set_state(GameManager.GameState.PLAYING)
 	slide_finished.emit(grid_pos)
 
+func _commit_move_tick() -> void:
+	if _move_tick_committed:
+		return
+
+	_move_tick_committed = true
+	TickManager.advance_tick()
+
 func _die() -> void:
+	_commit_move_tick()
+	level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.DEAD
 	GameManager.on_player_died()
 	player_died_signal.emit()
 
 func _reach_goal() -> void:
+	_commit_move_tick()
+	level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.LEVEL_CLEAR
 	GameManager.on_level_cleared(TickManager.move_count)
 	player_reached_goal.emit()
