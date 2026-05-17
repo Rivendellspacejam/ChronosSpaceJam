@@ -1,4 +1,3 @@
-## Credits — Game credits screen
 extends Control
 
 @onready var back_button = $VBoxContainer/BackButton

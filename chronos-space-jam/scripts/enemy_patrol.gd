@@ -1,55 +1,48 @@
-## EnemyPatrol — Phase-based patrolling enemy
-## Covers: TIME-07 (Enemy Patrol)
 extends Node2D
 
-# --- Config ---
-@export var patrol_offsets : Array[Vector2i] = [
+const TILE_SIZE: int = 48
+
+@export var patrol_offsets: Array[Vector2i] = [
 	Vector2i(0, 0),
 	Vector2i(1, 0),
 	Vector2i(1, 1),
 	Vector2i(0, 1),
 ]
 
-# --- State ---
-var grid_pos : Vector2i = Vector2i.ZERO  # original spawn position
-var current_grid_pos : Vector2i = Vector2i.ZERO  # current position
-var current_phase : int = 0
-
-# --- Visual ---
-var _visual_rect : ColorRect = null
-var _inner_rect : ColorRect = null
-
-const TILE_SIZE : int = 48
+var grid_pos: Vector2i = Vector2i.ZERO
+var current_grid_pos: Vector2i = Vector2i.ZERO
+var current_phase: int = 0
 
 func _ready() -> void:
 	_build_visual()
 	update_phase(0)
 
-func _build_visual() -> void:
-	var ts = float(TILE_SIZE)
-	_visual_rect = ColorRect.new()
-	_visual_rect.size = Vector2(ts - 8.0, ts - 8.0)
-	_visual_rect.position = Vector2(-ts / 2.0 + 4.0, -ts / 2.0 + 4.0)
-	_visual_rect.color = Color(1.0, 0.3, 0.7, 0.8)  # magenta enemy
-	add_child(_visual_rect)
-
-	_inner_rect = ColorRect.new()
-	_inner_rect.size = Vector2(ts - 24.0, ts - 24.0)
-	_inner_rect.position = Vector2(-ts / 2.0 + 12.0, -ts / 2.0 + 12.0)
-	_inner_rect.color = Color(1.0, 0.1, 0.5, 1.0)  # bright magenta core
-	add_child(_inner_rect)
-
-func update_phase(current_tick : int) -> void:
+func update_phase(current_tick: int) -> void:
 	if patrol_offsets.is_empty():
 		return
+
 	current_phase = current_tick % patrol_offsets.size()
-	var offset : Vector2i = patrol_offsets[current_phase]
-	current_grid_pos = grid_pos + offset
-	# Move visual to new position
-	# Navigate: self -> Objects container -> LevelManager
+	current_grid_pos = grid_pos + patrol_offsets[current_phase]
+	_snap_to_current_grid_pos()
+
+func _build_visual() -> void:
+	var body = _make_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
+	var core = _make_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
+	add_child(body)
+	add_child(core)
+
+func _make_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
+	var rect = ColorRect.new()
+	rect.size = size
+	rect.position = Vector2(-TILE_SIZE / 2.0 + inset, -TILE_SIZE / 2.0 + inset)
+	rect.color = color
+	return rect
+
+func _snap_to_current_grid_pos() -> void:
 	var objects_node = get_parent()
 	if objects_node == null:
 		return
+
 	var level_manager = objects_node.get_parent()
 	if level_manager != null and level_manager.has_method("grid_to_world"):
 		position = level_manager.grid_to_world(current_grid_pos)

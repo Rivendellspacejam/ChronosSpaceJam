@@ -1,5 +1,3 @@
-## LevelSelect — Level selection screen
-## Covers: UI-05 (Level Select)
 extends Control
 
 @onready var grid_container = $VBoxContainer/GridContainer
@@ -13,19 +11,18 @@ func _ready() -> void:
 
 func _build_level_buttons() -> void:
 	for i in range(GameManager.TOTAL_LEVELS):
-		var btn = Button.new()
-		btn.text = "Level " + str(i + 1)
-		btn.custom_minimum_size = Vector2(120, 60)
-		btn.add_theme_font_size_override("font_size", 18)
-		var level_idx = i
-		btn.pressed.connect(_make_level_callback(level_idx))
-		btn.mouse_entered.connect(AudioManager.play_ui_click)
-		grid_container.add_child(btn)
+		var button = Button.new()
+		button.text = "Level " + str(i + 1)
+		button.custom_minimum_size = Vector2(120, 60)
+		button.add_theme_font_size_override("font_size", 18)
+		button.pressed.connect(_make_level_callback(i))
+		button.mouse_entered.connect(AudioManager.play_ui_click)
+		grid_container.add_child(button)
 
-func _make_level_callback(index : int) -> Callable:
+func _make_level_callback(index: int) -> Callable:
 	return func(): _on_level_selected(index)
 
-func _on_level_selected(index : int) -> void:
+func _on_level_selected(index: int) -> void:
 	AudioManager.play_ui_click()
 	AudioManager.stop_music()
 	GameManager.current_level_index = index

@@ -1,14 +1,12 @@
-## MainMenu — Main menu screen
-## Covers: UI-04 (Main Menu), UI-10 (Settings Menu)
 extends Control
 
-@onready var vbox           = $VBoxContainer
-@onready var start_button          = $VBoxContainer/StartButton
-@onready var level_select_button   = $VBoxContainer/LevelSelectButton
-@onready var credits_button        = $VBoxContainer/CreditsButton
-@onready var settings_button       = $VBoxContainer/SettingsButton
-@onready var quit_button           = $VBoxContainer/QuitButton
-@onready var settings_menu         = $SettingsMenu
+@onready var vbox = $VBoxContainer
+@onready var start_button = $VBoxContainer/StartButton
+@onready var level_select_button = $VBoxContainer/LevelSelectButton
+@onready var credits_button = $VBoxContainer/CreditsButton
+@onready var settings_button = $VBoxContainer/SettingsButton
+@onready var quit_button = $VBoxContainer/QuitButton
+@onready var settings_menu = $SettingsMenu
 
 func _ready() -> void:
 	AudioManager.start_menu_music()
@@ -17,11 +15,7 @@ func _ready() -> void:
 	credits_button.pressed.connect(_on_credits)
 	settings_button.pressed.connect(_on_settings)
 	quit_button.pressed.connect(_on_quit)
-	_wire_button_audio(start_button)
-	_wire_button_audio(level_select_button)
-	_wire_button_audio(credits_button)
-	_wire_button_audio(settings_button)
-	_wire_button_audio(quit_button)
+	_wire_menu_button_audio()
 
 func _on_start() -> void:
 	AudioManager.play_ui_click()
@@ -46,6 +40,10 @@ func _on_settings() -> void:
 func _on_quit() -> void:
 	AudioManager.play_ui_click()
 	get_tree().quit()
+
+func _wire_menu_button_audio() -> void:
+	for button in [start_button, level_select_button, credits_button, settings_button, quit_button]:
+		_wire_button_audio(button)
 
 func _wire_button_audio(button: Button) -> void:
 	button.mouse_entered.connect(AudioManager.play_ui_click)
