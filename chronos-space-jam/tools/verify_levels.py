@@ -167,7 +167,7 @@ def is_deadly_on_stop(level: Level, pos: tuple[int, int], tick: int) -> bool:
     return tile(level, pos) == SPIKE and spike_active(tick)
 
 
-def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick: int) -> tuple[tuple[int, int], bool, bool]:
+def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick: int) -> tuple[tuple[int, int], bool]:
     x, y = start
     dx, dy = direction
     current = start
@@ -175,17 +175,17 @@ def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick
     while True:
         next_pos = (x + dx, y + dy)
         if is_blocked(level, next_pos, direction, tick):
-            return current, False, False
+            return current, False
 
         current = next_pos
         x, y = current
 
         if is_deadly_in_path(level, current, tick):
-            return current, True, False
+            return current, False
         if tile(level, current) == GOAL:
-            return current, False, True
+            return current, True
         if tile(level, current) == ANCHOR:
-            return current, is_deadly_on_stop(level, current, tick), False
+            return current, False
 
 
 def solve(level: Level, max_moves: int = 80) -> str | None:
@@ -204,11 +204,13 @@ def solve(level: Level, max_moves: int = 80) -> str | None:
                 continue
 
             next_tick = tick + 1
-            final_pos, died, won = slide(level, pos, direction, next_tick)
+            final_pos, won = slide(level, pos, direction, tick)
             next_path = path + move
             if won:
                 return next_path
-            if died or is_deadly_on_stop(level, final_pos, next_tick):
+            if is_deadly_on_stop(level, final_pos, next_tick) or is_deadly_in_path(
+                level, final_pos, next_tick
+            ):
                 continue
 
             state = (final_pos, next_tick % period)

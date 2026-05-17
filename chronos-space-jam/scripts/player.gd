@@ -128,9 +128,6 @@ func _arrive_at_tile() -> void:
 	position = level_manager.grid_to_world(grid_pos)
 
 	var tile_info = level_manager.get_tile_info(grid_pos)
-	if tile_info.kills_in_path:
-		_die()
-		return
 	if tile_info.is_goal:
 		_reach_goal()
 		return
@@ -146,15 +143,13 @@ func _arrive_at_tile() -> void:
 	_begin_slide_segment()
 
 func _finish_slide() -> void:
-	var final_info = level_manager.get_tile_info(grid_pos)
-	if final_info.kills_on_stop:
-		_commit_move_tick()
-		level_manager.set_slide_direction(Vector2i.ZERO)
+	_commit_move_tick()
+	level_manager.set_slide_direction(Vector2i.ZERO)
+
+	if _is_killed_by_hazard():
 		_die()
 		return
 
-	_commit_move_tick()
-	level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.IDLE
 	GameManager.set_state(GameManager.GameState.PLAYING)
 	slide_finished.emit(grid_pos)
@@ -166,9 +161,11 @@ func _commit_move_tick() -> void:
 	_move_tick_committed = true
 	TickManager.advance_tick()
 
+func _is_killed_by_hazard() -> bool:
+	var info = level_manager.get_tile_info(grid_pos)
+	return info.kills_on_stop or info.kills_in_path
+
 func _die() -> void:
-	_commit_move_tick()
-	level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.DEAD
 	GameManager.on_player_died()
 	player_died_signal.emit()
