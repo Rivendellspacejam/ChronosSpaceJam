@@ -26,6 +26,8 @@ GOAL = "G"
 BLOCK_H = "-"
 BLOCK_V = "|"
 SPECIAL_TILES = {ANCHOR, GATE, LASER, SPIKE, ENEMY, BLOCK_H, BLOCK_V}
+ENEMY_PATH_PREFIX = "@enemy_path"
+DEFAULT_ENEMY_PATH = ((0, 0), (1, 0), (1, 1), (0, 1))
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,7 @@ class Level:
     lasers: tuple[tuple[int, int], ...]
     spikes: tuple[tuple[int, int], ...]
     enemies: tuple[tuple[int, int], ...]
+    enemy_paths: tuple[tuple[tuple[int, int], ...], ...]
 
     @property
     def width(self) -> int:
@@ -47,8 +50,24 @@ class Level:
         return len(self.rows)
 
 
+def parse_enemy_path_line(line: str) -> tuple[tuple[int, int], ...]:
+    payload = line[len(ENEMY_PATH_PREFIX) :].strip()
+    offsets: list[tuple[int, int]] = []
+    for part in payload.split(";"):
+        trimmed = part.strip()
+        if not trimmed:
+            continue
+        x_text, y_text = trimmed.split(",", 1)
+        offsets.append((int(x_text), int(y_text)))
+    return tuple(offsets) if offsets else DEFAULT_ENEMY_PATH
+
+
 def load_level(path: Path) -> Level:
-    rows = tuple(line.strip() for line in path.read_text().splitlines() if line.strip())
+    raw_lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
+    rows = tuple(line for line in raw_lines if not line.startswith(ENEMY_PATH_PREFIX))
+    parsed_paths = tuple(
+        parse_enemy_path_line(line) for line in raw_lines if line.startswith(ENEMY_PATH_PREFIX)
+    )
     start = None
     goal = None
     lasers: list[tuple[int, int]] = []
@@ -73,7 +92,22 @@ def load_level(path: Path) -> Level:
     if goal is None:
         raise ValueError(f"{path.name} has no goal")
 
-    return Level(path.name, rows, start, goal, tuple(lasers), tuple(spikes), tuple(enemies))
+    enemy_paths = list(parsed_paths)
+    if not enemy_paths:
+        enemy_paths = [DEFAULT_ENEMY_PATH] * len(enemies)
+    elif len(enemy_paths) < len(enemies):
+        enemy_paths.extend([DEFAULT_ENEMY_PATH] * (len(enemies) - len(enemy_paths)))
+
+    return Level(
+        path.name,
+        rows,
+        start,
+        goal,
+        tuple(lasers),
+        tuple(spikes),
+        tuple(enemies),
+        tuple(enemy_paths),
+    )
 
 
 def tile(level: Level, pos: tuple[int, int]) -> str:
@@ -106,10 +140,12 @@ def spike_active(tick: int) -> bool:
 
 
 def enemy_positions(level: Level, tick: int) -> set[tuple[int, int]]:
-    offsets = ((0, 0), (1, 0), (1, 1), (0, 1))
-    phase = tick % len(offsets)
-    ox, oy = offsets[phase]
-    return {(x + ox, y + oy) for x, y in level.enemies}
+    positions: set[tuple[int, int]] = set()
+    for (spawn_x, spawn_y), path in zip(level.enemies, level.enemy_paths, strict=True):
+        phase = tick % len(path)
+        ox, oy = path[phase]
+        positions.add((spawn_x + ox, spawn_y + oy))
+    return positions
 
 
 def laser_active(tick: int) -> bool:
@@ -190,7 +226,8 @@ def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick
 
 
 def solve(level: Level, max_moves: int = 80) -> str | None:
-    period = lcm(2, 3, 4)
+    enemy_periods = [len(path) for path in level.enemy_paths] or [len(DEFAULT_ENEMY_PATH)]
+    period = lcm(2, 3, *enemy_periods)
     queue = deque([(level.start, 0, "")])
     seen = {(level.start, 0)}
 

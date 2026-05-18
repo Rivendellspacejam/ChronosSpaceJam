@@ -32,6 +32,8 @@ var _time_gates: Dictionary = {}
 var _lasers: Dictionary = {}
 var _spikes: Dictionary = {}
 var _enemies: Dictionary = {}
+var _enemy_patrol_paths: Array = []
+var _enemy_path_assign_index: int = 0
 var _current_slide_direction: Vector2i = Vector2i.ZERO
 
 @onready var walls_container: Node2D = $Walls
@@ -49,11 +51,14 @@ class TileInfo:
 func load_level(level_index: int) -> Vector2i:
 	clear_level()
 
-	var rows = GameManager.load_level_data(level_index)
+	var level_bundle = GameManager.load_level_bundle(level_index)
+	var rows: Array = level_bundle.get("rows", [])
 	if rows.is_empty():
 		push_error("Empty level data for index %d" % level_index)
 		return Vector2i.ZERO
 
+	_enemy_patrol_paths = level_bundle.get("enemy_paths", [])
+	_enemy_path_assign_index = 0
 	_read_grid(rows)
 	_build_visuals()
 	return player_start
@@ -64,6 +69,8 @@ func clear_level() -> void:
 	_lasers.clear()
 	_spikes.clear()
 	_enemies.clear()
+	_enemy_patrol_paths.clear()
+	_enemy_path_assign_index = 0
 	grid.clear()
 	_clear_children(walls_container)
 	_clear_children(floors_container)
@@ -317,9 +324,18 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	enemy.position = world_pos
 	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
+	enemy.patrol_offsets = _patrol_path_for_next_enemy()
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
+
+
+func _patrol_path_for_next_enemy() -> Array[Vector2i]:
+	var path: Array[Vector2i] = GameManager.DEFAULT_ENEMY_PATROL.duplicate()
+	if _enemy_path_assign_index < _enemy_patrol_paths.size():
+		path = _enemy_patrol_paths[_enemy_path_assign_index]
+	_enemy_path_assign_index += 1
+	return path
 
 func _clear_children(parent: Node) -> void:
 	if parent == null:
