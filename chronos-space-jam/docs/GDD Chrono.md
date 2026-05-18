@@ -6,7 +6,64 @@
 **Game Jam Duration:** 14–21 Mei  
 **Theme:** Time and Space  
 **Team Size:** 4 People  
-**Document Version:** v0.1
+**Document Version:** v0.2  
+**Last Updated:** 18 Mei 2026  
+**Implementation Reference:** `docs/TASK_BREAKDOWN.md`
+
+---
+
+## Development Status (Current Phase)
+
+**Current production phase:** **Phase 7 — QA, Balancing & Submission Prep**  
+Core gameplay, all planned mechanics, UI flow, and level content are **complete**. Remaining work is **export, itch.io packaging, and optional art/audio polish**.
+
+| Phase | Focus | Status |
+| :---- | :---- | :---- |
+| 0 — Foundation | Project scaffold, grid, level format, input, game states | **Done** |
+| 1 — Core Loop | Sliding, collision, goal, death, move count, progression | **Done** |
+| 2 — Time System | Tick manager, phase objects, gate, laser, spike, enemy patrol | **Done** |
+| 3 — Space Mechanics | Anchor, gravity blocker, collision priority, puzzle loops | **Done** |
+| 4 — Level Content | Tutorial curve + playable chambers | **Done** (12 levels shipped in build) |
+| 5 — UI & Feel | HUD, menus, tutorials, death/clear, pause, tick pulse, screen shake | **Done** |
+| 6 — Polish & Publishing | Final art, full SFX, web export, itch.io page | **Partial** |
+| 7 — QA & Submission | Playthrough, edge cases, readability, upload checklist | **In progress** |
+
+### Playable build snapshot (18 Mei 2026)
+
+- **Engine:** Godot 4.6 (GL Compatibility)  
+- **Levels:** 12 (`level_1.txt` … `level_12.txt`) with move-count targets and best-shift tracking  
+- **Tick order (locked):** Input → Tick Update → World Phase Update → Player Slide  
+- **Phase objects:** Time Gate, Laser (2-phase), Spike (3-phase), Enemy Patrol (configurable path)  
+- **Space tiles:** Anchor, horizontal/vertical Gravity Blocker  
+- **UI:** Main menu, level select, pause, settings (audio/display/shake), credits, level-clear panel, intro + ending story  
+- **Audio (partial):** Menu music loop, UI click/back, slide, tick, death, level-clear SFX  
+- **Feedback:** Phase visuals on hazards/gates, tick HUD pulse, enemy next-move preview ghosts, configurable screen shake  
+- **Not in build:** Medal tiers, global phase preview HUD, bounce tile, phase-only goal, one-way blocker, level editor, rewind
+
+### Level roster (implemented names)
+
+| # | Name | Primary teaching / focus |
+| :---- | :---- | :---- |
+| 1 | First Shift | Gravity sliding only |
+| 2 | Pulse Door | Tick + Time Gate |
+| 3 | No Waiting | No-wait rule + timing loop |
+| 4 | Red Silence | Laser rhythm |
+| 5 | Warning Teeth | Spike warning + anchor |
+| 6 | Patrol Memory | Enemy patrol |
+| 7 | Bent Hall | Gravity blocker |
+| 8 | Doubt Loop | Combined mechanics (original finale) |
+| 9 | Foldback | Extended difficulty |
+| 10 | Pressure Route | Extended difficulty |
+| 11 | Clock Floor | Extended difficulty |
+| 12 | Direction for Time | Final chamber → ending screen |
+
+Levels 9–12 extend the original 8-level gamejam plan; mechanics reuse and combine earlier teachings with larger arenas and tighter move targets.
+
+### Submission blockers (remaining)
+
+- Web/export build verification (`PUB-01`)  
+- itch.io page assets, screenshots, and public upload (`PUB-02`, `QA-08`)  
+- Optional: final tile art pass, gameplay music loop beyond menu, full trap SFX set (`ART-01`, `AUDIO-01`, `AUDIO-02`)
 
 ---
 
@@ -548,6 +605,8 @@ Next Phase: 3
 
 Untuk gamejam, cukup tampilkan current phase terlebih dahulu.
 
+**Implementation (v0.2):** HUD shows Gravity, Tick, and Time Shifts (no global `Phase: n/m` line). Enemy patrol shows **next-tick move preview** (ghost + line) during play. Per-object phase state is communicated through trap/gate visuals.
+
 ---
 
 ## 11\. Level Design Guidelines
@@ -756,6 +815,19 @@ Final challenge.
 ### Description
 
 Player harus membaca semua pola dan mencapai goal dengan urutan input yang tepat.
+
+---
+
+## Level 9–12 — Extended Chambers (Post–Gamejam Scope)
+
+Added after the original 8-level curve. No new mechanics; difficulty comes from larger layouts, combined hazards, and lower move-count targets.
+
+| Level | Name | Notes |
+| :---- | :---- | :---- |
+| 9 | Foldback | Recombines gate, laser, spike, patrol |
+| 10 | Pressure Route | Tighter routes, more tick pressure |
+| 11 | Clock Floor | Multi-hazard sync puzzles |
+| 12 | Direction for Time | Final challenge; clears to ending narrative |
 
 ---
 
@@ -995,39 +1067,41 @@ Check order:
 
 ## 18\. MVP Scope
 
-### Must Have
+Status as of **18 Mei 2026** (see **Development Status** at top of document).
 
-- Player gravity sliding.  
-- Wall collision.  
-- Goal tile.  
-- Restart level.  
-- Global tick system.  
-- Time Gate.  
-- At least one trap type.  
-- At least 5 playable levels.  
-- Basic UI: tick, gravity direction, move count.
+### Must Have — **Complete**
 
-### Should Have
+- [x] Player gravity sliding.  
+- [x] Wall collision.  
+- [x] Goal tile.  
+- [x] Restart level.  
+- [x] Global tick system.  
+- [x] Time Gate.  
+- [x] At least one trap type (laser + spike + enemy in full build).  
+- [x] At least 5 playable levels (**12** in current build).  
+- [x] Basic UI: tick, gravity direction, move count.
 
-- Laser trap.  
-- Spike trap.  
-- Enemy patrol.  
-- Anchor tile.  
-- Gravity blocker.  
-- 8 levels total.  
-- Simple main menu.  
-- Level select.
+### Should Have — **Complete**
 
-### Could Have
+- [x] Laser trap.  
+- [x] Spike trap.  
+- [x] Enemy patrol.  
+- [x] Anchor tile.  
+- [x] Gravity blocker.  
+- [x] 8 levels total (**12** in current build).  
+- [x] Simple main menu.  
+- [x] Level select.
 
-- Medal system.  
-- Phase preview UI.  
-- Goal active only on certain ticks.  
-- Bounce tile.  
-- Screen shake / polish.  
-- Simple story intro.
+### Could Have — **Mixed**
 
-### Won't Have for Game Jam
+- [ ] Medal system (move targets + best shift only; no Gold/Silver/Bronze tiers).  
+- [~] Phase preview UI (enemy next-move preview only; no global phase HUD).  
+- [ ] Goal active only on certain ticks.  
+- [ ] Bounce tile.  
+- [x] Screen shake / polish (with settings toggle).  
+- [x] Simple story intro (intro + per-level names; ending screen after level 12).
+
+### Won't Have for Game Jam — **Still out of scope**
 
 - Complex rewind mechanic.  
 - Full timeline system.  
@@ -1040,57 +1114,59 @@ Check order:
 
 ## 19\. Recommended 1-Week Production Plan
 
-## Day 1 — Core Prototype
+Plan below was the original schedule (14–21 Mei). **Completion status** reflects the build on **18 Mei 2026**.
 
-- Implement player sliding.  
-- Implement wall collision.  
-- Implement goal.  
-- Implement restart.  
-- Make 1 test level.
+## Day 1 — Core Prototype — **Done**
 
-## Day 2 — Time Tick System
+- [x] Implement player sliding.  
+- [x] Implement wall collision.  
+- [x] Implement goal.  
+- [x] Implement restart.  
+- [x] Make 1 test level.
 
-- Implement global tick.  
-- Tick updates on W/A/S/D input.  
-- Add UI tick counter.  
-- Add simple time gate.
+## Day 2 — Time Tick System — **Done**
 
-## Day 3 — Trap System
+- [x] Implement global tick.  
+- [x] Tick updates on W/A/S/D input.  
+- [x] Add UI tick counter.  
+- [x] Add simple time gate.
 
-- Add laser trap.  
-- Add spike trap or one additional trap.  
-- Implement phase pattern per object.  
-- Make 2–3 levels.
+## Day 3 — Trap System — **Done**
 
-## Day 4 — Space Mechanics
+- [x] Add laser trap.  
+- [x] Add spike trap or one additional trap.  
+- [x] Implement phase pattern per object.  
+- [x] Make 2–3 levels.
 
-- Add anchor tile.  
-- Add gravity blocker.  
-- Improve level design.  
-- Make 2–3 more levels.
+## Day 4 — Space Mechanics — **Done**
 
-## Day 5 — Enemy \+ Level Polish
+- [x] Add anchor tile.  
+- [x] Add gravity blocker.  
+- [x] Improve level design.  
+- [x] Make 2–3 more levels.
 
-- Add enemy patrol if scope allows.  
-- Build final level.  
-- Balance difficulty.  
-- Add SFX placeholders.
+## Day 5 — Enemy \+ Level Polish — **Done**
 
-## Day 6 — UI, Art, Audio Polish
+- [x] Add enemy patrol if scope allows.  
+- [x] Build final level.  
+- [x] Balance difficulty.  
+- [~] Add SFX placeholders (core SFX in; not full pack).
 
-- Add menu.  
-- Add level clear screen.  
-- Add death effect.  
-- Add simple music.  
-- Improve visual clarity.
+## Day 6 — UI, Art, Audio Polish — **Mostly done**
 
-## Day 7 — Testing and Submission
+- [x] Add menu.  
+- [x] Add level clear screen.  
+- [x] Add death effect.  
+- [~] Add simple music (menu loop; no dedicated gameplay loop).  
+- [~] Improve visual clarity (readable placeholders + some tile art; final art pass deferred).
 
-- Playtest all levels.  
-- Fix bugs.  
-- Add credits.  
-- Build and upload.  
-- Prepare screenshots and description.
+## Day 7 — Testing and Submission — **In progress**
+
+- [x] Playtest all levels (12-level pass complete).  
+- [x] Fix bugs (ongoing for blockers only).  
+- [x] Add credits.  
+- [ ] Build and upload.  
+- [ ] Prepare screenshots and description.
 
 ---
 
@@ -1214,6 +1290,8 @@ Game dianggap playable jika sudah memiliki:
 - Player bisa mati dan restart.  
 - Player bisa mencapai goal dan lanjut level.  
 - UI menampilkan tick dan move count.
+
+**Status (18 Mei 2026):** All minimum criteria are met in the current Godot build. Submit-ready checklist items still open: verified **web export**, **itch.io page** (screenshots, controls copy, public build link).
 
 ---
 
