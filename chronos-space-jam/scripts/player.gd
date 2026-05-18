@@ -109,14 +109,17 @@ func _start_slide(direction: Vector2i) -> void:
 func _build_slide_path(direction: Vector2i) -> Array:
 	var path: Array = []
 	var check_pos = grid_pos + direction
+	var extra_collected_coins := 0
 
 	while true:
-		var tile_info = level_manager.get_slide_tile_info(check_pos)
+		var tile_info = level_manager.get_slide_tile_info(check_pos, extra_collected_coins)
 
 		if tile_info.blocks:
 			break
 
 		path.append(check_pos)
+		if tile_info.is_coin:
+			extra_collected_coins += 1
 
 		if tile_info.kills_in_path or tile_info.is_goal or tile_info.is_anchor:
 			break
@@ -136,6 +139,8 @@ func _arrive_at_tile() -> void:
 	position = level_manager.grid_to_world(grid_pos)
 
 	var tile_info = level_manager.get_slide_tile_info(grid_pos)
+	if tile_info.is_coin:
+		level_manager.collect_coin(grid_pos)
 	if tile_info.is_goal:
 		_reach_goal()
 		return

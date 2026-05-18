@@ -11,6 +11,8 @@ const SYM_LASER: String = "L"
 const SYM_SPIKE: String = "S"
 const SYM_ENEMY: String = "E"
 const SYM_TIME_GATE: String = "T"
+const SYM_COIN: String = "C"
+const SYM_COIN_GATE: String = "K"
 const SYM_BLOCKER_H: String = "-"
 const SYM_BLOCKER_V: String = "|"
 
@@ -32,7 +34,84 @@ var _time_gates: Dictionary = {}
 var _lasers: Dictionary = {}
 var _spikes: Dictionary = {}
 var _enemies: Dictionary = {}
+var _coin_nodes: Dictionary = {}
+var _coin_gate_nodes: Dictionary = {}
+var _collected_coins: Dictionary = {}
 var _current_slide_direction: Vector2i = Vector2i.ZERO
+
+const DEFAULT_ENEMY_PATH: Array[Vector2i] = [
+	Vector2i(0, 0),
+	Vector2i(1, 0),
+	Vector2i(1, 1),
+	Vector2i(0, 1),
+]
+
+const CUSTOM_ENEMY_PATHS: Dictionary = {
+	6: {
+		Vector2i(6, 3): [
+			Vector2i(0, 0),
+			Vector2i(-1, 0),
+			Vector2i(0, 0),
+			Vector2i(0, 1),
+		],
+	},
+	8: {
+		Vector2i(2, 5): [
+			Vector2i(0, 0),
+			Vector2i(0, -1),
+			Vector2i(0, -2),
+			Vector2i(0, -3),
+		],
+	},
+	9: {
+		Vector2i(8, 6): [
+			Vector2i(0, 0),
+			Vector2i(-1, 0),
+			Vector2i(0, 0),
+			Vector2i(0, -1),
+		],
+	},
+	12: {
+		Vector2i(7, 2): [
+			Vector2i(0, 0),
+			Vector2i(0, -1),
+			Vector2i(1, -1),
+			Vector2i(0, -1),
+		],
+	},
+	16: {
+		Vector2i(5, 2): [
+			Vector2i(0, 0),
+			Vector2i(1, 0),
+			Vector2i(2, 0),
+			Vector2i(1, 0),
+		],
+	},
+	20: {
+		Vector2i(3, 4): [
+			Vector2i(0, 0),
+			Vector2i(0, -1),
+			Vector2i(0, 0),
+			Vector2i(1, 0),
+		],
+	},
+	23: {
+		Vector2i(6, 3): [
+			Vector2i(0, 0),
+			Vector2i(1, 0),
+			Vector2i(1, 1),
+			Vector2i(0, 1),
+		],
+	},
+	24: {
+		Vector2i(6, 3): [
+			Vector2i(0, 0),
+			Vector2i(1, 0),
+			Vector2i(1, 1),
+			Vector2i(0, 1),
+		],
+	},
+}
 
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
@@ -45,6 +124,7 @@ class TileInfo:
 	var kills_on_stop: bool = false
 	var is_goal: bool = false
 	var is_anchor: bool = false
+	var is_coin: bool = false
 
 func load_level(level_index: int) -> Vector2i:
 	clear_level()
@@ -64,6 +144,9 @@ func clear_level() -> void:
 	_lasers.clear()
 	_spikes.clear()
 	_enemies.clear()
+	_coin_nodes.clear()
+	_coin_gate_nodes.clear()
+	_collected_coins.clear()
 	grid.clear()
 	_clear_children(walls_container)
 	_clear_children(floors_container)
@@ -117,6 +200,22 @@ func is_spike_active(spike_pos: Vector2i) -> bool:
 func is_time_gate_open(gpos: Vector2i) -> bool:
 	return _time_gates.has(gpos) and _time_gates[gpos].is_open()
 
+func get_coin_total() -> int:
+	return _coin_nodes.size()
+
+func get_coin_count() -> int:
+	return _collected_coins.size()
+
+func collect_coin(gpos: Vector2i) -> void:
+	if not _coin_nodes.has(gpos) or _collected_coins.has(gpos):
+		return
+
+	_collected_coins[gpos] = true
+	var coin_node = _coin_nodes[gpos]
+	if is_instance_valid(coin_node):
+		coin_node.visible = false
+	_update_coin_gate_visuals()
+
 func is_tile_blocking(gpos: Vector2i, direction: Vector2i) -> bool:
 	return is_blocked(gpos, direction)
 
@@ -131,6 +230,8 @@ func is_static_blocked_before_tick(gpos: Vector2i, direction: Vector2i) -> bool:
 		return direction.x != 0
 	if symbol == SYM_BLOCKER_V:
 		return direction.y != 0
+	if symbol == SYM_COIN_GATE:
+		return not _all_coins_collected()
 
 	return false
 
@@ -143,6 +244,8 @@ func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
 		return true
 	if _time_gates.has(gpos):
 		return _time_gates[gpos].is_closed()
+	if symbol == SYM_COIN_GATE:
+		return not _all_coins_collected()
 	if symbol == SYM_BLOCKER_H:
 		return direction.x != 0
 	if symbol == SYM_BLOCKER_V:
@@ -150,8 +253,8 @@ func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
 
 	return false
 
-func get_slide_tile_info(gpos: Vector2i) -> TileInfo:
-	var info = _base_tile_info(gpos)
+func get_slide_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
+	var info = _base_tile_info(gpos, extra_collected_coins)
 	_apply_enemy_hazard(info, gpos)
 	return info
 
@@ -166,7 +269,7 @@ func is_enemy_at(gpos: Vector2i) -> bool:
 			return true
 	return false
 
-func _base_tile_info(gpos: Vector2i) -> TileInfo:
+func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
 	var info = TileInfo.new()
 
 	if _is_out_of_bounds(gpos):
@@ -174,7 +277,7 @@ func _base_tile_info(gpos: Vector2i) -> TileInfo:
 		info.blocks = true
 		return info
 
-	_apply_base_tile_info(info, gpos, get_tile_at(gpos))
+	_apply_base_tile_info(info, gpos, get_tile_at(gpos), extra_collected_coins)
 	return info
 
 func _read_grid(rows: Array) -> void:
@@ -195,7 +298,7 @@ func _read_grid(rows: Array) -> void:
 
 		grid.append(row)
 
-func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String) -> void:
+func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String, extra_collected_coins: int = 0) -> void:
 	match symbol:
 		SYM_WALL:
 			info.type = "wall"
@@ -206,6 +309,12 @@ func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String) -> vo
 		SYM_ANCHOR:
 			info.type = "anchor"
 			info.is_anchor = true
+		SYM_COIN:
+			info.type = "coin"
+			info.is_coin = not _collected_coins.has(gpos)
+		SYM_COIN_GATE:
+			info.type = "coin_gate"
+			info.blocks = not _all_coins_collected(extra_collected_coins)
 		SYM_LASER:
 			info.type = "laser"
 		SYM_SPIKE:
@@ -248,8 +357,13 @@ func _is_solid_obstacle(pos: Vector2i) -> bool:
 		return true
 	if symbol == SYM_TIME_GATE and _time_gates.has(pos):
 		return _time_gates[pos].is_closed()
+	if symbol == SYM_COIN_GATE:
+		return not _all_coins_collected()
 
 	return false
+
+func _all_coins_collected(extra_collected_coins: int = 0) -> bool:
+	return _coin_nodes.is_empty() or _collected_coins.size() + extra_collected_coins >= _coin_nodes.size()
 
 func _is_out_of_bounds(gpos: Vector2i) -> bool:
 	return gpos.x < 0 or gpos.y < 0 or gpos.y >= grid_height or gpos.x >= grid_width
@@ -270,6 +384,10 @@ func _build_visuals() -> void:
 					_create_sprite(GOAL_TEXTURE, world_pos, objects_container)
 				SYM_ANCHOR:
 					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+				SYM_COIN:
+					_create_coin(gpos, world_pos)
+				SYM_COIN_GATE:
+					_create_coin_gate(gpos, world_pos)
 				SYM_TIME_GATE:
 					_create_phase_object(TIME_GATE_SCENE, gpos, world_pos, _time_gates)
 				SYM_LASER:
@@ -303,6 +421,40 @@ func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	rect.color = Color(0.6, 0.4, 0.8, 0.9)
 	objects_container.add_child(rect)
 
+func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
+	var marker = Node2D.new()
+	marker.position = world_pos
+	objects_container.add_child(marker)
+
+	var glow = ColorRect.new()
+	glow.size = Vector2(30.0, 30.0)
+	glow.position = -Vector2(15.0, 15.0)
+	glow.color = Color(1.0, 0.85, 0.2, 0.35)
+	marker.add_child(glow)
+
+	var core = ColorRect.new()
+	core.size = Vector2(16.0, 16.0)
+	core.position = -Vector2(8.0, 8.0)
+	core.color = Color(1.0, 0.95, 0.35, 1.0)
+	marker.add_child(core)
+	_coin_nodes[gpos] = marker
+
+func _create_coin_gate(gpos: Vector2i, world_pos: Vector2) -> void:
+	var rect = ColorRect.new()
+	rect.size = Vector2(float(TILE_SIZE) - 8.0, float(TILE_SIZE) - 8.0)
+	rect.position = world_pos - Vector2(float(TILE_SIZE) / 2.0 - 4.0, float(TILE_SIZE) / 2.0 - 4.0)
+	rect.color = Color(1.0, 0.72, 0.18, 0.95)
+	objects_container.add_child(rect)
+	_coin_gate_nodes[gpos] = rect
+
+func _update_coin_gate_visuals() -> void:
+	var open := _all_coins_collected()
+	for gpos in _coin_gate_nodes:
+		var gate_node = _coin_gate_nodes[gpos]
+		if not is_instance_valid(gate_node):
+			continue
+		gate_node.color = Color(0.1, 1.0, 0.6, 0.22) if open else Color(1.0, 0.72, 0.18, 0.95)
+
 func _create_phase_object(scene: PackedScene, gpos: Vector2i, world_pos: Vector2, registry: Dictionary) -> Node:
 	var instance = scene.instantiate()
 	instance.position = world_pos
@@ -317,9 +469,24 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	enemy.position = world_pos
 	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
+	enemy.patrol_offsets = _get_enemy_patrol_offsets(gpos)
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
+
+func _get_enemy_patrol_offsets(gpos: Vector2i) -> Array[Vector2i]:
+	var level_number := GameManager.current_level_index + 1
+	var level_paths: Dictionary = CUSTOM_ENEMY_PATHS.get(level_number, {})
+	if level_paths.has(gpos):
+		var configured_path: Array[Vector2i] = []
+		for offset in level_paths[gpos]:
+			configured_path.append(offset)
+		return configured_path
+
+	var default_path: Array[Vector2i] = []
+	for offset in DEFAULT_ENEMY_PATH:
+		default_path.append(offset)
+	return default_path
 
 func _clear_children(parent: Node) -> void:
 	if parent == null:

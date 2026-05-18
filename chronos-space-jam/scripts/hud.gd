@@ -21,6 +21,7 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var gravity_label = $MarginContainer/VBoxContainer/GravityLabel
 @onready var tick_label = $MarginContainer/VBoxContainer/TickLabel
 @onready var shifts_label = $MarginContainer/VBoxContainer/ShiftsLabel
+@onready var coins_label = $MarginContainer/VBoxContainer/CoinsLabel
 @onready var level_label = $MarginContainer/VBoxContainer/LevelLabel
 @onready var death_panel = $DeathPanel
 @onready var clear_panel = $ClearPanel
@@ -73,6 +74,13 @@ func _update_hud() -> void:
 	shifts_label.text = "Time Shifts: " + str(TickManager.move_count)
 	level_label.text = "Level " + str(GameManager.current_level_index + 1) + ": " + StoryManager.get_level_name(GameManager.current_level_index)
 
+	var level_manager = _get_level_manager()
+	if level_manager and level_manager.has_method("get_coin_total") and level_manager.get_coin_total() > 0:
+		coins_label.visible = true
+		coins_label.text = "Coins: " + str(level_manager.get_coin_count()) + "/" + str(level_manager.get_coin_total())
+	else:
+		coins_label.visible = false
+
 func show_level_story(level_index: int, finished_callback: Callable) -> void:
 	_story_lines = StoryManager.get_level_story(level_index)
 	_story_finished_callback = finished_callback
@@ -117,6 +125,12 @@ func _on_level_loaded(level_index: int) -> void:
 func _hide_tutorial() -> void:
 	tutorial_label.visible = false
 	_set_canvas_item_alpha(tutorial_label, 1.0)
+
+func _get_level_manager() -> Node:
+	var scene_root = get_tree().current_scene
+	if scene_root == null:
+		return null
+	return scene_root.get_node_or_null("LevelManager")
 
 func _update_story_typewriter(delta: float) -> void:
 	if not _story_typing:

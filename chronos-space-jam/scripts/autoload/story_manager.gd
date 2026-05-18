@@ -10,11 +10,17 @@ const INTRO_LINES: Array[String] = [
 const ENDING_LINES: Array[String] = [
 	"The final door opens without a sound.",
 	"OPERATOR: Signal is clean. The station is moving again.",
-	"SYSTEM: Chronos jam resolved. Twelve chambers stabilized.",
+	"SYSTEM: Chronos jam resolved. Twenty-four chambers stabilized.",
 	"OPERATOR: Nice work, pilot. Time remembers your direction.",
 ]
 
-const LEVEL_STORIES: Dictionary = {}
+const LEVEL_STORIES: Dictionary = {
+	12: [
+		"OPERATOR: Chamber 13 adds key-coins to the gravity rig.",
+		"SYSTEM: Collect every coin to unlock the gold gate around the exit.",
+		"OPERATOR: The gate opens the instant the last coin is claimed. Keep sliding.",
+	],
+}
 
 const LEVEL_NAMES: Dictionary = {
 	0: "First Shift",
@@ -29,6 +35,18 @@ const LEVEL_NAMES: Dictionary = {
 	9: "Pressure Route",
 	10: "Clock Floor",
 	11: "Direction for Time",
+	12: "Gold Lock",
+	13: "Two-Key Bend",
+	14: "Vault Corner",
+	15: "Patrol Vault",
+	16: "Anchor Lock",
+	17: "Long Coin",
+	18: "Red Vault",
+	19: "Anchor Cache",
+	20: "Triple Turn",
+	21: "Warning Hoard",
+	22: "Patrol Cache",
+	23: "Final Vault",
 }
 
 var _seen_level_stories: Dictionary = {}

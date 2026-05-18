@@ -16,7 +16,7 @@ enum GameState {
 }
 
 const LEVEL_DIR: String = "res://levels/"
-const TOTAL_LEVELS: int = 12
+const TOTAL_LEVELS: int = 24
 const LEVEL_TARGETS: Dictionary = {
 	0: 3,
 	1: 3,
@@ -30,6 +30,18 @@ const LEVEL_TARGETS: Dictionary = {
 	9: 12,
 	10: 14,
 	11: 15,
+	12: 2,
+	13: 5,
+	14: 5,
+	15: 8,
+	16: 6,
+	17: 5,
+	18: 5,
+	19: 5,
+	20: 5,
+	21: 8,
+	22: 9,
+	23: 9,
 }
 
 var current_state: int = GameState.MENU

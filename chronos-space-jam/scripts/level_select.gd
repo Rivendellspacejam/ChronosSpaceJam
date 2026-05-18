@@ -14,8 +14,8 @@ func _build_level_buttons() -> void:
 	for i in range(GameManager.TOTAL_LEVELS):
 		var button = Button.new()
 		button.text = str(i + 1) + "\n" + StoryManager.get_level_name(i)
-		button.custom_minimum_size = Vector2(120, 60)
-		button.add_theme_font_size_override("font_size", 18)
+		button.custom_minimum_size = Vector2(96, 52)
+		button.add_theme_font_size_override("font_size", 15)
 		button.pressed.connect(_make_level_callback(i))
 		button.mouse_entered.connect(AudioManager.play_ui_click)
 		_apply_button_style(button)

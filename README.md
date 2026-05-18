@@ -9,7 +9,7 @@ Open `chronos-space-jam/project.godot` in Godot 4.6, then run the project.
 Flow:
 - Main menu
 - Story intro
-- 12 puzzle chambers
+- 24 puzzle chambers
 - Ending scene
 
 Controls:
@@ -27,7 +27,7 @@ py chronos-space-jam/tools/verify_levels.py
 py chronos-space-jam/tools/verify_project.py
 ```
 
-`verify_levels.py` checks every chamber has a solution and that the minimum solution length does not drop as levels progress.
+`verify_levels.py` checks every chamber has a solution, level layouts are unique, coin-gate routes use their coins and gates, and enemy patrols stay out of walls.
 `verify_project.py` checks level/story counts, key scene flow, and resource paths.
 
 If Godot is available from a terminal, run the scene smoke test too:
