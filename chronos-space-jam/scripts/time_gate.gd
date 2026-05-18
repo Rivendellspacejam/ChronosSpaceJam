@@ -28,6 +28,21 @@ func is_closed() -> bool:
 func is_open() -> bool:
 	return _is_open
 
+func get_state_for_tick(tick: int) -> Dictionary:
+	var count := phase_count if phase_count > 0 else open_pattern.size()
+	var phase := tick % count
+	var open_at_tick := phase < open_pattern.size() and open_pattern[phase]
+	return {"is_open": open_at_tick}
+
+func play_phase_pulse() -> void:
+	if _sprite == null:
+		return
+	var base := _sprite.modulate
+	var peak := base.lightened(0.35)
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", peak, 0.12)
+	tween.tween_property(_sprite, "modulate", base, 0.13)
+
 func _update_visual() -> void:
 	if _sprite == null:
 		return

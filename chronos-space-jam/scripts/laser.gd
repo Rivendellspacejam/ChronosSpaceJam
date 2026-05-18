@@ -27,6 +27,21 @@ func update_phase(current_tick: int) -> void:
 func is_active() -> bool:
 	return _is_active_state
 
+func get_state_for_tick(tick: int) -> Dictionary:
+	var count := phase_count if phase_count > 0 else active_pattern.size()
+	var phase := tick % count
+	var active_at_tick := phase < active_pattern.size() and active_pattern[phase]
+	return {"is_active": active_at_tick}
+
+func play_phase_pulse() -> void:
+	if _sprite == null:
+		return
+	var base := _sprite.modulate
+	var peak := base.lightened(0.35)
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", peak, 0.12)
+	tween.tween_property(_sprite, "modulate", base, 0.13)
+
 func get_beam_direction() -> Vector2i:
 	if beam_axis == 0:
 		return Vector2i(1, 0)

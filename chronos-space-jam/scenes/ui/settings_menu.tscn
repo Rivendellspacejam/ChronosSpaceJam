@@ -277,6 +277,26 @@ text = "50%"
 horizontal_alignment = 2
 vertical_alignment = 1
 
+[node name="MovePreviewsRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MovePreviewsLabel" type="Label" parent="VBoxContainer/MovePreviewsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 30)
+theme_override_font_sizes/font_size = 17
+text = "Move Previews (P)"
+vertical_alignment = 1
+
+[node name="MovePreviewsSpacer" type="Control" parent="VBoxContainer/MovePreviewsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MovePreviewsButton" type="CheckButton" parent="VBoxContainer/MovePreviewsRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+button_pressed = true
+
 [node name="Spacer4" type="Control" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 8)

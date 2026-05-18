@@ -1,6 +1,7 @@
 extends Node
 
 signal settings_changed
+signal move_previews_changed(enabled: bool)
 
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -14,6 +15,7 @@ var vsync      : bool = true
 
 var screen_shake_enabled   : bool  = true
 var screen_shake_intensity : float = 50.0
+var move_previews_enabled  : bool  = true
 
 func _ready() -> void:
 	_ensure_audio_buses()
@@ -49,6 +51,7 @@ func save_settings() -> void:
 	cfg.set_value("display", "vsync",      vsync)
 	cfg.set_value("gameplay", "screen_shake",           screen_shake_enabled)
 	cfg.set_value("gameplay", "screen_shake_intensity", screen_shake_intensity)
+	cfg.set_value("gameplay", "move_previews",          move_previews_enabled)
 	cfg.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -64,6 +67,7 @@ func load_settings() -> void:
 	vsync      = cfg.get_value("display", "vsync",      true)
 	screen_shake_enabled   = cfg.get_value("gameplay", "screen_shake",           true)
 	screen_shake_intensity = cfg.get_value("gameplay", "screen_shake_intensity", 50.0)
+	move_previews_enabled  = cfg.get_value("gameplay", "move_previews",          true)
 
 func _ensure_audio_buses() -> void:
 	_ensure_bus("Music")

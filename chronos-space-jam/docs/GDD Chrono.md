@@ -605,7 +605,7 @@ Next Phase: 3
 
 Untuk gamejam, cukup tampilkan current phase terlebih dahulu.
 
-**Implementation (v0.2):** HUD shows Gravity, Tick, and Time Shifts (no global `Phase: n/m` line). Enemy patrol shows **next-tick move preview** (ghost + line) during play. Per-object phase state is communicated through trap/gate visuals.
+**Implementation (v0.2):** HUD shows Gravity, Tick, and Time Shifts (no global `Phase: n/m` line). Hold **P** during play (when Move Previews is enabled in settings) to peek **next-tick** enemy ghosts/lines and hazard overlays for upcoming state changes. Release P to return to the normal board view. Phase objects pulse briefly when their state changes on tick advance. Per-object phase state is also communicated through trap/gate sprites.
 
 ---
 
@@ -1095,7 +1095,7 @@ Status as of **18 Mei 2026** (see **Development Status** at top of document).
 ### Could Have — **Mixed**
 
 - [ ] Medal system (move targets + best shift only; no Gold/Silver/Bronze tiers).  
-- [~] Phase preview UI (enemy next-move preview only; no global phase HUD).  
+- [x] Phase preview UI (enemy next-tick ghosts, hazard next-tick hints, tick pulse; no global phase HUD).  
 - [ ] Goal active only on certain ticks.  
 - [ ] Bounce tile.  
 - [x] Screen shake / polish (with settings toggle).  
