@@ -80,11 +80,19 @@ func _is_blocked_before_tick(direction: Vector2i) -> bool:
 
 func _start_slide(direction: Vector2i) -> void:
 	level_manager.set_slide_direction(direction)
+
+	var first_step := grid_pos + direction
+	if level_manager.is_static_blocked_before_tick(first_step, direction):
+		level_manager.set_slide_direction(Vector2i.ZERO)
+		return
+
+	TickManager.prepare_enemies_for_move()
 	_slide_path = _build_slide_path(direction)
 
 	# Invalid inputs that do not move the player should not advance time.
 	# This prevents walls, blockers, or closed time gates from becoming a wait button.
 	if _slide_path.is_empty():
+		TickManager.sync_enemies_to_current_tick()
 		level_manager.set_slide_direction(Vector2i.ZERO)
 		return
 
@@ -103,7 +111,7 @@ func _build_slide_path(direction: Vector2i) -> Array:
 	var check_pos = grid_pos + direction
 
 	while true:
-		var tile_info = level_manager.get_tile_info(check_pos)
+		var tile_info = level_manager.get_slide_tile_info(check_pos)
 
 		if tile_info.blocks:
 			break
@@ -127,9 +135,12 @@ func _arrive_at_tile() -> void:
 	grid_pos = _slide_path[_slide_index]
 	position = level_manager.grid_to_world(grid_pos)
 
-	var tile_info = level_manager.get_tile_info(grid_pos)
+	var tile_info = level_manager.get_slide_tile_info(grid_pos)
 	if tile_info.is_goal:
 		_reach_goal()
+		return
+	if _is_killed_by_enemy():
+		_die()
 		return
 	if tile_info.is_anchor:
 		_finish_slide()
@@ -143,6 +154,11 @@ func _arrive_at_tile() -> void:
 	_begin_slide_segment()
 
 func _finish_slide() -> void:
+	if _is_killed_by_enemy():
+		level_manager.set_slide_direction(Vector2i.ZERO)
+		_die()
+		return
+
 	_commit_move_tick()
 	level_manager.set_slide_direction(Vector2i.ZERO)
 
@@ -161,8 +177,11 @@ func _commit_move_tick() -> void:
 	_move_tick_committed = true
 	TickManager.advance_tick()
 
+func _is_killed_by_enemy() -> bool:
+	return level_manager.is_enemy_at(grid_pos)
+
 func _is_killed_by_hazard() -> bool:
-	var info = level_manager.get_tile_info(grid_pos)
+	var info = level_manager.get_hazard_tile_info(grid_pos)
 	return info.kills_on_stop or info.kills_in_path
 
 func _die() -> void:

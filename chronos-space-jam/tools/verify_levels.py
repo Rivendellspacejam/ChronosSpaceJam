@@ -155,12 +155,12 @@ def is_blocked(level: Level, pos: tuple[int, int], direction: tuple[int, int], t
     return False
 
 
-def is_deadly_in_path(level: Level, pos: tuple[int, int], tick: int) -> bool:
-    if pos in enemy_positions(level, tick):
-        return True
-    if tile(level, pos) != LASER and pos in laser_cells(level, tick):
-        return True
-    return False
+def is_enemy_deadly(level: Level, pos: tuple[int, int], tick: int) -> bool:
+    return pos in enemy_positions(level, tick)
+
+
+def is_laser_deadly(level: Level, pos: tuple[int, int], tick: int) -> bool:
+    return tile(level, pos) != LASER and pos in laser_cells(level, tick)
 
 
 def is_deadly_on_stop(level: Level, pos: tuple[int, int], tick: int) -> bool:
@@ -171,6 +171,7 @@ def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick
     x, y = start
     dx, dy = direction
     current = start
+    enemy_tick = tick + 1
 
     while True:
         next_pos = (x + dx, y + dy)
@@ -180,7 +181,7 @@ def slide(level: Level, start: tuple[int, int], direction: tuple[int, int], tick
         current = next_pos
         x, y = current
 
-        if is_deadly_in_path(level, current, tick):
+        if is_enemy_deadly(level, current, enemy_tick):
             return current, False
         if tile(level, current) == GOAL:
             return current, True
@@ -208,7 +209,9 @@ def solve(level: Level, max_moves: int = 80) -> str | None:
             next_path = path + move
             if won:
                 return next_path
-            if is_deadly_on_stop(level, final_pos, next_tick) or is_deadly_in_path(
+            if is_enemy_deadly(level, final_pos, next_tick):
+                continue
+            if is_deadly_on_stop(level, final_pos, next_tick) or is_laser_deadly(
                 level, final_pos, next_tick
             ):
                 continue
@@ -226,8 +229,8 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
     tick = 0
 
     for move in solution:
-        tick += 1
         direction = DIRECTIONS[move]
+        enemy_tick = tick + 1
         x, y = pos
 
         while True:
@@ -239,8 +242,14 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
             x, y = pos
             visited.add(pos)
 
-            if is_deadly_in_path(level, pos, tick) or tile(level, pos) == GOAL or tile(level, pos) == ANCHOR:
+            if (
+                is_enemy_deadly(level, pos, enemy_tick)
+                or tile(level, pos) == GOAL
+                or tile(level, pos) == ANCHOR
+            ):
                 break
+
+        tick += 1
 
     return visited
 

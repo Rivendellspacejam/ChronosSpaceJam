@@ -150,7 +150,23 @@ func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
 
 	return false
 
-func get_tile_info(gpos: Vector2i) -> TileInfo:
+func get_slide_tile_info(gpos: Vector2i) -> TileInfo:
+	var info = _base_tile_info(gpos)
+	_apply_enemy_hazard(info, gpos)
+	return info
+
+func get_hazard_tile_info(gpos: Vector2i) -> TileInfo:
+	var info = _base_tile_info(gpos)
+	_apply_laser_beam_hazard(info, gpos)
+	return info
+
+func is_enemy_at(gpos: Vector2i) -> bool:
+	for enemy_pos in _enemies:
+		if _enemies[enemy_pos].current_grid_pos == gpos:
+			return true
+	return false
+
+func _base_tile_info(gpos: Vector2i) -> TileInfo:
 	var info = TileInfo.new()
 
 	if _is_out_of_bounds(gpos):
@@ -159,8 +175,6 @@ func get_tile_info(gpos: Vector2i) -> TileInfo:
 		return info
 
 	_apply_base_tile_info(info, gpos, get_tile_at(gpos))
-	_apply_enemy_hazard(info, gpos)
-	_apply_laser_beam_hazard(info, gpos)
 	return info
 
 func _read_grid(rows: Array) -> void:
@@ -295,12 +309,17 @@ func _create_phase_object(scene: PackedScene, gpos: Vector2i, world_pos: Vector2
 	instance.grid_pos = gpos
 	objects_container.add_child(instance)
 	registry[gpos] = instance
-	TickManager.register_phase_object(instance)
+	TickManager.register_environment_object(instance)
 	return instance
 
 func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
-	var enemy = _create_phase_object(ENEMY_SCENE, gpos, world_pos, _enemies)
+	var enemy = ENEMY_SCENE.instantiate()
+	enemy.position = world_pos
+	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
+	objects_container.add_child(enemy)
+	_enemies[gpos] = enemy
+	TickManager.register_enemy_object(enemy)
 
 func _clear_children(parent: Node) -> void:
 	if parent == null:
