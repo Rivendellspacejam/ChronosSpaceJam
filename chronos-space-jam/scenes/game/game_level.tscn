@@ -18,6 +18,8 @@ script = ExtResource("2")
 
 [node name="Floors" type="Node2D" parent="LevelManager"]
 
+[node name="EnemyPreviewLayer" type="Node2D" parent="LevelManager"]
+
 [node name="Walls" type="Node2D" parent="LevelManager"]
 
 [node name="Objects" type="Node2D" parent="LevelManager"]

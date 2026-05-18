@@ -23,6 +23,11 @@ const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
 const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
 const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 
+const PREVIEW_GHOST_SIZE: float = 34.0
+const PREVIEW_GHOST_COLOR := Color(0.35, 0.85, 1.0, 0.3)
+const PREVIEW_LINE_COLOR := Color(0.55, 0.4, 1.0, 0.45)
+const PREVIEW_LINE_WIDTH: float = 4.0
+
 var grid: Array = []
 var grid_width: int = 0
 var grid_height: int = 0
@@ -38,7 +43,12 @@ var _current_slide_direction: Vector2i = Vector2i.ZERO
 
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
+@onready var enemy_preview_layer: Node2D = $EnemyPreviewLayer
 @onready var objects_container: Node2D = $Objects
+
+func _ready() -> void:
+	TickManager.tick_advanced.connect(_on_tick_advanced_refresh_previews)
+	GameManager.state_changed.connect(_on_game_state_changed_refresh_previews)
 
 class TileInfo:
 	var type: String = "empty"
@@ -61,6 +71,7 @@ func load_level(level_index: int) -> Vector2i:
 	_enemy_path_assign_index = 0
 	_read_grid(rows)
 	_build_visuals()
+	refresh_enemy_move_previews()
 	return player_start
 
 func clear_level() -> void:
@@ -74,6 +85,7 @@ func clear_level() -> void:
 	grid.clear()
 	_clear_children(walls_container)
 	_clear_children(floors_container)
+	_clear_enemy_move_previews()
 	_clear_children(objects_container)
 
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
@@ -328,6 +340,68 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
+
+
+func refresh_enemy_move_previews() -> void:
+	_clear_enemy_move_previews()
+	if enemy_preview_layer == null or not GameManager.is_playing():
+		return
+
+	var next_tick := TickManager.current_tick + 1
+	for enemy in _enemies.values():
+		if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
+			continue
+		_add_enemy_move_preview(enemy, next_tick)
+
+
+func _add_enemy_move_preview(enemy: Node, next_tick: int) -> void:
+	var from_grid: Vector2i = enemy.current_grid_pos
+	var to_grid: Vector2i = enemy.get_grid_pos_for_tick(next_tick)
+	if from_grid == to_grid:
+		_add_preview_ghost(to_grid)
+		return
+
+	var from_world := grid_to_world(from_grid)
+	var to_world := grid_to_world(to_grid)
+	_add_preview_line(from_world, to_world)
+	_add_preview_ghost(to_grid)
+
+
+func _add_preview_ghost(grid_pos: Vector2i) -> void:
+	var world_pos := grid_to_world(grid_pos)
+	var ghost := ColorRect.new()
+	ghost.size = Vector2(PREVIEW_GHOST_SIZE, PREVIEW_GHOST_SIZE)
+	ghost.position = world_pos - ghost.size / 2.0
+	ghost.color = PREVIEW_GHOST_COLOR
+	enemy_preview_layer.add_child(ghost)
+
+
+func _add_preview_line(from_world: Vector2, to_world: Vector2) -> void:
+	var line := Line2D.new()
+	line.points = PackedVector2Array([from_world, to_world])
+	line.width = PREVIEW_LINE_WIDTH
+	line.default_color = PREVIEW_LINE_COLOR
+	line.antialiased = true
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	enemy_preview_layer.add_child(line)
+
+
+func _clear_enemy_move_previews() -> void:
+	if enemy_preview_layer == null:
+		return
+	_clear_children(enemy_preview_layer)
+
+
+func _on_tick_advanced_refresh_previews(_tick: int) -> void:
+	refresh_enemy_move_previews()
+
+
+func _on_game_state_changed_refresh_previews(new_state: int) -> void:
+	if new_state == GameManager.GameState.SLIDING:
+		_clear_enemy_move_previews()
+	elif new_state == GameManager.GameState.PLAYING:
+		refresh_enemy_move_previews()
 
 
 func _patrol_path_for_next_enemy() -> Array[Vector2i]:
