@@ -25,6 +25,18 @@ const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
 const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
 const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 
+const PREVIEW_GHOST_SIZE: float = 34.0
+const PREVIEW_GHOST_COLOR := Color(0.35, 0.85, 1.0, 0.3)
+const PREVIEW_LINE_COLOR := Color(0.55, 0.4, 1.0, 0.45)
+const PREVIEW_LINE_WIDTH: float = 4.0
+
+const HAZARD_PREVIEW_TILE_SIZE: float = 48.0
+const GATE_OPENING_HINT_COLOR := Color(0.4, 1.0, 0.6, 0.35)
+const GATE_CLOSING_HINT_COLOR := Color(1.0, 0.35, 0.35, 0.35)
+const LASER_ACTIVATING_HINT_COLOR := Color(1.0, 0.3, 0.3, 0.5)
+const SPIKE_WARNING_HINT_COLOR := Color(1.0, 0.85, 0.1, 0.4)
+const SPIKE_ACTIVE_HINT_COLOR := Color(1.0, 0.25, 0.25, 0.45)
+
 var grid: Array = []
 var grid_width: int = 0
 var grid_height: int = 0
@@ -37,85 +49,32 @@ var _enemies: Dictionary = {}
 var _coin_nodes: Dictionary = {}
 var _coin_gate_nodes: Dictionary = {}
 var _collected_coins: Dictionary = {}
+var _enemy_patrol_paths: Array = []
+var _enemy_path_assign_index: int = 0
 var _current_slide_direction: Vector2i = Vector2i.ZERO
-
-const DEFAULT_ENEMY_PATH: Array[Vector2i] = [
-	Vector2i(0, 0),
-	Vector2i(1, 0),
-	Vector2i(1, 1),
-	Vector2i(0, 1),
-]
-
-const CUSTOM_ENEMY_PATHS: Dictionary = {
-	6: {
-		Vector2i(6, 3): [
-			Vector2i(0, 0),
-			Vector2i(-1, 0),
-			Vector2i(0, 0),
-			Vector2i(0, 1),
-		],
-	},
-	8: {
-		Vector2i(2, 5): [
-			Vector2i(0, 0),
-			Vector2i(0, -1),
-			Vector2i(0, -2),
-			Vector2i(0, -3),
-		],
-	},
-	9: {
-		Vector2i(8, 6): [
-			Vector2i(0, 0),
-			Vector2i(-1, 0),
-			Vector2i(0, 0),
-			Vector2i(0, -1),
-		],
-	},
-	12: {
-		Vector2i(7, 2): [
-			Vector2i(0, 0),
-			Vector2i(0, -1),
-			Vector2i(1, -1),
-			Vector2i(0, -1),
-		],
-	},
-	16: {
-		Vector2i(5, 2): [
-			Vector2i(0, 0),
-			Vector2i(1, 0),
-			Vector2i(2, 0),
-			Vector2i(1, 0),
-		],
-	},
-	20: {
-		Vector2i(3, 4): [
-			Vector2i(0, 0),
-			Vector2i(0, -1),
-			Vector2i(0, 0),
-			Vector2i(1, 0),
-		],
-	},
-	23: {
-		Vector2i(6, 3): [
-			Vector2i(0, 0),
-			Vector2i(1, 0),
-			Vector2i(1, 1),
-			Vector2i(0, 1),
-		],
-	},
-	24: {
-		Vector2i(6, 3): [
-			Vector2i(0, 0),
-			Vector2i(1, 0),
-			Vector2i(1, 1),
-			Vector2i(0, 1),
-		],
-	},
-}
+var _preview_key_was_held: bool = false
 
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
+@onready var hazard_preview_layer: Node2D = $HazardPreviewLayer
+@onready var enemy_preview_layer: Node2D = $EnemyPreviewLayer
 @onready var objects_container: Node2D = $Objects
+
+func _ready() -> void:
+	TickManager.tick_advanced.connect(_on_tick_advanced_refresh_previews)
+	GameManager.state_changed.connect(_on_game_state_changed_refresh_previews)
+	SettingsManager.move_previews_changed.connect(_on_move_previews_setting_changed)
+	set_process(true)
+
+func _process(_delta: float) -> void:
+	var held := _is_preview_key_held()
+	if held == _preview_key_was_held:
+		return
+	_preview_key_was_held = held
+	if held:
+		refresh_all_move_previews()
+	else:
+		_clear_all_previews()
 
 class TileInfo:
 	var type: String = "empty"
@@ -129,16 +88,21 @@ class TileInfo:
 func load_level(level_index: int) -> Vector2i:
 	clear_level()
 
-	var rows = GameManager.load_level_data(level_index)
+	var level_bundle = GameManager.load_level_bundle(level_index)
+	var rows: Array = level_bundle.get("rows", [])
 	if rows.is_empty():
 		push_error("Empty level data for index %d" % level_index)
 		return Vector2i.ZERO
 
+	_enemy_patrol_paths = level_bundle.get("enemy_paths", [])
+	_enemy_path_assign_index = 0
 	_read_grid(rows)
 	_build_visuals()
+	refresh_all_move_previews()
 	return player_start
 
 func clear_level() -> void:
+	_preview_key_was_held = false
 	TickManager.clear_phase_objects()
 	_time_gates.clear()
 	_lasers.clear()
@@ -147,9 +111,12 @@ func clear_level() -> void:
 	_coin_nodes.clear()
 	_coin_gate_nodes.clear()
 	_collected_coins.clear()
+	_enemy_patrol_paths.clear()
+	_enemy_path_assign_index = 0
 	grid.clear()
 	_clear_children(walls_container)
 	_clear_children(floors_container)
+	_clear_all_previews()
 	_clear_children(objects_container)
 
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
@@ -469,24 +436,204 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	enemy.position = world_pos
 	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
-	enemy.patrol_offsets = _get_enemy_patrol_offsets(gpos)
+	enemy.patrol_offsets = _patrol_path_for_next_enemy()
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
 
-func _get_enemy_patrol_offsets(gpos: Vector2i) -> Array[Vector2i]:
-	var level_number := GameManager.current_level_index + 1
-	var level_paths: Dictionary = CUSTOM_ENEMY_PATHS.get(level_number, {})
-	if level_paths.has(gpos):
-		var configured_path: Array[Vector2i] = []
-		for offset in level_paths[gpos]:
-			configured_path.append(offset)
-		return configured_path
 
-	var default_path: Array[Vector2i] = []
-	for offset in DEFAULT_ENEMY_PATH:
-		default_path.append(offset)
-	return default_path
+func refresh_all_move_previews() -> void:
+	_clear_all_previews()
+	if not _should_show_move_previews():
+		return
+
+	var next_tick := TickManager.current_tick + 1
+	_refresh_enemy_move_previews(next_tick)
+	_refresh_hazard_move_previews(next_tick)
+
+
+func _is_preview_key_held() -> bool:
+	return (
+		SettingsManager.move_previews_enabled
+		and GameManager.is_playing()
+		and Input.is_action_pressed("preview_future")
+	)
+
+func _should_show_move_previews() -> bool:
+	return (
+		_is_preview_key_held()
+		and enemy_preview_layer != null
+		and hazard_preview_layer != null
+	)
+
+
+func _clear_all_previews() -> void:
+	_clear_enemy_move_previews()
+	_clear_hazard_previews()
+
+
+func _refresh_enemy_move_previews(next_tick: int) -> void:
+	for enemy in _enemies.values():
+		if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
+			continue
+		_add_enemy_move_preview(enemy, next_tick)
+
+
+func _refresh_hazard_move_previews(next_tick: int) -> void:
+	for gate in _time_gates.values():
+		_try_add_time_gate_preview(gate, next_tick)
+	for laser in _lasers.values():
+		_try_add_laser_preview(laser, next_tick)
+	for spike in _spikes.values():
+		_try_add_spike_preview(spike, next_tick)
+
+
+func _try_add_time_gate_preview(gate: Node, next_tick: int) -> void:
+	if not is_instance_valid(gate) or not gate.has_method("get_state_for_tick"):
+		return
+
+	var current_open: bool = gate.is_open()
+	var next_open: bool = gate.get_state_for_tick(next_tick).get("is_open", current_open)
+	if current_open == next_open:
+		return
+
+	var hint_color := GATE_OPENING_HINT_COLOR if next_open else GATE_CLOSING_HINT_COLOR
+	_add_hazard_tile_overlay(gate.grid_pos, hint_color)
+
+
+func _try_add_laser_preview(laser: Node, next_tick: int) -> void:
+	if not is_instance_valid(laser) or not laser.has_method("get_state_for_tick"):
+		return
+
+	var current_active: bool = laser.is_active()
+	var next_active: bool = laser.get_state_for_tick(next_tick).get("is_active", current_active)
+	if current_active or not next_active:
+		return
+
+	_add_hazard_tile_overlay(laser.grid_pos, LASER_ACTIVATING_HINT_COLOR)
+
+
+func _try_add_spike_preview(spike: Node, next_tick: int) -> void:
+	if not is_instance_valid(spike) or not spike.has_method("get_state_for_tick"):
+		return
+
+	var current_state: int = spike.spike_state
+	var next_state: int = spike.get_state_for_tick(next_tick).get("spike_state", current_state)
+	if current_state == next_state:
+		return
+
+	if next_state == spike.SpikePhase.WARNING:
+		_add_hazard_ring_overlay(spike.grid_pos, SPIKE_WARNING_HINT_COLOR)
+	elif next_state == spike.SpikePhase.ACTIVE:
+		_add_hazard_tile_overlay(spike.grid_pos, SPIKE_ACTIVE_HINT_COLOR)
+
+
+func _add_hazard_tile_overlay(grid_pos: Vector2i, color: Color) -> void:
+	var world_pos := grid_to_world(grid_pos)
+	var overlay := ColorRect.new()
+	overlay.size = Vector2(HAZARD_PREVIEW_TILE_SIZE, HAZARD_PREVIEW_TILE_SIZE)
+	overlay.position = world_pos - overlay.size / 2.0
+	overlay.color = color
+	hazard_preview_layer.add_child(overlay)
+
+
+func _add_hazard_ring_overlay(grid_pos: Vector2i, color: Color) -> void:
+	var world_pos := grid_to_world(grid_pos)
+	var ring_size := HAZARD_PREVIEW_TILE_SIZE + 6.0
+	var overlay := ColorRect.new()
+	overlay.size = Vector2(ring_size, ring_size)
+	overlay.position = world_pos - overlay.size / 2.0
+	overlay.color = color
+	hazard_preview_layer.add_child(overlay)
+
+
+func _clear_hazard_previews() -> void:
+	if hazard_preview_layer == null:
+		return
+	_clear_children(hazard_preview_layer)
+
+
+func _play_environment_phase_pulses(tick: int) -> void:
+	if not GameManager.is_playing() or tick <= 0:
+		return
+
+	var previous_tick := tick - 1
+	for registry in [_time_gates, _lasers, _spikes]:
+		for obj in registry.values():
+			if not is_instance_valid(obj) or not obj.has_method("get_state_for_tick"):
+				continue
+			if obj.get_state_for_tick(tick) == obj.get_state_for_tick(previous_tick):
+				continue
+			if obj.has_method("play_phase_pulse"):
+				obj.play_phase_pulse()
+
+
+func _add_enemy_move_preview(enemy: Node, next_tick: int) -> void:
+	var from_grid: Vector2i = enemy.current_grid_pos
+	var to_grid: Vector2i = enemy.get_grid_pos_for_tick(next_tick)
+	if from_grid == to_grid:
+		_add_preview_ghost(to_grid)
+		return
+
+	var from_world := grid_to_world(from_grid)
+	var to_world := grid_to_world(to_grid)
+	_add_preview_line(from_world, to_world)
+	_add_preview_ghost(to_grid)
+
+
+func _add_preview_ghost(grid_pos: Vector2i) -> void:
+	var world_pos := grid_to_world(grid_pos)
+	var ghost := ColorRect.new()
+	ghost.size = Vector2(PREVIEW_GHOST_SIZE, PREVIEW_GHOST_SIZE)
+	ghost.position = world_pos - ghost.size / 2.0
+	ghost.color = PREVIEW_GHOST_COLOR
+	enemy_preview_layer.add_child(ghost)
+
+
+func _add_preview_line(from_world: Vector2, to_world: Vector2) -> void:
+	var line := Line2D.new()
+	line.points = PackedVector2Array([from_world, to_world])
+	line.width = PREVIEW_LINE_WIDTH
+	line.default_color = PREVIEW_LINE_COLOR
+	line.antialiased = true
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	enemy_preview_layer.add_child(line)
+
+
+func _clear_enemy_move_previews() -> void:
+	if enemy_preview_layer == null:
+		return
+	_clear_children(enemy_preview_layer)
+
+
+func _on_tick_advanced_refresh_previews(tick: int) -> void:
+	_play_environment_phase_pulses(tick)
+	refresh_all_move_previews()
+
+
+func _on_game_state_changed_refresh_previews(new_state: int) -> void:
+	_preview_key_was_held = false
+	if new_state == GameManager.GameState.PLAYING:
+		refresh_all_move_previews()
+	else:
+		_clear_all_previews()
+
+
+func _on_move_previews_setting_changed(enabled: bool) -> void:
+	_preview_key_was_held = false
+	if enabled and _is_preview_key_held():
+		refresh_all_move_previews()
+	else:
+		_clear_all_previews()
+
+
+func _patrol_path_for_next_enemy() -> Array[Vector2i]:
+	var path: Array[Vector2i] = GameManager.DEFAULT_ENEMY_PATROL.duplicate()
+	if _enemy_path_assign_index < _enemy_patrol_paths.size():
+		path = _enemy_patrol_paths[_enemy_path_assign_index]
+	_enemy_path_assign_index += 1
+	return path
 
 func _clear_children(parent: Node) -> void:
 	if parent == null:

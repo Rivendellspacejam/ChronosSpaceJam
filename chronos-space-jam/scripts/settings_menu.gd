@@ -17,6 +17,7 @@ var return_target: Control = null
 @onready var shake_slider: HSlider = $VBoxContainer/ShakeIntensityRow/ShakeSlider
 @onready var shake_value_label: Label = $VBoxContainer/ShakeIntensityRow/ShakeValueLabel
 @onready var shake_intensity_row: Control = $VBoxContainer/ShakeIntensityRow
+@onready var move_previews_button: CheckButton = $VBoxContainer/MovePreviewsRow/MovePreviewsButton
 @onready var back_button: Button = $VBoxContainer/BackButton
 
 func _ready() -> void:
@@ -34,6 +35,7 @@ func _sync_controls_from_settings() -> void:
 	shake_button.button_pressed = SettingsManager.screen_shake_enabled
 	shake_slider.value = SettingsManager.screen_shake_intensity
 	shake_intensity_row.visible = SettingsManager.screen_shake_enabled
+	move_previews_button.button_pressed = SettingsManager.move_previews_enabled
 
 func _wire_signals() -> void:
 	master_slider.value_changed.connect(_on_master_volume_changed)
@@ -46,6 +48,7 @@ func _wire_signals() -> void:
 	fullscreen_button.toggled.connect(_on_fullscreen_toggled)
 	vsync_button.toggled.connect(_on_vsync_toggled)
 	shake_button.toggled.connect(_on_shake_toggled)
+	move_previews_button.toggled.connect(_on_move_previews_toggled)
 	shake_slider.value_changed.connect(_on_shake_intensity_changed)
 	shake_slider.drag_ended.connect(_on_slider_drag_ended)
 	back_button.pressed.connect(_on_back)
@@ -81,6 +84,11 @@ func _on_shake_toggled(pressed: bool) -> void:
 	AudioManager.play_ui_click()
 	SettingsManager.screen_shake_enabled = pressed
 	shake_intensity_row.visible = pressed
+
+func _on_move_previews_toggled(pressed: bool) -> void:
+	AudioManager.play_ui_click()
+	SettingsManager.move_previews_enabled = pressed
+	SettingsManager.move_previews_changed.emit(pressed)
 
 func _on_shake_intensity_changed(value: float) -> void:
 	SettingsManager.screen_shake_intensity = value

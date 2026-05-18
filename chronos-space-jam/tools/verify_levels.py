@@ -28,34 +28,8 @@ GOAL = "G"
 BLOCK_H = "-"
 BLOCK_V = "|"
 SPECIAL_TILES = {ANCHOR, GATE, COIN_GATE, COIN, LASER, SPIKE, ENEMY, BLOCK_H, BLOCK_V}
-
+ENEMY_PATH_PREFIX = "@enemy_path"
 DEFAULT_ENEMY_PATH = ((0, 0), (1, 0), (1, 1), (0, 1))
-CUSTOM_ENEMY_PATHS = {
-    6: {
-        (6, 3): ((0, 0), (-1, 0), (0, 0), (0, 1)),
-    },
-    8: {
-        (2, 5): ((0, 0), (0, -1), (0, -2), (0, -3)),
-    },
-    9: {
-        (8, 6): ((0, 0), (-1, 0), (0, 0), (0, -1)),
-    },
-    12: {
-        (7, 2): ((0, 0), (0, -1), (1, -1), (0, -1)),
-    },
-    16: {
-        (5, 2): ((0, 0), (1, 0), (2, 0), (1, 0)),
-    },
-    20: {
-        (3, 4): ((0, 0), (0, -1), (0, 0), (1, 0)),
-    },
-    23: {
-        (6, 3): ((0, 0), (1, 0), (1, 1), (0, 1)),
-    },
-    24: {
-        (6, 3): ((0, 0), (1, 0), (1, 1), (0, 1)),
-    },
-}
 
 
 @dataclass(frozen=True)
@@ -68,6 +42,7 @@ class Level:
     spikes: tuple[tuple[int, int], ...]
     enemies: tuple[tuple[int, int], ...]
     coins: tuple[tuple[int, int], ...]
+    enemy_paths: tuple[tuple[tuple[int, int], ...], ...]
 
     @property
     def width(self) -> int:
@@ -78,8 +53,24 @@ class Level:
         return len(self.rows)
 
 
+def parse_enemy_path_line(line: str) -> tuple[tuple[int, int], ...]:
+    payload = line[len(ENEMY_PATH_PREFIX) :].strip()
+    offsets: list[tuple[int, int]] = []
+    for part in payload.split(";"):
+        trimmed = part.strip()
+        if not trimmed:
+            continue
+        x_text, y_text = trimmed.split(",", 1)
+        offsets.append((int(x_text), int(y_text)))
+    return tuple(offsets) if offsets else DEFAULT_ENEMY_PATH
+
+
 def load_level(path: Path) -> Level:
-    rows = tuple(line.strip() for line in path.read_text().splitlines() if line.strip())
+    raw_lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
+    rows = tuple(line for line in raw_lines if not line.startswith(ENEMY_PATH_PREFIX))
+    parsed_paths = tuple(
+        parse_enemy_path_line(line) for line in raw_lines if line.startswith(ENEMY_PATH_PREFIX)
+    )
     start = None
     goal = None
     lasers: list[tuple[int, int]] = []
@@ -107,7 +98,23 @@ def load_level(path: Path) -> Level:
     if goal is None:
         raise ValueError(f"{path.name} has no goal")
 
-    return Level(path.name, rows, start, goal, tuple(lasers), tuple(spikes), tuple(enemies), tuple(coins))
+    enemy_paths = list(parsed_paths)
+    if not enemy_paths:
+        enemy_paths = [DEFAULT_ENEMY_PATH] * len(enemies)
+    elif len(enemy_paths) < len(enemies):
+        enemy_paths.extend([DEFAULT_ENEMY_PATH] * (len(enemies) - len(enemy_paths)))
+
+    return Level(
+        path.name,
+        rows,
+        start,
+        goal,
+        tuple(lasers),
+        tuple(spikes),
+        tuple(enemies),
+        tuple(coins),
+        tuple(enemy_paths),
+    )
 
 
 def tile(level: Level, pos: tuple[int, int]) -> str:
@@ -139,21 +146,12 @@ def spike_active(tick: int) -> bool:
     return tick % 3 == 2
 
 
-def level_number(level: Level) -> int:
-    return int(level.name.removeprefix("level_").removesuffix(".txt"))
-
-
-def enemy_path(level: Level, enemy: tuple[int, int]) -> tuple[tuple[int, int], ...]:
-    return CUSTOM_ENEMY_PATHS.get(level_number(level), {}).get(enemy, DEFAULT_ENEMY_PATH)
-
-
 def enemy_positions(level: Level, tick: int) -> set[tuple[int, int]]:
-    positions = set()
-    for x, y in level.enemies:
-        offsets = enemy_path(level, (x, y))
-        phase = tick % len(offsets)
-        ox, oy = offsets[phase]
-        positions.add((x + ox, y + oy))
+    positions: set[tuple[int, int]] = set()
+    for (spawn_x, spawn_y), path in zip(level.enemies, level.enemy_paths, strict=True):
+        phase = tick % len(path)
+        ox, oy = path[phase]
+        positions.add((spawn_x + ox, spawn_y + oy))
     return positions
 
 
@@ -256,7 +254,8 @@ def slide(
 
 
 def solve(level: Level, max_moves: int = 80) -> str | None:
-    period = lcm(2, 3, 4)
+    enemy_periods = [len(path) for path in level.enemy_paths] or [len(DEFAULT_ENEMY_PATH)]
+    period = lcm(2, 3, *enemy_periods)
     queue = deque([(level.start, 0, frozenset(), "")])
     seen = {(level.start, 0, frozenset())}
 
@@ -329,8 +328,8 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
 
 def verify_enemy_paths(level: Level) -> list[str]:
     failures = []
-    for enemy in level.enemies:
-        for ox, oy in enemy_path(level, enemy):
+    for enemy, path in zip(level.enemies, level.enemy_paths, strict=True):
+        for ox, oy in path:
             pos = (enemy[0] + ox, enemy[1] + oy)
             if tile(level, pos) == WALL:
                 failures.append(f"{enemy}->{pos} hits wall")
@@ -347,7 +346,8 @@ def unused_special_tiles(level: Level, visited: set[tuple[int, int]]) -> list[tu
 
 
 def coin_gate_route_failures(level: Level, visited: set[tuple[int, int]]) -> list[str]:
-    if level_number(level) < 13 or not level.coins:
+    level_number = int(level.name.removeprefix("level_").removesuffix(".txt"))
+    if level_number < 13 or not level.coins:
         return []
 
     failures = []
@@ -384,7 +384,8 @@ def main() -> int:
             print(f"FAIL {level.name}: enemy path crosses wall: {enemy_path_failures}")
             continue
 
-        if level_number(level) >= 13 and len(level.coins) > 3:
+        level_number = int(level.name.removeprefix("level_").removesuffix(".txt"))
+        if level_number >= 13 and len(level.coins) > 3:
             failures.append(level.name)
             print(f"FAIL {level.name}: has {len(level.coins)} coins, expected max 3")
             continue

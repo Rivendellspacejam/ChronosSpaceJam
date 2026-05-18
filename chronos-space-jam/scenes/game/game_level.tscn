@@ -17,10 +17,18 @@ script = ExtResource("5")
 script = ExtResource("2")
 
 [node name="Floors" type="Node2D" parent="LevelManager"]
+z_index = 0
 
 [node name="Walls" type="Node2D" parent="LevelManager"]
 
 [node name="Objects" type="Node2D" parent="LevelManager"]
+z_index = 1
+
+[node name="HazardPreviewLayer" type="Node2D" parent="LevelManager"]
+z_index = 5
+
+[node name="EnemyPreviewLayer" type="Node2D" parent="LevelManager"]
+z_index = 6
 
 [node name="Player" type="Node2D" parent="."]
 script = ExtResource("3")

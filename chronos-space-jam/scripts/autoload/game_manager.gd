@@ -16,6 +16,13 @@ enum GameState {
 }
 
 const LEVEL_DIR: String = "res://levels/"
+const ENEMY_PATH_PREFIX: String = "@enemy_path"
+const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
+	Vector2i(0, 0),
+	Vector2i(1, 0),
+	Vector2i(1, 1),
+	Vector2i(0, 1),
+]
 const TOTAL_LEVELS: int = 24
 const LEVEL_TARGETS: Dictionary = {
 	0: 3,
@@ -101,6 +108,14 @@ func get_level_path(index: int) -> String:
 	return LEVEL_DIR + "level_" + str(index + 1) + ".txt"
 
 func load_level_data(index: int) -> Array:
+	return load_level_bundle(index).get("rows", [])
+
+
+func load_enemy_patrol_paths(index: int) -> Array:
+	return load_level_bundle(index).get("enemy_paths", [])
+
+
+func load_level_bundle(index: int) -> Dictionary:
 	if _level_data_cache.has(index):
 		return _level_data_cache[index]
 
@@ -108,17 +123,40 @@ func load_level_data(index: int) -> Array:
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
 		push_error("Cannot open level file: " + path)
-		return []
+		return {"rows": [], "enemy_paths": []}
 
 	var rows: Array = []
+	var enemy_paths: Array = []
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
-		if line.length() > 0:
-			rows.append(line)
+		if line.is_empty():
+			continue
+		if line.begins_with(ENEMY_PATH_PREFIX):
+			var offsets = _parse_enemy_path_line(line)
+			if not offsets.is_empty():
+				enemy_paths.append(offsets)
+			continue
+		rows.append(line)
 
 	file.close()
-	_level_data_cache[index] = rows
-	return rows
+	var bundle = {"rows": rows, "enemy_paths": enemy_paths}
+	_level_data_cache[index] = bundle
+	return bundle
+
+
+func _parse_enemy_path_line(line: String) -> Array[Vector2i]:
+	var offsets: Array[Vector2i] = []
+	var coords_text = line.substr(ENEMY_PATH_PREFIX.length()).strip_edges()
+	for part in coords_text.split(";", false):
+		var trimmed = part.strip_edges()
+		if trimmed.is_empty():
+			continue
+		var pieces = trimmed.split(",", false)
+		if pieces.size() != 2:
+			push_warning("Invalid enemy path coordinate: %s" % trimmed)
+			continue
+		offsets.append(Vector2i(int(pieces[0]), int(pieces[1])))
+	return offsets
 
 func clear_level_cache() -> void:
 	_level_data_cache.clear()

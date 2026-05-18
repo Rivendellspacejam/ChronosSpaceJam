@@ -32,6 +32,29 @@ func update_phase(current_tick: int) -> void:
 func is_active() -> bool:
 	return spike_state == SpikePhase.ACTIVE
 
+func get_state_for_tick(tick: int) -> Dictionary:
+	var phase := tick % phase_count
+	var state := SpikePhase.SAFE
+	match phase:
+		0:
+			state = SpikePhase.SAFE
+		1:
+			state = SpikePhase.WARNING
+		2:
+			state = SpikePhase.ACTIVE
+		_:
+			state = SpikePhase.SAFE
+	return {"spike_state": state}
+
+func play_phase_pulse() -> void:
+	if _sprite == null:
+		return
+	var base := _sprite.modulate
+	var peak := base.lightened(0.25)
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", peak, 0.12)
+	tween.tween_property(_sprite, "modulate", base, 0.13)
+
 func _update_visual() -> void:
 	if _sprite == null:
 		return
