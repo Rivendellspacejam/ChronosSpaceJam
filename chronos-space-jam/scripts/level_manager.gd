@@ -157,11 +157,14 @@ func get_laser_beam_cells(laser_pos: Vector2i) -> Array:
 	_collect_beam_cells(cells, laser_pos, -beam_dir)
 	return cells
 
-func is_cell_hit_by_active_laser(gpos: Vector2i) -> bool:
+func is_active_laser_beam_at(gpos: Vector2i) -> bool:
 	for laser_pos in _lasers:
 		if gpos in get_laser_beam_cells(laser_pos):
 			return true
 	return false
+
+func is_cell_hit_by_active_laser(gpos: Vector2i) -> bool:
+	return is_active_laser_beam_at(gpos)
 
 func is_spike_active(spike_pos: Vector2i) -> bool:
 	return _spikes.has(spike_pos) and _spikes[spike_pos].is_active()
@@ -308,7 +311,7 @@ func _apply_enemy_hazard(info: TileInfo, gpos: Vector2i) -> void:
 			return
 
 func _apply_laser_beam_hazard(info: TileInfo, gpos: Vector2i) -> void:
-	if get_tile_at(gpos) != SYM_LASER and is_cell_hit_by_active_laser(gpos):
+	if is_active_laser_beam_at(gpos):
 		info.kills_in_path = true
 
 func _collect_beam_cells(cells: Array, laser_pos: Vector2i, direction: Vector2i) -> void:

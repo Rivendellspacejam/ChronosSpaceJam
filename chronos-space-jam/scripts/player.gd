@@ -160,6 +160,9 @@ func _arrive_at_tile() -> void:
 	var tile_info = level_manager.get_slide_tile_info(grid_pos)
 	if tile_info.is_coin:
 		level_manager.collect_coin(grid_pos)
+	if _is_killed_by_active_laser():
+		_die()
+		return
 	if tile_info.is_goal:
 		_reach_goal()
 		return
@@ -209,11 +212,16 @@ func _commit_move_tick() -> void:
 func _is_killed_by_enemy() -> bool:
 	return level_manager.is_enemy_at(grid_pos)
 
+func _is_killed_by_active_laser() -> bool:
+	return level_manager.is_active_laser_beam_at(grid_pos)
+
 func _is_killed_by_hazard() -> bool:
 	var info = level_manager.get_hazard_tile_info(grid_pos)
 	return info.kills_on_stop or info.kills_in_path
 
 func _die() -> void:
+	if level_manager != null:
+		level_manager.set_slide_direction(Vector2i.ZERO)
 	state = PlayerState.DEAD
 	GameManager.on_player_died()
 	player_died_signal.emit()
