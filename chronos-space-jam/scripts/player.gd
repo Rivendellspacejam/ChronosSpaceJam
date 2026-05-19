@@ -22,6 +22,10 @@ var _slide_progress: float = 0.0
 var _glow_phase: float = 0.0
 var _move_tick_committed: bool = false
 
+var input_buffer_window = 0.15
+var buffered_direction: Vector2i = Vector2i.ZERO
+var buffer_timer: float = 0.0
+
 @onready var _visual: ColorRect = $PlayerVisual
 @onready var _glow: ColorRect = $PlayerGlow
 
@@ -34,7 +38,12 @@ func init_player(start_grid_pos: Vector2i, lvl_manager) -> void:
 	visible = true
 
 func _unhandled_input(event: InputEvent) -> void:
-	if state != PlayerState.IDLE or not GameManager.can_accept_input():
+	if GameManager.current_state in [
+		GameManager.GameState.DEAD,
+		GameManager.GameState.LEVEL_CLEAR,
+		GameManager.GameState.PAUSED,
+		GameManager.GameState.STORY,
+	]:
 		return
 
 	if event.is_action_pressed("restart"):
@@ -44,12 +53,22 @@ func _unhandled_input(event: InputEvent) -> void:
 	var direction = _input_to_direction(event)
 	if direction == Vector2i.ZERO:
 		return
+	if state != PlayerState.IDLE:
+		buffered_direction = direction
+		buffer_timer = input_buffer_window
+		return
 
 	_start_slide(direction)
 
 func _process(delta: float) -> void:
 	_update_visual_pulse(delta)
-
+	
+	if buffer_timer > 0.0:
+		buffer_timer -= delta
+	
+		if buffer_timer <= 0.0:
+			buffered_direction = Vector2i.ZERO
+	
 	if state != PlayerState.SLIDING:
 		return
 
@@ -174,6 +193,11 @@ func _finish_slide() -> void:
 	state = PlayerState.IDLE
 	GameManager.set_state(GameManager.GameState.PLAYING)
 	slide_finished.emit(grid_pos)
+	if buffered_direction != Vector2i.ZERO:
+		var dir = buffered_direction
+		buffered_direction = Vector2i.ZERO
+		buffer_timer = 0.0
+		_start_slide(dir)
 
 func _commit_move_tick() -> void:
 	if _move_tick_committed:
