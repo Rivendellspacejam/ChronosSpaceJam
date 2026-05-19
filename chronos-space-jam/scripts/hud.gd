@@ -99,8 +99,27 @@ func _on_tick_pulse(_tick: int) -> void:
 	tween.tween_property(tick_label, "modulate", Color.WHITE, 0.2)
 
 func _on_state_changed(new_state: int) -> void:
-	death_panel.visible = new_state == GameManager.GameState.DEAD
-	clear_panel.visible = new_state == GameManager.GameState.LEVEL_CLEAR
+	if new_state == GameManager.GameState.DEAD:
+		_show_panel_with_fade(death_panel)
+	else:
+		death_panel.visible = false
+	
+	if new_state == GameManager.GameState.LEVEL_CLEAR:
+		_show_panel_with_fade(clear_panel)
+	else:
+		clear_panel.visible = false
+
+func _show_panel_with_fade(panel: CanvasItem) -> void:
+	panel.visible = true
+	
+	var mod = panel.modulate
+	mod.a = 0.0
+	panel.modulate = mod
+	
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.33)
 
 func _on_level_cleared(move_count: int, best_moves: int, target: int) -> void:
 	clear_shifts_label.text = "Time Shifts: " + str(move_count)

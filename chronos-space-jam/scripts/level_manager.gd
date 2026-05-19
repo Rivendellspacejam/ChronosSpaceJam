@@ -60,6 +60,8 @@ var _preview_key_was_held: bool = false
 @onready var enemy_preview_layer: Node2D = $EnemyPreviewLayer
 @onready var objects_container: Node2D = $Objects
 
+var _goal_node: Sprite2D = null
+
 func _ready() -> void:
 	TickManager.tick_advanced.connect(_on_tick_advanced_refresh_previews)
 	GameManager.state_changed.connect(_on_game_state_changed_refresh_previews)
@@ -348,7 +350,7 @@ func _build_visuals() -> void:
 				SYM_WALL:
 					_create_sprite(WALL_TEXTURE, world_pos, walls_container)
 				SYM_GOAL:
-					_create_sprite(GOAL_TEXTURE, world_pos, objects_container)
+					_goal_node = _create_sprite(GOAL_TEXTURE, world_pos, objects_container)
 				SYM_ANCHOR:
 					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
 				SYM_COIN:
@@ -368,11 +370,12 @@ func _build_visuals() -> void:
 				SYM_BLOCKER_V:
 					_create_blocker(world_pos, false)
 
-func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> void:
+func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> Sprite2D:
 	var sprite = Sprite2D.new()
 	sprite.texture = texture
 	sprite.position = world_pos
 	parent.add_child(sprite)
+	return sprite
 
 func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	var ts = float(TILE_SIZE)
@@ -640,3 +643,12 @@ func _clear_children(parent: Node) -> void:
 		return
 	for child in parent.get_children():
 		child.queue_free()
+
+func play_goal_collect_tween() -> void:
+	if _goal_node == null:
+		return
+	
+	var tween = get_tree().create_tween()
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.set_ease(Tween.EASE_IN)
+	tween.tween_property(_goal_node, "scale", Vector2.ZERO, 0.25)

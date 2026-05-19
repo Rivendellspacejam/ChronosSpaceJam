@@ -221,6 +221,7 @@ func _die() -> void:
 func _reach_goal() -> void:
 	_commit_move_tick()
 	level_manager.set_slide_direction(Vector2i.ZERO)
+	level_manager.play_goal_collect_tween()
 	state = PlayerState.LEVEL_CLEAR
 	GameManager.on_level_cleared(TickManager.move_count)
 	player_reached_goal.emit()

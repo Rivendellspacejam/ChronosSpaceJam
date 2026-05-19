@@ -1,53 +1,52 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cmshiorbo7w0h"]
 
-[ext_resource type="Script" path="res://scripts/hud.gd" id="1"]
+[ext_resource type="Script" uid="uid://qoyt2f0qvmqk" path="res://scripts/hud.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2"]
 
-[node name="HUD" type="CanvasLayer"]
+[node name="HUD" type="CanvasLayer" unique_id=448392102]
 script = ExtResource("1")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
-anchors_preset = 0
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1624438473]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 300.0
 offset_bottom = 180.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=130244340]
 layout_mode = 2
 
-[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1481226354]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Level 1"
 
-[node name="GravityLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="GravityLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=2118730302]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 18
 text = "Gravity: NONE"
 
-[node name="TickLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="TickLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1290561322]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 18
 text = "Tick: 0"
 
-[node name="ShiftsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="ShiftsLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1358748247]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 18
 text = "Time Shifts: 0"
 
-[node name="CoinsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="CoinsLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1395135463]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "Coins: 0/0"
 
-[node name="DeathPanel" type="PanelContainer" parent="."]
+[node name="DeathPanel" type="PanelContainer" parent="." unique_id=2111634696]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -60,24 +59,24 @@ offset_bottom = 60.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="DeathPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DeathPanel" unique_id=1627698929]
 layout_mode = 2
 
-[node name="DeathTitle" type="Label" parent="DeathPanel/VBoxContainer"]
+[node name="DeathTitle" type="Label" parent="DeathPanel/VBoxContainer" unique_id=1698508806]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 theme_override_font_sizes/font_size = 28
 text = "DESTROYED"
 horizontal_alignment = 1
 
-[node name="RestartHint" type="Label" parent="DeathPanel/VBoxContainer"]
+[node name="RestartHint" type="Label" parent="DeathPanel/VBoxContainer" unique_id=842716863]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 16
 text = "Press R to restart"
 horizontal_alignment = 1
 
-[node name="ClearPanel" type="PanelContainer" parent="."]
+[node name="ClearPanel" type="PanelContainer" parent="." unique_id=1594804335]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -90,45 +89,45 @@ offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ClearPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="ClearPanel" unique_id=566855000]
 layout_mode = 2
 
-[node name="ClearTitle" type="Label" parent="ClearPanel/VBoxContainer"]
+[node name="ClearTitle" type="Label" parent="ClearPanel/VBoxContainer" unique_id=401155349]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.1, 1, 0.6, 1)
 theme_override_font_sizes/font_size = 28
 text = "LEVEL CLEARED!"
 horizontal_alignment = 1
 
-[node name="ShiftsValue" type="Label" parent="ClearPanel/VBoxContainer"]
+[node name="ShiftsValue" type="Label" parent="ClearPanel/VBoxContainer" unique_id=932784539]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 18
 text = "Time Shifts: 0"
 horizontal_alignment = 1
 
-[node name="BestValue" type="Label" parent="ClearPanel/VBoxContainer"]
+[node name="BestValue" type="Label" parent="ClearPanel/VBoxContainer" unique_id=1371578669]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "Best: 0"
 horizontal_alignment = 1
 
-[node name="TargetValue" type="Label" parent="ClearPanel/VBoxContainer"]
+[node name="TargetValue" type="Label" parent="ClearPanel/VBoxContainer" unique_id=65085020]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.7, 1.0, 1)
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Target: 0"
 horizontal_alignment = 1
 
-[node name="ContinueHint" type="Label" parent="ClearPanel/VBoxContainer"]
+[node name="ContinueHint" type="Label" parent="ClearPanel/VBoxContainer" unique_id=1426442875]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
 theme_override_font_sizes/font_size = 14
 text = "Enter: Next Level | R: Restart"
 horizontal_alignment = 1
 
-[node name="TutorialLabel" type="Label" parent="."]
+[node name="TutorialLabel" type="Label" parent="." unique_id=415238625]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -147,7 +146,7 @@ horizontal_alignment = 1
 vertical_alignment = 2
 autowrap_mode = 2
 
-[node name="StoryPanel" type="PanelContainer" parent="."]
+[node name="StoryPanel" type="PanelContainer" parent="." unique_id=1154570699]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -159,36 +158,36 @@ offset_bottom = -38.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="StoryPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="StoryPanel" unique_id=854196880]
 layout_mode = 2
 theme_override_constants/margin_left = 22
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 22
 theme_override_constants/margin_bottom = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="StoryPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="StoryPanel/MarginContainer" unique_id=194264984]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SpeakerLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer"]
+[node name="SpeakerLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer" unique_id=1263813204]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.35, 1)
 theme_override_font_sizes/font_size = 16
 text = "VOICE"
 
-[node name="BodyLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer"]
+[node name="BodyLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer" unique_id=1299736275]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Story text"
 autowrap_mode = 2
 
-[node name="HintLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer"]
+[node name="HintLabel" type="Label" parent="StoryPanel/MarginContainer/VBoxContainer" unique_id=46951343]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.75, 0.95, 0.8)
 theme_override_font_sizes/font_size = 13
 text = "Enter / Click"
 horizontal_alignment = 2
 
-[node name="PauseMenu" parent="." instance=ExtResource("2")]
+[node name="PauseMenu" parent="." unique_id=2139836930 instance=ExtResource("2")]
 visible = false
