@@ -8,8 +8,9 @@ var move_count: int = 0
 var _environment_objects: Array = []
 var _enemy_objects: Array = []
 
-func reset() -> void:
-	current_tick = 0
+func reset(start_tick: int = 0) -> void:
+	# Allow initializing the tick counter to a custom start (e.g. -1)
+	current_tick = start_tick
 	move_count = 0
 
 func prepare_enemies_for_move() -> void:
@@ -44,7 +45,16 @@ func clear_phase_objects() -> void:
 func get_phase(phase_count: int) -> int:
 	if phase_count <= 0:
 		return 0
-	return current_tick % phase_count
+	return phase_for_tick(current_tick, phase_count)
+
+func phase_for_tick(tick: int, count: int) -> int:
+	# Normalize phase so it's always in [0, count-1], even for negative ticks
+	if count <= 0:
+		return 0
+	var p := tick % count
+	if p < 0:
+		p += count
+	return p
 
 func _update_environment_objects() -> void:
 	for obj in _environment_objects:

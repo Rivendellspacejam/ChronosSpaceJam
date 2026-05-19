@@ -16,7 +16,7 @@ func _ready() -> void:
 	update_phase(0)
 
 func update_phase(current_tick: int) -> void:
-	current_phase = current_tick % phase_count
+	current_phase = TickManager.phase_for_tick(current_tick, phase_count)
 	match current_phase:
 		0:
 			spike_state = SpikePhase.SAFE
@@ -33,7 +33,7 @@ func is_active() -> bool:
 	return spike_state == SpikePhase.ACTIVE
 
 func get_state_for_tick(tick: int) -> Dictionary:
-	var phase := tick % phase_count
+	var phase := TickManager.phase_for_tick(tick, phase_count)
 	var state := SpikePhase.SAFE
 	match phase:
 		0:

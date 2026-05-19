@@ -127,6 +127,7 @@ func load_level_bundle(index: int) -> Dictionary:
 
 	var rows: Array = []
 	var enemy_paths: Array = []
+	var start_tick: int = 0
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
 		if line.is_empty():
@@ -136,10 +137,17 @@ func load_level_bundle(index: int) -> Dictionary:
 			if not offsets.is_empty():
 				enemy_paths.append(offsets)
 			continue
+		if line.begins_with("@start_tick"):
+			var val_text = line.substr("@start_tick".length()).strip_edges()
+			if val_text.begins_with("="):
+				val_text = val_text.substr(1).strip_edges()
+			if not val_text.is_empty():
+				start_tick = int(val_text)
+			continue
 		rows.append(line)
 
 	file.close()
-	var bundle = {"rows": rows, "enemy_paths": enemy_paths}
+	var bundle = {"rows": rows, "enemy_paths": enemy_paths, "start_tick": start_tick}
 	_level_data_cache[index] = bundle
 	return bundle
 

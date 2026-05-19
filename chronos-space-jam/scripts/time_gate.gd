@@ -17,8 +17,7 @@ func _ready() -> void:
 func update_phase(current_tick: int) -> void:
 	if phase_count <= 0:
 		phase_count = open_pattern.size()
-
-	current_phase = current_tick % phase_count
+	current_phase = TickManager.phase_for_tick(current_tick, phase_count)
 	_is_open = current_phase < open_pattern.size() and open_pattern[current_phase]
 	_update_visual()
 
@@ -30,7 +29,7 @@ func is_open() -> bool:
 
 func get_state_for_tick(tick: int) -> Dictionary:
 	var count := phase_count if phase_count > 0 else open_pattern.size()
-	var phase := tick % count
+	var phase := TickManager.phase_for_tick(tick, count)
 	var open_at_tick := phase < open_pattern.size() and open_pattern[phase]
 	return {"is_open": open_at_tick}
 

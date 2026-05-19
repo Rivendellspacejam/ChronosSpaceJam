@@ -21,7 +21,7 @@ func get_grid_pos_for_tick(tick: int) -> Vector2i:
 	if patrol_offsets.is_empty():
 		return grid_pos
 
-	var phase := tick % patrol_offsets.size()
+	var phase := TickManager.phase_for_tick(tick, patrol_offsets.size())
 	return grid_pos + patrol_offsets[phase]
 
 func get_next_grid_pos() -> Vector2i:
@@ -30,8 +30,7 @@ func get_next_grid_pos() -> Vector2i:
 func update_phase(current_tick: int) -> void:
 	if patrol_offsets.is_empty():
 		return
-
-	current_phase = current_tick % patrol_offsets.size()
+	current_phase = TickManager.phase_for_tick(current_tick, patrol_offsets.size())
 	current_grid_pos = get_grid_pos_for_tick(current_tick)
 	_snap_to_current_grid_pos()
 

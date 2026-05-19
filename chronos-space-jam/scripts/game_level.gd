@@ -46,7 +46,9 @@ func apply_shake(intensity: float, duration: float) -> void:
 	_shake_duration = duration
 
 func _load_current_level() -> void:
-	TickManager.reset()
+	var level_bundle = GameManager.load_level_bundle(GameManager.current_level_index)
+	var start_tick = level_bundle.get("start_tick", 0)
+	TickManager.reset(start_tick)
 	var start_pos = level_manager.load_level(GameManager.current_level_index)
 	player.init_player(start_pos, level_manager)
 	_configure_arena_backdrop()

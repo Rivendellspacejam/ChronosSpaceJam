@@ -19,8 +19,7 @@ func _ready() -> void:
 func update_phase(current_tick: int) -> void:
 	if phase_count <= 0:
 		phase_count = active_pattern.size()
-
-	current_phase = current_tick % phase_count
+	current_phase = TickManager.phase_for_tick(current_tick, phase_count)
 	_is_active_state = current_phase < active_pattern.size() and active_pattern[current_phase]
 	_update_visual()
 
@@ -29,7 +28,7 @@ func is_active() -> bool:
 
 func get_state_for_tick(tick: int) -> Dictionary:
 	var count := phase_count if phase_count > 0 else active_pattern.size()
-	var phase := tick % count
+	var phase := TickManager.phase_for_tick(tick, count)
 	var active_at_tick := phase < active_pattern.size() and active_pattern[phase]
 	return {"is_active": active_at_tick}
 
