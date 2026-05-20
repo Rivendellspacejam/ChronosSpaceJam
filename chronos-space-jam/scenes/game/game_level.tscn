@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ceeibbicfy8gy"]
+[gd_scene load_steps=12 format=3 uid="uid://ceeibbicfy8gy"]
 
 [ext_resource type="Script" uid="uid://cy0wxoggp3y6j" path="res://scripts/game_level.gd" id="1"]
 [ext_resource type="Script" uid="uid://o2vf1pgl45lj" path="res://scripts/level_manager.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Shader" uid="uid://bhsic5kw6ky58" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
 [ext_resource type="Texture2D" uid="uid://otp3ntxslqb8" path="res://assets/player.png" id="7"]
 [ext_resource type="Shader" path="res://assets/shaders/player_time_core.gdshader" id="8"]
+[ext_resource type="AudioStream" path="res://assets/audio/gameplay_loop.wav" id="9"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_future_preview_static"]
 shader = ExtResource("6")
@@ -75,3 +76,8 @@ color = Color(0.25, 0.9, 1, 0.28)
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1351219556]
 
 [node name="HUD" parent="." unique_id=1263411581 instance=ExtResource("4")]
+
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9")
+volume_db = -2.0
+autoplay = true

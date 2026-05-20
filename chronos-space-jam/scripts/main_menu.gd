@@ -8,11 +8,13 @@ extends Control
 @onready var quit_button = $VBoxContainer/QuitButton
 @onready var settings_menu = $SettingsMenu
 @onready var title_label = $VBoxContainer/TitleLabel
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _title_phase: float = 0.0
 
 func _ready() -> void:
-	AudioManager.start_menu_music()
+	AudioManager.stop_music()
+	_ensure_background_music_playing()
 	start_button.pressed.connect(_on_start)
 	level_select_button.pressed.connect(_on_level_select)
 	credits_button.pressed.connect(_on_credits)
@@ -21,7 +23,19 @@ func _ready() -> void:
 	_wire_menu_button_audio()
 	_style_menu_buttons()
 
+func _ensure_background_music_playing() -> void:
+	_apply_background_music_volume()
+	if not background_music.playing:
+		background_music.play()
+
+func _apply_background_music_volume() -> void:
+	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
+		background_music.volume_db = -80.0
+		return
+	background_music.volume_db = linear_to_db(SettingsManager.music_volume / 100.0)
+
 func _process(delta: float) -> void:
+	_ensure_background_music_playing()
 	_title_phase += delta * 1.8
 	var pulse := (sin(_title_phase) + 1.0) * 0.5
 	title_label.modulate = Color(0.75, lerpf(0.86, 1.0, pulse), 1.0, 1.0)

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import struct
+import wave
 from pathlib import Path
 
 
@@ -136,6 +138,63 @@ def verify_level_select_locking() -> None:
 
     print("OK level select locking")
 
+def verify_context_music() -> None:
+    audio_manager = read("scripts/autoload/audio_manager.gd")
+    game_level = read("scripts/game_level.gd")
+    main_menu = read("scripts/main_menu.gd")
+    ending = read("scripts/ending.gd")
+    main_menu_scene = read("scenes/ui/main_menu.tscn")
+    game_level_scene = read("scenes/game/game_level.tscn")
+    ending_scene = read("scenes/ui/ending.tscn")
+
+    required_assets = [
+        "assets/audio/menu_loop.wav",
+        "assets/audio/gameplay_loop.wav",
+        "assets/audio/ending_loop.wav",
+    ]
+    for asset in required_assets:
+        asset_path = ROOT / asset
+        if not asset_path.exists():
+            fail(f"missing context music asset: {asset}")
+        duration, rms = read_wav_duration_and_rms(asset_path)
+        if duration < 6.0:
+            fail(f"context music asset too short: {asset} duration={duration:.2f}s")
+        if rms < 3200.0:
+            fail(f"context music asset too quiet: {asset} rms={rms:.0f}")
+
+    required = {
+        "gameplay music preload": "const GAMEPLAY_MUSIC := preload(\"res://assets/audio/gameplay_loop.wav\")" in audio_manager,
+        "ending music preload": "const ENDING_MUSIC := preload(\"res://assets/audio/ending_loop.wav\")" in audio_manager,
+        "menu scene has background player": "BackgroundMusic" in main_menu_scene and "menu_loop.wav" in main_menu_scene,
+        "gameplay scene has background player": "BackgroundMusic" in game_level_scene and "gameplay_loop.wav" in game_level_scene,
+        "ending scene has background player": "BackgroundMusic" in ending_scene and "ending_loop.wav" in ending_scene,
+        "menu process keeps music playing": "_ensure_background_music_playing()" in main_menu,
+        "gameplay process keeps music playing": "_ensure_background_music_playing()" in game_level,
+        "ending process keeps music playing": "_ensure_background_music_playing()" in ending,
+        "menu stops autoload music": "AudioManager.stop_music()" in main_menu,
+        "gameplay stops autoload music": "AudioManager.stop_music()" in game_level,
+        "ending stops autoload music": "AudioManager.stop_music()" in ending,
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing context music behavior: {label}")
+
+    print("OK context music")
+
+def read_wav_duration_and_rms(path: Path) -> tuple[float, float]:
+    with wave.open(str(path), "rb") as wav:
+        if wav.getsampwidth() != 2:
+            fail(f"{path.name} must be 16-bit WAV")
+        frame_count = wav.getnframes()
+        raw = wav.readframes(frame_count)
+        samples = struct.unpack("<" + "h" * (len(raw) // 2), raw)
+        if not samples:
+            return 0.0, 0.0
+        square_sum = sum(sample * sample for sample in samples)
+        rms = (square_sum / len(samples)) ** 0.5
+        return frame_count / float(wav.getframerate()), rms
+
 def verify_script_patterns() -> None:
     bad_patterns = {
         ".modulate.a": "assign Color alpha through a copied Color instead of a sub-property",
@@ -164,6 +223,7 @@ def main() -> int:
     verify_resource_paths()
     verify_scene_flow()
     verify_level_select_locking()
+    verify_context_music()
     verify_script_patterns()
     return 0
 

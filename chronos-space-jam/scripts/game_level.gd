@@ -6,12 +6,14 @@ extends Node2D
 @onready var hud = $HUD
 @onready var pause_menu = $HUD/PauseMenu
 @onready var arena_backdrop = $ArenaBackdrop
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _shake_intensity: float = 0.0
 var _shake_duration: float = 0.0
 
 func _ready() -> void:
 	AudioManager.stop_music()
+	_ensure_background_music_playing()
 	player.add_to_group("player")
 	GameManager.level_loaded.connect(_on_level_loaded)
 	GameManager.player_died.connect(_on_player_died)
@@ -19,7 +21,19 @@ func _ready() -> void:
 	TickManager.tick_advanced.connect(_on_tick_advanced)
 	_load_current_level()
 
+func _ensure_background_music_playing() -> void:
+	_apply_background_music_volume()
+	if not background_music.playing:
+		background_music.play()
+
+func _apply_background_music_volume() -> void:
+	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
+		background_music.volume_db = -80.0
+		return
+	background_music.volume_db = -2.0 + linear_to_db(SettingsManager.music_volume / 100.0)
+
 func _process(delta: float) -> void:
+	_ensure_background_music_playing()
 	if _shake_duration <= 0:
 		return
 

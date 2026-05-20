@@ -7,6 +7,7 @@ const TYPE_SPEED: float = 48.0
 @onready var hint_label: Label = $StoryBox/MarginContainer/VBoxContainer/HintLabel
 @onready var stats_label: Label = $StatsLabel
 @onready var story_box: PanelContainer = $StoryBox
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _lines: Array[String] = []
 var _line_index: int = 0
@@ -14,13 +15,26 @@ var _visible_chars: float = 0.0
 var _typing: bool = false
 
 func _ready() -> void:
-	AudioManager.start_menu_music()
+	AudioManager.stop_music()
+	_ensure_background_music_playing()
 	_apply_story_box_style()
 	_lines = StoryManager.get_ending_lines()
 	stats_label.text = "BEST ROUTE MEMORY: " + str(GameManager.best_moves.size()) + "/" + str(GameManager.TOTAL_LEVELS) + " chambers"
 	_show_line(0)
 
+func _ensure_background_music_playing() -> void:
+	_apply_background_music_volume()
+	if not background_music.playing:
+		background_music.play()
+
+func _apply_background_music_volume() -> void:
+	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
+		background_music.volume_db = -80.0
+		return
+	background_music.volume_db = -1.0 + linear_to_db(SettingsManager.music_volume / 100.0)
+
 func _process(delta: float) -> void:
+	_ensure_background_music_playing()
 	if not _typing:
 		return
 
