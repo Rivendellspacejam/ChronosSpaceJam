@@ -105,18 +105,18 @@ func _start_slide(direction: Vector2i) -> void:
 		level_manager.set_slide_direction(Vector2i.ZERO)
 		return
 
-	TickManager.prepare_enemies_for_move()
-	_slide_path = _build_slide_path(direction)
+	var move_tick := TickManager.current_tick + 1
+	_slide_path = _build_slide_path(direction, move_tick)
 
 	# Invalid inputs that do not move the player should not advance time.
 	# This prevents walls, blockers, or closed time gates from becoming a wait button.
 	if _slide_path.is_empty():
-		TickManager.sync_enemies_to_current_tick()
 		level_manager.set_slide_direction(Vector2i.ZERO)
 		return
 
 	gravity_direction = direction
 	_move_tick_committed = false
+	_commit_move_tick()
 	state = PlayerState.SLIDING
 	GameManager.set_state(GameManager.GameState.SLIDING)
 	AudioManager.play_slide_start()
@@ -125,13 +125,13 @@ func _start_slide(direction: Vector2i) -> void:
 	_slide_index = 0
 	_begin_slide_segment()
 
-func _build_slide_path(direction: Vector2i) -> Array:
+func _build_slide_path(direction: Vector2i, hazard_tick: int) -> Array:
 	var path: Array = []
 	var check_pos = grid_pos + direction
 	var extra_collected_coins := 0
 
 	while true:
-		var tile_info = level_manager.get_slide_tile_info(check_pos, extra_collected_coins)
+		var tile_info = level_manager.get_slide_tile_info_for_tick(check_pos, direction, hazard_tick, extra_collected_coins)
 
 		if tile_info.blocks:
 			break

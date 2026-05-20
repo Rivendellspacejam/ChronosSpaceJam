@@ -29,6 +29,7 @@ BLOCK_H = "-"
 BLOCK_V = "|"
 SPECIAL_TILES = {ANCHOR, GATE, COIN_GATE, COIN, LASER, SPIKE, ENEMY, BLOCK_H, BLOCK_V}
 ENEMY_PATH_PREFIX = "@enemy_path"
+START_TICK_PREFIX = "@start_tick"
 DEFAULT_ENEMY_PATH = ((0, 0), (1, 0), (1, 1), (0, 1))
 
 
@@ -43,6 +44,7 @@ class Level:
     enemies: tuple[tuple[int, int], ...]
     coins: tuple[tuple[int, int], ...]
     enemy_paths: tuple[tuple[tuple[int, int], ...], ...]
+    start_tick: int
 
     @property
     def width(self) -> int:
@@ -67,10 +69,21 @@ def parse_enemy_path_line(line: str) -> tuple[tuple[int, int], ...]:
 
 def load_level(path: Path) -> Level:
     raw_lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
-    rows = tuple(line for line in raw_lines if not line.startswith(ENEMY_PATH_PREFIX))
+    rows = tuple(
+        line
+        for line in raw_lines
+        if not line.startswith(ENEMY_PATH_PREFIX) and not line.startswith(START_TICK_PREFIX)
+    )
     parsed_paths = tuple(
         parse_enemy_path_line(line) for line in raw_lines if line.startswith(ENEMY_PATH_PREFIX)
     )
+    start_tick = 0
+    for line in raw_lines:
+        if not line.startswith(START_TICK_PREFIX):
+            continue
+        _, value = line.split("=", 1)
+        start_tick = int(value.strip())
+
     start = None
     goal = None
     lasers: list[tuple[int, int]] = []
@@ -114,6 +127,7 @@ def load_level(path: Path) -> Level:
         tuple(enemies),
         tuple(coins),
         tuple(enemy_paths),
+        start_tick,
     )
 
 
@@ -213,7 +227,7 @@ def is_enemy_deadly(level: Level, pos: tuple[int, int], tick: int) -> bool:
 
 
 def is_laser_deadly(level: Level, pos: tuple[int, int], tick: int) -> bool:
-    return tile(level, pos) != LASER and pos in laser_cells(level, tick)
+    return pos in laser_cells(level, tick)
 
 
 def is_deadly_on_stop(level: Level, pos: tuple[int, int], tick: int) -> bool:
@@ -230,7 +244,6 @@ def slide(
     x, y = start
     dx, dy = direction
     current = start
-    enemy_tick = tick + 1
     coins = set(collected)
     moved = False
 
@@ -245,7 +258,7 @@ def slide(
         if tile(level, current) == COIN:
             coins.add(current)
 
-        if is_enemy_deadly(level, current, enemy_tick):
+        if is_enemy_deadly(level, current, tick) or is_laser_deadly(level, current, tick):
             return current, frozenset(coins), False, moved
         if tile(level, current) == GOAL:
             return current, frozenset(coins), True, moved
@@ -256,8 +269,8 @@ def slide(
 def solve(level: Level, max_moves: int = 80) -> str | None:
     enemy_periods = [len(path) for path in level.enemy_paths] or [len(DEFAULT_ENEMY_PATH)]
     period = lcm(2, 3, *enemy_periods)
-    queue = deque([(level.start, 0, frozenset(), "")])
-    seen = {(level.start, 0, frozenset())}
+    queue = deque([(level.start, level.start_tick, frozenset(), "")])
+    seen = {(level.start, level.start_tick % period, frozenset())}
 
     while queue:
         pos, tick, collected, path = queue.popleft()
@@ -270,7 +283,7 @@ def solve(level: Level, max_moves: int = 80) -> str | None:
                 continue
 
             next_tick = tick + 1
-            final_pos, next_collected, won, moved = slide(level, pos, direction, tick, collected)
+            final_pos, next_collected, won, moved = slide(level, pos, direction, next_tick, collected)
             if not moved:
                 continue
             next_path = path + move
@@ -293,18 +306,18 @@ def solve(level: Level, max_moves: int = 80) -> str | None:
 def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
     visited = {level.start}
     pos = level.start
-    tick = 0
+    tick = level.start_tick
     collected: frozenset[tuple[int, int]] = frozenset()
 
     for move in solution:
         direction = DIRECTIONS[move]
-        enemy_tick = tick + 1
+        move_tick = tick + 1
         x, y = pos
         current_coins = set(collected)
 
         while True:
             next_pos = (x + direction[0], y + direction[1])
-            if is_blocked(level, next_pos, direction, tick, frozenset(current_coins)):
+            if is_blocked(level, next_pos, direction, move_tick, frozenset(current_coins)):
                 break
 
             pos = next_pos
@@ -314,7 +327,8 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
                 current_coins.add(pos)
 
             if (
-                is_enemy_deadly(level, pos, enemy_tick)
+                is_enemy_deadly(level, pos, move_tick)
+                or is_laser_deadly(level, pos, move_tick)
                 or tile(level, pos) == GOAL
                 or tile(level, pos) == ANCHOR
             ):
@@ -401,6 +415,10 @@ def main() -> int:
             if route_failures:
                 failures.append(level.name)
                 print(f"FAIL {level.name}: coin-gate route incomplete: {route_failures}")
+                continue
+            if level_number == 4 and solution != "RD":
+                failures.append(level.name)
+                print(f"FAIL {level.name}: expected laser tutorial route RD, got {solution}")
                 continue
             unused = unused_special_tiles(level, visited)
             if unused:

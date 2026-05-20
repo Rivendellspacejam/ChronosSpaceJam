@@ -146,20 +146,35 @@ func get_tile_at(gpos: Vector2i) -> String:
 func is_laser_active(laser_pos: Vector2i) -> bool:
 	return _lasers.has(laser_pos) and _lasers[laser_pos].is_active()
 
+func is_laser_active_at_tick(laser_pos: Vector2i, tick: int) -> bool:
+	if not _lasers.has(laser_pos):
+		return false
+
+	var laser = _lasers[laser_pos]
+	if laser.has_method("get_state_for_tick"):
+		return laser.get_state_for_tick(tick).get("is_active", laser.is_active())
+	return laser.is_active()
+
 func get_laser_beam_cells(laser_pos: Vector2i) -> Array:
+	return get_laser_beam_cells_for_tick(laser_pos, TickManager.current_tick)
+
+func get_laser_beam_cells_for_tick(laser_pos: Vector2i, tick: int) -> Array:
 	var cells: Array = []
-	if not is_laser_active(laser_pos):
+	if not is_laser_active_at_tick(laser_pos, tick):
 		return cells
 
 	var beam_dir: Vector2i = _lasers[laser_pos].get_beam_direction()
 	cells.append(laser_pos)
-	_collect_beam_cells(cells, laser_pos, beam_dir)
-	_collect_beam_cells(cells, laser_pos, -beam_dir)
+	_collect_beam_cells_for_tick(cells, laser_pos, beam_dir, tick)
+	_collect_beam_cells_for_tick(cells, laser_pos, -beam_dir, tick)
 	return cells
 
 func is_active_laser_beam_at(gpos: Vector2i) -> bool:
+	return is_active_laser_beam_at_for_tick(gpos, TickManager.current_tick)
+
+func is_active_laser_beam_at_for_tick(gpos: Vector2i, tick: int) -> bool:
 	for laser_pos in _lasers:
-		if gpos in get_laser_beam_cells(laser_pos):
+		if gpos in get_laser_beam_cells_for_tick(laser_pos, tick):
 			return true
 	return false
 
@@ -171,6 +186,15 @@ func is_spike_active(spike_pos: Vector2i) -> bool:
 
 func is_time_gate_open(gpos: Vector2i) -> bool:
 	return _time_gates.has(gpos) and _time_gates[gpos].is_open()
+
+func is_time_gate_open_at_tick(gpos: Vector2i, tick: int) -> bool:
+	if not _time_gates.has(gpos):
+		return false
+
+	var gate = _time_gates[gpos]
+	if gate.has_method("get_state_for_tick"):
+		return gate.get_state_for_tick(tick).get("is_open", gate.is_open())
+	return gate.is_open()
 
 func get_coin_total() -> int:
 	return _coin_nodes.size()
@@ -208,6 +232,9 @@ func is_static_blocked_before_tick(gpos: Vector2i, direction: Vector2i) -> bool:
 	return false
 
 func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
+	return is_blocked_for_tick(gpos, direction, TickManager.current_tick)
+
+func is_blocked_for_tick(gpos: Vector2i, direction: Vector2i, tick: int) -> bool:
 	if _is_out_of_bounds(gpos):
 		return true
 
@@ -215,7 +242,7 @@ func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
 	if symbol == SYM_WALL:
 		return true
 	if _time_gates.has(gpos):
-		return _time_gates[gpos].is_closed()
+		return not is_time_gate_open_at_tick(gpos, tick)
 	if symbol == SYM_COIN_GATE:
 		return not _all_coins_collected()
 	if symbol == SYM_BLOCKER_H:
@@ -226,13 +253,17 @@ func is_blocked(gpos: Vector2i, direction: Vector2i) -> bool:
 	return false
 
 func get_slide_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
-	var info = _base_tile_info(gpos, extra_collected_coins)
-	_apply_enemy_hazard(info, gpos)
+	var info = get_slide_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
+	return info
+
+func get_slide_tile_info_for_tick(gpos: Vector2i, direction: Vector2i, tick: int, extra_collected_coins: int = 0) -> TileInfo:
+	var info = _base_tile_info_for_tick(gpos, direction, tick, extra_collected_coins)
+	_apply_enemy_hazard_for_tick(info, gpos, tick)
 	return info
 
 func get_hazard_tile_info(gpos: Vector2i) -> TileInfo:
-	var info = _base_tile_info(gpos)
-	_apply_laser_beam_hazard(info, gpos)
+	var info = _base_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick)
+	_apply_laser_beam_hazard_for_tick(info, gpos, TickManager.current_tick)
 	return info
 
 func is_enemy_at(gpos: Vector2i) -> bool:
@@ -242,6 +273,9 @@ func is_enemy_at(gpos: Vector2i) -> bool:
 	return false
 
 func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
+	return _base_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
+
+func _base_tile_info_for_tick(gpos: Vector2i, direction: Vector2i, tick: int, extra_collected_coins: int = 0) -> TileInfo:
 	var info = TileInfo.new()
 
 	if _is_out_of_bounds(gpos):
@@ -249,7 +283,7 @@ func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo
 		info.blocks = true
 		return info
 
-	_apply_base_tile_info(info, gpos, get_tile_at(gpos), extra_collected_coins)
+	_apply_base_tile_info_for_tick(info, gpos, get_tile_at(gpos), direction, tick, extra_collected_coins)
 	return info
 
 func _read_grid(rows: Array) -> void:
@@ -271,6 +305,9 @@ func _read_grid(rows: Array) -> void:
 		grid.append(row)
 
 func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String, extra_collected_coins: int = 0) -> void:
+	_apply_base_tile_info_for_tick(info, gpos, symbol, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
+
+func _apply_base_tile_info_for_tick(info: TileInfo, gpos: Vector2i, symbol: String, direction: Vector2i, tick: int, extra_collected_coins: int = 0) -> void:
 	match symbol:
 		SYM_WALL:
 			info.type = "wall"
@@ -291,36 +328,52 @@ func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String, extra
 			info.type = "laser"
 		SYM_SPIKE:
 			info.type = "spike"
-			info.kills_on_stop = is_spike_active(gpos)
+			info.kills_on_stop = _is_spike_active_at_tick(gpos, tick)
 		SYM_TIME_GATE:
 			info.type = "time_gate"
-			info.blocks = _time_gates.has(gpos) and _time_gates[gpos].is_closed()
+			info.blocks = _time_gates.has(gpos) and not is_time_gate_open_at_tick(gpos, tick)
 		SYM_BLOCKER_H:
 			info.type = "blocker_h"
-			info.blocks = _current_slide_direction.x != 0
+			info.blocks = direction.x != 0
 		SYM_BLOCKER_V:
 			info.type = "blocker_v"
-			info.blocks = _current_slide_direction.y != 0
+			info.blocks = direction.y != 0
 		_:
 			info.type = "empty"
 
 func _apply_enemy_hazard(info: TileInfo, gpos: Vector2i) -> void:
+	_apply_enemy_hazard_for_tick(info, gpos, TickManager.current_tick)
+
+func _apply_enemy_hazard_for_tick(info: TileInfo, gpos: Vector2i, tick: int) -> void:
 	for enemy_pos in _enemies:
-		if _enemies[enemy_pos].current_grid_pos == gpos:
+		var enemy = _enemies[enemy_pos]
+		var enemy_grid_pos: Vector2i = enemy.current_grid_pos
+		if enemy.has_method("get_grid_pos_for_tick"):
+			enemy_grid_pos = enemy.get_grid_pos_for_tick(tick)
+		if enemy_grid_pos == gpos:
 			info.kills_in_path = true
 			return
 
 func _apply_laser_beam_hazard(info: TileInfo, gpos: Vector2i) -> void:
-	if is_active_laser_beam_at(gpos):
+	_apply_laser_beam_hazard_for_tick(info, gpos, TickManager.current_tick)
+
+func _apply_laser_beam_hazard_for_tick(info: TileInfo, gpos: Vector2i, tick: int) -> void:
+	if is_active_laser_beam_at_for_tick(gpos, tick):
 		info.kills_in_path = true
 
 func _collect_beam_cells(cells: Array, laser_pos: Vector2i, direction: Vector2i) -> void:
+	_collect_beam_cells_for_tick(cells, laser_pos, direction, TickManager.current_tick)
+
+func _collect_beam_cells_for_tick(cells: Array, laser_pos: Vector2i, direction: Vector2i, tick: int) -> void:
 	var probe = laser_pos + direction
-	while not _is_solid_obstacle(probe):
+	while not _is_solid_obstacle_at_tick(probe, tick):
 		cells.append(probe)
 		probe += direction
 
 func _is_solid_obstacle(pos: Vector2i) -> bool:
+	return _is_solid_obstacle_at_tick(pos, TickManager.current_tick)
+
+func _is_solid_obstacle_at_tick(pos: Vector2i, tick: int) -> bool:
 	if _is_out_of_bounds(pos):
 		return true
 
@@ -328,11 +381,20 @@ func _is_solid_obstacle(pos: Vector2i) -> bool:
 	if symbol == SYM_WALL:
 		return true
 	if symbol == SYM_TIME_GATE and _time_gates.has(pos):
-		return _time_gates[pos].is_closed()
+		return not is_time_gate_open_at_tick(pos, tick)
 	if symbol == SYM_COIN_GATE:
 		return not _all_coins_collected()
 
 	return false
+
+func _is_spike_active_at_tick(spike_pos: Vector2i, tick: int) -> bool:
+	if not _spikes.has(spike_pos):
+		return false
+
+	var spike = _spikes[spike_pos]
+	if spike.has_method("get_state_for_tick"):
+		return spike.get_state_for_tick(tick).get("spike_state", spike.spike_state) == spike.SpikePhase.ACTIVE
+	return spike.is_active()
 
 func _all_coins_collected(extra_collected_coins: int = 0) -> bool:
 	return _coin_nodes.is_empty() or _collected_coins.size() + extra_collected_coins >= _coin_nodes.size()
@@ -435,6 +497,8 @@ func _create_phase_object(scene: PackedScene, gpos: Vector2i, world_pos: Vector2
 	objects_container.add_child(instance)
 	registry[gpos] = instance
 	TickManager.register_environment_object(instance)
+	if instance.has_method("update_phase"):
+		instance.update_phase(TickManager.current_tick)
 	return instance
 
 func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
@@ -446,6 +510,8 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
+	if enemy.has_method("update_phase"):
+		enemy.update_phase(TickManager.current_tick)
 
 
 func refresh_all_move_previews() -> void:

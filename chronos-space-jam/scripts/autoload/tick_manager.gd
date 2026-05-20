@@ -23,6 +23,7 @@ func advance_tick() -> void:
 	current_tick += 1
 	move_count += 1
 	_update_environment_objects()
+	_update_enemies(current_tick)
 	phase_update_requested.emit(current_tick)
 	tick_advanced.emit(current_tick)
 

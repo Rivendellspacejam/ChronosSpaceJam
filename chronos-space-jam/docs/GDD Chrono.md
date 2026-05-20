@@ -159,9 +159,9 @@ Sensasi yang ingin dicapai:
 1. Player mengamati level.  
 2. Player membaca posisi goal, obstacle, enemy, trap, dan gate.  
 3. Player memilih input W/A/S/D.  
-4. Player meluncur ke arah gravitasi.  
-5. Time tick maju 1\.  
-6. Enemy, trap, dan gate berganti phase.  
+4. Time tick maju 1\.
+5. Enemy, trap, dan gate berganti phase.
+6. Player meluncur ke arah gravitasi.
 7. Player mengevaluasi posisi baru dan phase baru.  
 8. Ulangi sampai player mencapai goal atau mati.
 
