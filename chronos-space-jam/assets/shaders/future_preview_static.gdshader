@@ -30,7 +30,7 @@ void fragment() {
 	float scanline = sin(UV.y * scanline_count * 6.2831853) * 0.5 + 0.5;
 
 	vec3 preview_color = sampled_color;
-	preview_color += tint.rgb * 0.035;
+	preview_color += tint.rgb * 0.06;
 	preview_color += vec3(noise);
 	preview_color -= vec3(scanline * scanline_strength);
 

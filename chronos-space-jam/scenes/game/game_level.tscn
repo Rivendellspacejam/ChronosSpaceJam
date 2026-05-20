@@ -1,43 +1,42 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://ceeibbicfy8gy"]
 
-[ext_resource type="Script" path="res://scripts/game_level.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/level_manager.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4"]
-[ext_resource type="Script" path="res://scripts/arena_backdrop.gd" id="5"]
-[ext_resource type="Shader" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
+[ext_resource type="Script" uid="uid://cy0wxoggp3y6j" path="res://scripts/game_level.gd" id="1"]
+[ext_resource type="Script" uid="uid://o2vf1pgl45lj" path="res://scripts/level_manager.gd" id="2"]
+[ext_resource type="Script" uid="uid://c33jw0lgqkpa5" path="res://scripts/player.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://cmshiorbo7w0h" path="res://scenes/ui/hud.tscn" id="4"]
+[ext_resource type="Script" uid="uid://swq06ys4m3ww" path="res://scripts/arena_backdrop.gd" id="5"]
+[ext_resource type="Shader" uid="uid://bhsic5kw6ky58" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_future_preview_static"]
 shader = ExtResource("6")
-shader_parameter/noise_strength = 0.08
-shader_parameter/scanline_strength = 0.06
-shader_parameter/scanline_count = 220.0
-shader_parameter/jitter_strength = 0.0015
-shader_parameter/speed = 18.0
+shader_parameter/noise_strength = 0.14
+shader_parameter/scanline_strength = 0.1
+shader_parameter/scanline_count = 260.0
+shader_parameter/jitter_strength = 0.003
+shader_parameter/speed = 24.0
 shader_parameter/tint = Vector4(0.55, 0.95, 1, 1)
 
-[node name="GameLevel" type="Node2D"]
+[node name="GameLevel" type="Node2D" unique_id=681396088]
 script = ExtResource("1")
 
-[node name="ArenaBackdrop" type="Node2D" parent="."]
+[node name="ArenaBackdrop" type="Node2D" parent="." unique_id=1782397077]
 z_index = -20
 script = ExtResource("5")
 
-[node name="LevelManager" type="Node2D" parent="."]
+[node name="LevelManager" type="Node2D" parent="." unique_id=1519847958]
 script = ExtResource("2")
 
-[node name="Floors" type="Node2D" parent="LevelManager"]
-z_index = 0
+[node name="Floors" type="Node2D" parent="LevelManager" unique_id=451940085]
 
-[node name="Walls" type="Node2D" parent="LevelManager"]
+[node name="Walls" type="Node2D" parent="LevelManager" unique_id=2012855321]
 
-[node name="Objects" type="Node2D" parent="LevelManager"]
+[node name="Objects" type="Node2D" parent="LevelManager" unique_id=1565231156]
 z_index = 1
 
-[node name="FuturePreviewLayer" type="Node2D" parent="LevelManager"]
+[node name="FuturePreviewLayer" type="Node2D" parent="LevelManager" unique_id=1645180853]
 z_index = 1
 
-[node name="FuturePreviewEffect" type="ColorRect" parent="LevelManager"]
+[node name="FuturePreviewEffect" type="ColorRect" parent="LevelManager" unique_id=1202045033]
 visible = false
 z_index = 3
 material = SubResource("ShaderMaterial_future_preview_static")
@@ -45,31 +44,31 @@ offset_right = 384.0
 offset_bottom = 384.0
 mouse_filter = 2
 
-[node name="Player" type="Node2D" parent="."]
+[node name="Player" type="Node2D" parent="." unique_id=347880008]
 z_index = 4
 script = ExtResource("3")
 
-[node name="PlayerVisual" type="ColorRect" parent="Player"]
+[node name="PlayerVisual" type="ColorRect" parent="Player" unique_id=1294673977]
 offset_left = -16.0
 offset_top = -16.0
 offset_right = 16.0
 offset_bottom = 16.0
 color = Color(0.95, 0.95, 1, 1)
 
-[node name="PlayerGlow" type="ColorRect" parent="Player"]
+[node name="PlayerGlow" type="ColorRect" parent="Player" unique_id=1601619238]
 offset_left = -26.0
 offset_top = -26.0
 offset_right = 26.0
 offset_bottom = 26.0
 color = Color(0.25, 0.9, 1, 0.28)
 
-[node name="PlayerCore" type="ColorRect" parent="Player"]
+[node name="PlayerCore" type="ColorRect" parent="Player" unique_id=104459342]
 offset_left = -7.0
 offset_top = -7.0
 offset_right = 7.0
 offset_bottom = 7.0
 color = Color(0.1, 0.18, 0.32, 1)
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1351219556]
 
-[node name="HUD" parent="." instance=ExtResource("4")]
+[node name="HUD" parent="." unique_id=1263411581 instance=ExtResource("4")]
