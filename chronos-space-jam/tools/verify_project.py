@@ -118,6 +118,24 @@ def verify_scene_flow() -> None:
 
     print("OK scene flow")
 
+def verify_level_select_locking() -> None:
+    game_manager = read("scripts/autoload/game_manager.gd")
+    level_select = read("scripts/level_select.gd")
+
+    required = {
+        "GameManager level unlock query": "func is_level_unlocked(index: int) -> bool:" in game_manager,
+        "GameManager dev unlock all": "func unlock_all_levels() -> void:" in game_manager,
+        "Level select disables locked buttons": "button.disabled = not unlocked" in level_select,
+        "Level select ignores locked selections": "not GameManager.is_level_unlocked(index)" in level_select,
+        "Ctrl+Q dev unlock shortcut": "KEY_Q" in level_select and "ctrl_pressed" in level_select,
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing level select locking: {label}")
+
+    print("OK level select locking")
+
 def verify_script_patterns() -> None:
     bad_patterns = {
         ".modulate.a": "assign Color alpha through a copied Color instead of a sub-property",
@@ -145,6 +163,7 @@ def main() -> int:
     verify_level_contract()
     verify_resource_paths()
     verify_scene_flow()
+    verify_level_select_locking()
     verify_script_patterns()
     return 0
 

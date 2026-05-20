@@ -29,6 +29,8 @@ const TOTAL_LEVELS: int = 24
 
 var current_state: int = GameState.MENU
 var current_level_index: int = 0
+var highest_unlocked_level_index: int = 0
+var dev_unlock_all_levels: bool = false
 var best_moves: Dictionary = {}
 
 var _level_data_cache: Dictionary = {}
@@ -71,10 +73,22 @@ func restart_level() -> void:
 func on_level_cleared(move_count: int) -> void:
 	if not best_moves.has(current_level_index) or move_count < best_moves[current_level_index]:
 		best_moves[current_level_index] = move_count
+	highest_unlocked_level_index = maxi(highest_unlocked_level_index, mini(current_level_index + 1, TOTAL_LEVELS - 1))
 
 	var medal_data = get_level_medal_data(current_level_index, move_count)
 	set_state(GameState.LEVEL_CLEAR)
 	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count), medal_data)
+
+func is_level_unlocked(index: int) -> bool:
+	if index < 0 or index >= TOTAL_LEVELS:
+		return false
+	if dev_unlock_all_levels:
+		return true
+	return index <= highest_unlocked_level_index
+
+func unlock_all_levels() -> void:
+	dev_unlock_all_levels = true
+	highest_unlocked_level_index = TOTAL_LEVELS - 1
 
 func on_player_died() -> void:
 	set_state(GameState.DEAD)
