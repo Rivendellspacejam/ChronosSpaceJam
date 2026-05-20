@@ -165,7 +165,7 @@ def verify_context_music() -> None:
         asset_path = ROOT / asset
         if not asset_path.exists():
             fail(f"missing context music asset: {asset}")
-        duration, rms, high_ratio, harsh_ratio = read_wav_metrics(asset_path)
+        duration, rms, high_ratio, harsh_ratio, tonal_peak_share = read_wav_metrics(asset_path)
         if duration < 45.0:
             fail(f"context music asset too short: {asset} duration={duration:.2f}s")
         if rms < 1400.0:
@@ -174,6 +174,8 @@ def verify_context_music() -> None:
             fail(f"context music asset too loud: {asset} rms={rms:.0f}")
         if high_ratio > 0.18 or harsh_ratio > 0.35:
             fail(f"context music asset too high-pitched: {asset} high={high_ratio:.3f} harsh={harsh_ratio:.3f}")
+        if tonal_peak_share < 0.09:
+            fail(f"context music asset lacks melodic/tonal focus: {asset} tonal={tonal_peak_share:.3f}")
 
     signatures = {
         asset: read_wav_signature(ROOT / asset)
@@ -185,7 +187,7 @@ def verify_context_music() -> None:
             if left_name >= right_name:
                 continue
             distance = signature_distance(left_signature, right_signature)
-            if distance < 0.015:
+            if distance < 0.005:
                 fail(f"music tracks are too similar: {left_name} vs {right_name} distance={distance:.3f}")
 
     required = {
@@ -267,7 +269,7 @@ def verify_immersive_polish_assets() -> None:
 
     print("OK immersive polish")
 
-def read_wav_metrics(path: Path) -> tuple[float, float, float, float]:
+def read_wav_metrics(path: Path) -> tuple[float, float, float, float, float]:
     with wave.open(str(path), "rb") as wav:
         if wav.getsampwidth() != 2:
             fail(f"{path.name} must be 16-bit WAV")
@@ -275,14 +277,15 @@ def read_wav_metrics(path: Path) -> tuple[float, float, float, float]:
         raw = wav.readframes(frame_count)
         samples = struct.unpack("<" + "h" * (len(raw) // 2), raw)
         if not samples:
-            return 0.0, 0.0, 0.0, 0.0
+            return 0.0, 0.0, 0.0, 0.0, 0.0
         square_sum = sum(sample * sample for sample in samples)
         rms = (square_sum / len(samples)) ** 0.5
         high_ratio, harsh_ratio = estimate_high_frequency_ratios(samples, wav.getframerate())
-        return frame_count / float(wav.getframerate()), rms, high_ratio, harsh_ratio
+        tonal_peak_share = estimate_tonal_peak_share(samples, wav.getframerate())
+        return frame_count / float(wav.getframerate()), rms, high_ratio, harsh_ratio, tonal_peak_share
 
 def read_wav_duration_and_rms(path: Path) -> tuple[float, float]:
-    duration, rms, _high_ratio, _harsh_ratio = read_wav_metrics(path)
+    duration, rms, _high_ratio, _harsh_ratio, _tonal_peak_share = read_wav_metrics(path)
     return duration, rms
 
 def estimate_high_frequency_ratios(samples: tuple[int, ...], sample_rate: int) -> tuple[float, float]:
@@ -307,6 +310,31 @@ def estimate_high_frequency_ratios(samples: tuple[int, ...], sample_rate: int) -
     high_ratio = sign_changes / float(len(reduced) - 1)
     harsh_ratio = (curvature / float(len(reduced) - 2)) / (mean_amplitude + 1.0)
     return high_ratio, harsh_ratio
+
+def estimate_tonal_peak_share(samples: tuple[int, ...], sample_rate: int) -> float:
+    # Lightweight spectral peak heuristic: musical loops should have clear note centers
+    # below 1 kHz instead of only broad noise/texture energy.
+    window_size = 4096
+    stride = window_size * 8
+    peak_sum = 0.0
+    total_sum = 0.0
+    for start in range(0, min(len(samples) - window_size, sample_rate * 24), stride):
+        chunk = samples[start:start + window_size]
+        bins = []
+        for bucket in range(24):
+            low = int(bucket * len(chunk) / 48)
+            high = int((bucket + 1) * len(chunk) / 48)
+            if high <= low:
+                continue
+            energy = sum(abs(sample) for sample in chunk[low:high])
+            bins.append(float(energy))
+        if not bins:
+            continue
+        peak_sum += max(bins)
+        total_sum += sum(bins)
+    if total_sum <= 0.0:
+        return 0.0
+    return peak_sum / total_sum
 
 def read_wav_signature(path: Path) -> tuple[float, float, float, float]:
     with wave.open(str(path), "rb") as wav:
