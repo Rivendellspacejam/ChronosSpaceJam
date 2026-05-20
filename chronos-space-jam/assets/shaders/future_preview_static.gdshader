@@ -21,15 +21,15 @@ void fragment() {
 
 	vec2 chroma_offset = vec2(jitter_strength * 0.45, 0.0);
 	vec4 center_sample = texture(screen_texture, screen_uv);
-	vec3 source_color = center_sample.rgb;
-	source_color.r = texture(screen_texture, screen_uv + chroma_offset).r;
-	source_color.b = texture(screen_texture, screen_uv - chroma_offset).b;
+	vec3 sampled_color = center_sample.rgb;
+	sampled_color.r = texture(screen_texture, screen_uv + chroma_offset).r;
+	sampled_color.b = texture(screen_texture, screen_uv - chroma_offset).b;
 
 	float grain = static_random(floor(UV * 420.0) + vec2(time_step, time_step * 1.37));
 	float noise = (grain - 0.5) * noise_strength;
 	float scanline = sin(UV.y * scanline_count * 6.2831853) * 0.5 + 0.5;
 
-	vec3 preview_color = source_color;
+	vec3 preview_color = sampled_color;
 	preview_color += tint.rgb * 0.035;
 	preview_color += vec3(noise);
 	preview_color -= vec3(scanline * scanline_strength);
