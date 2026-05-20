@@ -18,7 +18,8 @@ const SYM_BLOCKER_V: String = "|"
 
 const FLOOR_TEXTURE := preload("res://assets/floor_tile.png")
 const WALL_TEXTURE := preload("res://assets/wall_tile.png")
-const GOAL_TEXTURE := preload("res://assets/goal_tile.png")
+const GOAL_TEXTURE := preload("res://assets/goal_tile-new.png")
+const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdshader")
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
 const TIME_GATE_SCENE := preload("res://scenes/objects/time_gate.tscn")
 const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
@@ -410,6 +411,7 @@ func _build_visuals() -> void:
 					_create_sprite(WALL_TEXTURE, world_pos, walls_container)
 				SYM_GOAL:
 					_goal_node = _create_sprite(GOAL_TEXTURE, world_pos, objects_container)
+					_apply_goal_shader(_goal_node)
 				SYM_ANCHOR:
 					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
 				SYM_COIN:
@@ -435,6 +437,11 @@ func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> Spr
 	sprite.position = world_pos
 	parent.add_child(sprite)
 	return sprite
+
+func _apply_goal_shader(sprite: Sprite2D) -> void:
+	var material := ShaderMaterial.new()
+	material.shader = GOAL_PORTAL_SHADER
+	sprite.material = material
 
 func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	var ts = float(TILE_SIZE)
