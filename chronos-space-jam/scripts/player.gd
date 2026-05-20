@@ -244,6 +244,9 @@ func _update_visual_pulse(delta: float) -> void:
 	glow_modulate.a = lerpf(0.45, 0.95, pulse)
 	_glow.modulate = glow_modulate
 	_visual.modulate = Color(0.85, 1.0, 1.0, 1.0) if state == PlayerState.SLIDING else Color.WHITE
+	var shader_material := _visual.material as ShaderMaterial
+	if shader_material != null:
+		shader_material.set_shader_parameter("slide_boost", 1.0 if state == PlayerState.SLIDING else 0.0)
 
 func _drop_trail() -> void:
 	if level_manager == null:
