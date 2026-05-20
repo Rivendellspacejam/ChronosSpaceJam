@@ -21,11 +21,9 @@ void fragment() {
 
 	vec2 chroma_offset = vec2(jitter_strength * 0.45, 0.0);
 	vec4 center_sample = texture(screen_texture, screen_uv);
-	vec3 source_color = vec3(
-		texture(screen_texture, screen_uv + chroma_offset).r,
-		center_sample.g,
-		texture(screen_texture, screen_uv - chroma_offset).b
-	);
+	vec3 source_color = center_sample.rgb;
+	source_color.r = texture(screen_texture, screen_uv + chroma_offset).r;
+	source_color.b = texture(screen_texture, screen_uv - chroma_offset).b;
 
 	float grain = static_random(floor(UV * 420.0) + vec2(time_step, time_step * 1.37));
 	float noise = (grain - 0.5) * noise_strength;
