@@ -46,6 +46,21 @@ theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "Coins: 0/0"
 
+[node name="FuturePreviewLabel" type="Label" parent="." unique_id=811406557]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -130.0
+offset_top = 18.0
+offset_right = 130.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Future Preview: +1 Tick"
+horizontal_alignment = 1
+
 [node name="DeathPanel" type="PanelContainer" parent="." unique_id=2111634696]
 anchors_preset = 8
 anchor_left = 0.5

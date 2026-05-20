@@ -25,17 +25,9 @@ const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
 const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
 const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 
-const PREVIEW_GHOST_SIZE: float = 34.0
-const PREVIEW_GHOST_COLOR := Color(0.35, 0.85, 1.0, 0.3)
-const PREVIEW_LINE_COLOR := Color(0.55, 0.4, 1.0, 0.45)
-const PREVIEW_LINE_WIDTH: float = 4.0
-
-const HAZARD_PREVIEW_TILE_SIZE: float = 48.0
-const GATE_OPENING_HINT_COLOR := Color(0.4, 1.0, 0.6, 0.35)
-const GATE_CLOSING_HINT_COLOR := Color(1.0, 0.35, 0.35, 0.35)
-const LASER_ACTIVATING_HINT_COLOR := Color(1.0, 0.3, 0.3, 0.5)
-const SPIKE_WARNING_HINT_COLOR := Color(1.0, 0.85, 0.1, 0.4)
-const SPIKE_ACTIVE_HINT_COLOR := Color(1.0, 0.25, 0.25, 0.45)
+const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
+const LASER_TEXTURE := preload("res://assets/laser_tile.png")
+const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
 
 var grid: Array = []
 var grid_width: int = 0
@@ -56,9 +48,9 @@ var _preview_key_was_held: bool = false
 
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
-@onready var hazard_preview_layer: Node2D = $HazardPreviewLayer
-@onready var enemy_preview_layer: Node2D = $EnemyPreviewLayer
+@onready var future_preview_layer: Node2D = $FuturePreviewLayer
 @onready var objects_container: Node2D = $Objects
+@onready var hud: CanvasLayer = $"../HUD"
 
 var _goal_node: Sprite2D = null
 
@@ -520,8 +512,9 @@ func refresh_all_move_previews() -> void:
 		return
 
 	var next_tick := TickManager.current_tick + 1
-	_refresh_enemy_move_previews(next_tick)
-	_refresh_hazard_move_previews(next_tick)
+	_set_live_phase_objects_visible(false)
+	_refresh_future_board_preview(next_tick)
+	_set_future_preview_cue_visible(true)
 
 
 func _is_preview_key_held() -> bool:
@@ -534,95 +527,124 @@ func _is_preview_key_held() -> bool:
 func _should_show_move_previews() -> bool:
 	return (
 		_is_preview_key_held()
-		and enemy_preview_layer != null
-		and hazard_preview_layer != null
+		and future_preview_layer != null
 	)
 
 
 func _clear_all_previews() -> void:
-	_clear_enemy_move_previews()
-	_clear_hazard_previews()
+	if future_preview_layer != null:
+		_clear_children(future_preview_layer)
+	_set_live_phase_objects_visible(true)
+	_set_future_preview_cue_visible(false)
 
 
-func _refresh_enemy_move_previews(next_tick: int) -> void:
-	for enemy in _enemies.values():
-		if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
-			continue
-		_add_enemy_move_preview(enemy, next_tick)
-
-
-func _refresh_hazard_move_previews(next_tick: int) -> void:
+func _refresh_future_board_preview(next_tick: int) -> void:
 	for gate in _time_gates.values():
-		_try_add_time_gate_preview(gate, next_tick)
+		_add_time_gate_future_preview(gate, next_tick)
 	for laser in _lasers.values():
-		_try_add_laser_preview(laser, next_tick)
+		_add_laser_future_preview(laser, next_tick)
 	for spike in _spikes.values():
-		_try_add_spike_preview(spike, next_tick)
+		_add_spike_future_preview(spike, next_tick)
+	for enemy in _enemies.values():
+		_add_enemy_future_preview(enemy, next_tick)
 
 
-func _try_add_time_gate_preview(gate: Node, next_tick: int) -> void:
+func _add_time_gate_future_preview(gate: Node, next_tick: int) -> void:
 	if not is_instance_valid(gate) or not gate.has_method("get_state_for_tick"):
 		return
 
-	var current_open: bool = gate.is_open()
-	var next_open: bool = gate.get_state_for_tick(next_tick).get("is_open", current_open)
-	if current_open == next_open:
-		return
+	var sprite := Sprite2D.new()
+	sprite.texture = TIME_GATE_TEXTURE
+	sprite.position = gate.position
+	var next_open: bool = gate.get_state_for_tick(next_tick).get("is_open", gate.is_open())
+	sprite.modulate = Color(0.4, 1.0, 0.6, 0.25) if next_open else Color(0.4, 0.8, 1.0, 1.0)
+	future_preview_layer.add_child(sprite)
 
-	var hint_color := GATE_OPENING_HINT_COLOR if next_open else GATE_CLOSING_HINT_COLOR
-	_add_hazard_tile_overlay(gate.grid_pos, hint_color)
 
-
-func _try_add_laser_preview(laser: Node, next_tick: int) -> void:
+func _add_laser_future_preview(laser: Node, next_tick: int) -> void:
 	if not is_instance_valid(laser) or not laser.has_method("get_state_for_tick"):
 		return
 
-	var current_active: bool = laser.is_active()
-	var next_active: bool = laser.get_state_for_tick(next_tick).get("is_active", current_active)
-	if current_active or not next_active:
-		return
+	var preview := Node2D.new()
+	preview.position = laser.position
+	future_preview_layer.add_child(preview)
 
-	_add_hazard_tile_overlay(laser.grid_pos, LASER_ACTIVATING_HINT_COLOR)
+	var sprite := Sprite2D.new()
+	sprite.texture = LASER_TEXTURE
+	preview.add_child(sprite)
+
+	var next_active: bool = laser.get_state_for_tick(next_tick).get("is_active", laser.is_active())
+	if next_active:
+		sprite.modulate = Color(1.0, 0.4, 0.4, 1.0)
+		_add_laser_beam_future_preview(preview, laser, next_tick)
+	else:
+		sprite.modulate = Color(0.5, 0.3, 0.3, 0.4)
 
 
-func _try_add_spike_preview(spike: Node, next_tick: int) -> void:
+func _add_laser_beam_future_preview(preview: Node2D, laser: Node, next_tick: int) -> void:
+	var beam := ColorRect.new()
+	beam.color = Color(1.0, 0.2, 0.2, 0.7)
+	var cells := get_laser_beam_cells_for_tick(laser.grid_pos, next_tick)
+	if cells.is_empty():
+		cells = [laser.grid_pos]
+
+	var min_x: int = laser.grid_pos.x
+	var max_x: int = laser.grid_pos.x
+	var min_y: int = laser.grid_pos.y
+	var max_y: int = laser.grid_pos.y
+	for cell in cells:
+		min_x = mini(min_x, cell.x)
+		max_x = maxi(max_x, cell.x)
+		min_y = mini(min_y, cell.y)
+		max_y = maxi(max_y, cell.y)
+
+	if laser.get_beam_direction().x != 0:
+		beam.size = Vector2(float(max_x - min_x + 1) * TILE_SIZE, 8.0)
+		beam.position = Vector2(float(min_x - laser.grid_pos.x) * TILE_SIZE - TILE_SIZE / 2.0, -4.0)
+	else:
+		beam.size = Vector2(8.0, float(max_y - min_y + 1) * TILE_SIZE)
+		beam.position = Vector2(-4.0, float(min_y - laser.grid_pos.y) * TILE_SIZE - TILE_SIZE / 2.0)
+	preview.add_child(beam)
+
+
+func _add_spike_future_preview(spike: Node, next_tick: int) -> void:
 	if not is_instance_valid(spike) or not spike.has_method("get_state_for_tick"):
 		return
 
-	var current_state: int = spike.spike_state
-	var next_state: int = spike.get_state_for_tick(next_tick).get("spike_state", current_state)
-	if current_state == next_state:
+	var sprite := Sprite2D.new()
+	sprite.texture = SPIKE_TEXTURE
+	sprite.position = spike.position
+	var next_state: int = spike.get_state_for_tick(next_tick).get("spike_state", spike.spike_state)
+	match next_state:
+		spike.SpikePhase.WARNING:
+			sprite.modulate = Color(1.0, 0.85, 0.1, 1.0)
+		spike.SpikePhase.ACTIVE:
+			sprite.modulate = Color(1.0, 0.25, 0.25, 1.0)
+		_:
+			sprite.modulate = Color(0.6, 0.6, 0.6, 0.35)
+	future_preview_layer.add_child(sprite)
+
+
+func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
+	if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
 		return
 
-	if next_state == spike.SpikePhase.WARNING:
-		_add_hazard_ring_overlay(spike.grid_pos, SPIKE_WARNING_HINT_COLOR)
-	elif next_state == spike.SpikePhase.ACTIVE:
-		_add_hazard_tile_overlay(spike.grid_pos, SPIKE_ACTIVE_HINT_COLOR)
+	var preview := Node2D.new()
+	preview.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
+	future_preview_layer.add_child(preview)
+
+	var body := _make_preview_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
+	var core := _make_preview_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
+	preview.add_child(body)
+	preview.add_child(core)
 
 
-func _add_hazard_tile_overlay(grid_pos: Vector2i, color: Color) -> void:
-	var world_pos := grid_to_world(grid_pos)
-	var overlay := ColorRect.new()
-	overlay.size = Vector2(HAZARD_PREVIEW_TILE_SIZE, HAZARD_PREVIEW_TILE_SIZE)
-	overlay.position = world_pos - overlay.size / 2.0
-	overlay.color = color
-	hazard_preview_layer.add_child(overlay)
-
-
-func _add_hazard_ring_overlay(grid_pos: Vector2i, color: Color) -> void:
-	var world_pos := grid_to_world(grid_pos)
-	var ring_size := HAZARD_PREVIEW_TILE_SIZE + 6.0
-	var overlay := ColorRect.new()
-	overlay.size = Vector2(ring_size, ring_size)
-	overlay.position = world_pos - overlay.size / 2.0
-	overlay.color = color
-	hazard_preview_layer.add_child(overlay)
-
-
-func _clear_hazard_previews() -> void:
-	if hazard_preview_layer == null:
-		return
-	_clear_children(hazard_preview_layer)
+func _make_preview_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
+	var rect := ColorRect.new()
+	rect.size = size
+	rect.position = Vector2(-TILE_SIZE / 2.0 + inset, -TILE_SIZE / 2.0 + inset)
+	rect.color = color
+	return rect
 
 
 func _play_environment_phase_pulses(tick: int) -> void:
@@ -640,43 +662,16 @@ func _play_environment_phase_pulses(tick: int) -> void:
 				obj.play_phase_pulse()
 
 
-func _add_enemy_move_preview(enemy: Node, next_tick: int) -> void:
-	var from_grid: Vector2i = enemy.current_grid_pos
-	var to_grid: Vector2i = enemy.get_grid_pos_for_tick(next_tick)
-	if from_grid == to_grid:
-		_add_preview_ghost(to_grid)
-		return
-
-	var from_world := grid_to_world(from_grid)
-	var to_world := grid_to_world(to_grid)
-	_add_preview_line(from_world, to_world)
-	_add_preview_ghost(to_grid)
+func _set_live_phase_objects_visible(is_visible: bool) -> void:
+	for registry in [_time_gates, _lasers, _spikes, _enemies]:
+		for obj in registry.values():
+			if is_instance_valid(obj):
+				obj.visible = is_visible
 
 
-func _add_preview_ghost(grid_pos: Vector2i) -> void:
-	var world_pos := grid_to_world(grid_pos)
-	var ghost := ColorRect.new()
-	ghost.size = Vector2(PREVIEW_GHOST_SIZE, PREVIEW_GHOST_SIZE)
-	ghost.position = world_pos - ghost.size / 2.0
-	ghost.color = PREVIEW_GHOST_COLOR
-	enemy_preview_layer.add_child(ghost)
-
-
-func _add_preview_line(from_world: Vector2, to_world: Vector2) -> void:
-	var line := Line2D.new()
-	line.points = PackedVector2Array([from_world, to_world])
-	line.width = PREVIEW_LINE_WIDTH
-	line.default_color = PREVIEW_LINE_COLOR
-	line.antialiased = true
-	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
-	line.end_cap_mode = Line2D.LINE_CAP_ROUND
-	enemy_preview_layer.add_child(line)
-
-
-func _clear_enemy_move_previews() -> void:
-	if enemy_preview_layer == null:
-		return
-	_clear_children(enemy_preview_layer)
+func _set_future_preview_cue_visible(is_visible: bool) -> void:
+	if hud != null and hud.has_method("set_future_preview_visible"):
+		hud.set_future_preview_visible(is_visible)
 
 
 func _on_tick_advanced_refresh_previews(tick: int) -> void:

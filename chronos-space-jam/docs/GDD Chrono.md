@@ -37,7 +37,7 @@ Core gameplay, all planned mechanics, UI flow, and level content are **complete*
 - **Space tiles:** Anchor, horizontal/vertical Gravity Blocker  
 - **UI:** Main menu, level select, pause, settings (audio/display/shake), credits, level-clear panel, intro + ending story  
 - **Audio (partial):** Menu music loop, UI click/back, slide, tick, death, level-clear SFX  
-- **Feedback:** Phase visuals on hazards/gates, tick HUD pulse, enemy next-move preview ghosts, configurable screen shake  
+- **Feedback:** Phase visuals on hazards/gates, tick HUD pulse, hold-P one-tick future board preview, configurable screen shake
 - **Not in build:** Medal tiers, global phase preview HUD, bounce tile, phase-only goal, one-way blocker, level editor, rewind
 
 ### Level roster (implemented names)
@@ -1095,7 +1095,7 @@ Status as of **18 Mei 2026** (see **Development Status** at top of document).
 ### Could Have — **Mixed**
 
 - [ ] Medal system (move targets + best shift only; no Gold/Silver/Bronze tiers).  
-- [x] Phase preview UI (enemy next-tick ghosts, hazard next-tick hints, tick pulse; no global phase HUD).  
+- [x] Phase preview UI (hold-P one-tick future board view, tick pulse; no global phase HUD).
 - [ ] Goal active only on certain ticks.  
 - [ ] Bounce tile.  
 - [x] Screen shake / polish (with settings toggle).  

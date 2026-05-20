@@ -23,6 +23,7 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var shifts_label = $MarginContainer/VBoxContainer/ShiftsLabel
 @onready var coins_label = $MarginContainer/VBoxContainer/CoinsLabel
 @onready var level_label = $MarginContainer/VBoxContainer/LevelLabel
+@onready var future_preview_label = $FuturePreviewLabel
 @onready var death_panel = $DeathPanel
 @onready var clear_panel = $ClearPanel
 @onready var clear_shifts_label = $ClearPanel/VBoxContainer/ShiftsValue
@@ -48,6 +49,7 @@ func _ready() -> void:
 	_apply_panel_style(story_panel, Color(0.015, 0.018, 0.032, 0.96), Color(0.58, 0.95, 1.0, 0.95))
 	death_panel.visible = false
 	clear_panel.visible = false
+	future_preview_label.visible = false
 	tutorial_label.visible = false
 	story_panel.visible = false
 	GameManager.state_changed.connect(_on_state_changed)
@@ -92,6 +94,9 @@ func show_level_story(level_index: int, finished_callback: Callable) -> void:
 		return
 
 	_show_story_line(_story_index)
+
+func set_future_preview_visible(is_visible: bool) -> void:
+	future_preview_label.visible = is_visible
 
 func _on_tick_pulse(_tick: int) -> void:
 	var tween = create_tween()
