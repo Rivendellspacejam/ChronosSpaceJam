@@ -1,4 +1,4 @@
-@medal_targets gold=5 silver=7
+@medal_targets gold=4 silver=5
 P....
 ..A..
 ##T##
