@@ -1,5 +1,12 @@
 extends Node2D
 
+const GAMEPLAY_GRAVITY_MUSIC := preload("res://assets/audio/gameplay_gravity_loop.wav")
+const GAMEPLAY_HAZARD_MUSIC := preload("res://assets/audio/gameplay_hazard_loop.wav")
+const GAMEPLAY_PATROL_MUSIC := preload("res://assets/audio/gameplay_patrol_loop.wav")
+const GAMEPLAY_GOLD_MUSIC := preload("res://assets/audio/gameplay_gold_loop.wav")
+const GAMEPLAY_BOUNCE_MUSIC := preload("res://assets/audio/gameplay_bounce_loop.wav")
+const GAMEPLAY_PHASE_MUSIC := preload("res://assets/audio/gameplay_phase_loop.wav")
+
 @onready var level_manager = $LevelManager
 @onready var player = $Player
 @onready var camera = $Camera2D
@@ -63,6 +70,7 @@ func _load_current_level() -> void:
 	var level_bundle = GameManager.load_level_bundle(GameManager.current_level_index)
 	var start_tick = level_bundle.get("start_tick", 0)
 	TickManager.reset(start_tick)
+	_configure_level_music(GameManager.current_level_index)
 	var start_pos = level_manager.load_level(GameManager.current_level_index)
 	player.init_player(start_pos, level_manager)
 	_configure_arena_backdrop()
@@ -87,7 +95,30 @@ func _center_camera_on_level() -> void:
 
 func _configure_arena_backdrop() -> void:
 	if arena_backdrop and arena_backdrop.has_method("configure"):
+		if arena_backdrop.has_method("set_theme"):
+			arena_backdrop.set_theme(GameManager.current_level_index)
 		arena_backdrop.configure(level_manager.grid_width, level_manager.grid_height)
+
+func _configure_level_music(level_index: int) -> void:
+	var target_stream := _music_stream_for_level(level_index)
+	if background_music.stream == target_stream:
+		return
+	background_music.stop()
+	background_music.stream = target_stream
+	_ensure_background_music_playing()
+
+func _music_stream_for_level(index: int) -> AudioStream:
+	if index <= 2:
+		return GAMEPLAY_GRAVITY_MUSIC
+	if index <= 4:
+		return GAMEPLAY_HAZARD_MUSIC
+	if index <= 11:
+		return GAMEPLAY_PATROL_MUSIC
+	if index <= 14:
+		return GAMEPLAY_GOLD_MUSIC
+	if index <= 19:
+		return GAMEPLAY_BOUNCE_MUSIC
+	return GAMEPLAY_PHASE_MUSIC
 
 func _can_restart() -> bool:
 	return GameManager.current_state in [

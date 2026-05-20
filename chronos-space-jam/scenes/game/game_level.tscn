@@ -8,7 +8,7 @@
 [ext_resource type="Shader" uid="uid://bhsic5kw6ky58" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
 [ext_resource type="Texture2D" uid="uid://otp3ntxslqb8" path="res://assets/player.png" id="7"]
 [ext_resource type="Shader" path="res://assets/shaders/player_time_core.gdshader" id="8"]
-[ext_resource type="AudioStream" path="res://assets/audio/gameplay_loop.wav" id="9"]
+[ext_resource type="AudioStream" path="res://assets/audio/gameplay_gravity_loop.wav" id="9"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_future_preview_static"]
 shader = ExtResource("6")

@@ -1,7 +1,7 @@
 extends Node
 
 const MENU_MUSIC := preload("res://assets/audio/menu_loop.wav")
-const GAMEPLAY_MUSIC := preload("res://assets/audio/gameplay_loop.wav")
+const GAMEPLAY_MUSIC := preload("res://assets/audio/gameplay_gravity_loop.wav")
 const ENDING_MUSIC := preload("res://assets/audio/ending_loop.wav")
 const UI_CLICK := preload("res://assets/audio/ui_click.wav")
 const UI_BACK := preload("res://assets/audio/ui_back.wav")
