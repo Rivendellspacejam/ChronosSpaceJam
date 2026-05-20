@@ -1,6 +1,7 @@
-@medal_targets gold=5 silver=7
-###########
-#P.C.....##
-#####.#..##
-#G.K.C.C.##
-###########
+@phase_goal period=4 active=2
+@medal_targets gold=2 silver=4
+########
+#P.A.G##
+#.######
+#......#
+########

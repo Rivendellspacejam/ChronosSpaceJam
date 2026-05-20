@@ -18,6 +18,7 @@ enum GameState {
 const LEVEL_DIR: String = "res://levels/"
 const ENEMY_PATH_PREFIX: String = "@enemy_path"
 const MEDAL_TARGETS_PREFIX: String = "@medal_targets"
+const PHASE_GOAL_PREFIX: String = "@phase_goal"
 const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
 	Vector2i(0, 0),
 	Vector2i(1, 0),
@@ -125,12 +126,16 @@ func load_level_bundle(index: int) -> Dictionary:
 	var enemy_paths: Array = []
 	var start_tick: int = 0
 	var medal_targets: Dictionary = {"gold": 0, "silver": 0}
+	var phase_goal: Dictionary = {}
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
 		if line.is_empty():
 			continue
 		if line.begins_with(MEDAL_TARGETS_PREFIX):
 			medal_targets = _parse_medal_targets_line(line)
+			continue
+		if line.begins_with(PHASE_GOAL_PREFIX):
+			phase_goal = _parse_phase_goal_line(line)
 			continue
 		if line.begins_with(ENEMY_PATH_PREFIX):
 			var offsets = _parse_enemy_path_line(line)
@@ -147,7 +152,13 @@ func load_level_bundle(index: int) -> Dictionary:
 		rows.append(line)
 
 	file.close()
-	var bundle = {"rows": rows, "enemy_paths": enemy_paths, "start_tick": start_tick, "medal_targets": medal_targets}
+	var bundle = {
+		"rows": rows,
+		"enemy_paths": enemy_paths,
+		"start_tick": start_tick,
+		"medal_targets": medal_targets,
+		"phase_goal": phase_goal,
+	}
 	_level_data_cache[index] = bundle
 	return bundle
 
@@ -165,6 +176,28 @@ func _parse_medal_targets_line(line: String) -> Dictionary:
 			continue
 		targets[key] = int(pieces[1].strip_edges())
 	return targets
+
+func _parse_phase_goal_line(line: String) -> Dictionary:
+	var config := {"period": 0, "active": []}
+	var tokens := line.substr(PHASE_GOAL_PREFIX.length()).strip_edges().split(" ", false)
+	for token in tokens:
+		var pieces := token.split("=", false, 1)
+		if pieces.size() != 2:
+			push_warning("Invalid phase goal token: %s" % token)
+			continue
+		var key := pieces[0].strip_edges()
+		var value := pieces[1].strip_edges()
+		match key:
+			"period":
+				config["period"] = maxi(0, int(value))
+			"active":
+				var phases: Array[int] = []
+				for phase_text in value.split(",", false):
+					phases.append(int(phase_text.strip_edges()))
+				config["active"] = phases
+			_:
+				push_warning("Invalid phase goal key: %s" % key)
+	return config
 
 func _parse_enemy_path_line(line: String) -> Array[Vector2i]:
 	var offsets: Array[Vector2i] = []

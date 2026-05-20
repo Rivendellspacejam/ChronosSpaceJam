@@ -25,12 +25,14 @@ SPIKE = "S"
 ENEMY = "E"
 ANCHOR = "A"
 GOAL = "G"
+BOUNCE = "O"
 BLOCK_H = "-"
 BLOCK_V = "|"
-SPECIAL_TILES = {ANCHOR, GATE, COIN_GATE, COIN, LASER, SPIKE, ENEMY, BLOCK_H, BLOCK_V}
+SPECIAL_TILES = {ANCHOR, GATE, COIN_GATE, COIN, LASER, SPIKE, ENEMY, BOUNCE, BLOCK_H, BLOCK_V}
 ENEMY_PATH_PREFIX = "@enemy_path"
 START_TICK_PREFIX = "@start_tick"
 MEDAL_TARGETS_PREFIX = "@medal_targets"
+PHASE_GOAL_PREFIX = "@phase_goal"
 DEFAULT_ENEMY_PATH = ((0, 0), (1, 0), (1, 1), (0, 1))
 
 
@@ -46,6 +48,8 @@ class Level:
     coins: tuple[tuple[int, int], ...]
     enemy_paths: tuple[tuple[tuple[int, int], ...], ...]
     start_tick: int
+    phase_goal_period: int
+    phase_goal_active: frozenset[int]
 
     @property
     def width(self) -> int:
@@ -68,6 +72,21 @@ def parse_enemy_path_line(line: str) -> tuple[tuple[int, int], ...]:
     return tuple(offsets) if offsets else DEFAULT_ENEMY_PATH
 
 
+def parse_phase_goal_line(line: str) -> tuple[int, frozenset[int]]:
+    payload = line[len(PHASE_GOAL_PREFIX) :].strip()
+    period = 0
+    active: set[int] = set()
+    for token in payload.split():
+        if "=" not in token:
+            continue
+        key, value = token.split("=", 1)
+        if key == "period":
+            period = int(value)
+        elif key == "active":
+            active.update(int(part.strip()) for part in value.split(",") if part.strip())
+    return period, frozenset(active)
+
+
 def load_level(path: Path) -> Level:
     raw_lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
     rows = tuple(
@@ -76,16 +95,20 @@ def load_level(path: Path) -> Level:
         if not line.startswith(ENEMY_PATH_PREFIX)
         and not line.startswith(START_TICK_PREFIX)
         and not line.startswith(MEDAL_TARGETS_PREFIX)
+        and not line.startswith(PHASE_GOAL_PREFIX)
     )
     parsed_paths = tuple(
         parse_enemy_path_line(line) for line in raw_lines if line.startswith(ENEMY_PATH_PREFIX)
     )
     start_tick = 0
+    phase_goal_period = 0
+    phase_goal_active: frozenset[int] = frozenset()
     for line in raw_lines:
-        if not line.startswith(START_TICK_PREFIX):
-            continue
-        _, value = line.split("=", 1)
-        start_tick = int(value.strip())
+        if line.startswith(START_TICK_PREFIX):
+            _, value = line.split("=", 1)
+            start_tick = int(value.strip())
+        elif line.startswith(PHASE_GOAL_PREFIX):
+            phase_goal_period, phase_goal_active = parse_phase_goal_line(line)
 
     start = None
     goal = None
@@ -131,6 +154,8 @@ def load_level(path: Path) -> Level:
         tuple(coins),
         tuple(enemy_paths),
         start_tick,
+        phase_goal_period,
+        phase_goal_active,
     )
 
 
@@ -161,6 +186,18 @@ def gate_open(tick: int) -> bool:
 
 def spike_active(tick: int) -> bool:
     return tick % 3 == 2
+
+
+def normalized_phase(tick: int, period: int) -> int:
+    if period <= 0:
+        return 0
+    return tick % period
+
+
+def goal_active(level: Level, tick: int) -> bool:
+    if level.phase_goal_period <= 0 or not level.phase_goal_active:
+        return True
+    return normalized_phase(tick, level.phase_goal_period) in level.phase_goal_active
 
 
 def enemy_positions(level: Level, tick: int) -> set[tuple[int, int]]:
@@ -255,6 +292,7 @@ def slide(
         if is_blocked(level, next_pos, direction, tick, frozenset(coins)):
             return current, frozenset(coins), False, moved
 
+        previous = current
         current = next_pos
         x, y = current
         moved = True
@@ -263,15 +301,21 @@ def slide(
 
         if is_enemy_deadly(level, current, tick) or is_laser_deadly(level, current, tick):
             return current, frozenset(coins), False, moved
-        if tile(level, current) == GOAL:
+        if tile(level, current) == GOAL and goal_active(level, tick):
             return current, frozenset(coins), True, moved
         if tile(level, current) == ANCHOR:
             return current, frozenset(coins), False, moved
+        if tile(level, current) == BOUNCE:
+            bounce_destination = (current[0] - dx * 2, current[1] - dy * 2)
+            if is_blocked(level, bounce_destination, direction, tick, frozenset(coins)):
+                bounce_destination = previous
+            return bounce_destination, frozenset(coins), False, moved
 
 
 def solve(level: Level, max_moves: int = 80) -> str | None:
     enemy_periods = [len(path) for path in level.enemy_paths] or [len(DEFAULT_ENEMY_PATH)]
-    period = lcm(2, 3, *enemy_periods)
+    phase_goal_periods = [level.phase_goal_period] if level.phase_goal_period > 0 else []
+    period = lcm(2, 3, *enemy_periods, *phase_goal_periods)
     queue = deque([(level.start, level.start_tick, frozenset(), "")])
     seen = {(level.start, level.start_tick % period, frozenset())}
 
@@ -323,6 +367,7 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
             if is_blocked(level, next_pos, direction, move_tick, frozenset(current_coins)):
                 break
 
+            previous = pos
             pos = next_pos
             x, y = pos
             visited.add(pos)
@@ -332,9 +377,16 @@ def trace_solution_cells(level: Level, solution: str) -> set[tuple[int, int]]:
             if (
                 is_enemy_deadly(level, pos, move_tick)
                 or is_laser_deadly(level, pos, move_tick)
-                or tile(level, pos) == GOAL
+                or (tile(level, pos) == GOAL and goal_active(level, move_tick))
                 or tile(level, pos) == ANCHOR
             ):
+                break
+            if tile(level, pos) == BOUNCE:
+                bounce_destination = (pos[0] - direction[0] * 2, pos[1] - direction[1] * 2)
+                if is_blocked(level, bounce_destination, direction, move_tick, frozenset(current_coins)):
+                    bounce_destination = previous
+                pos = bounce_destination
+                visited.add(pos)
                 break
 
         collected = frozenset(current_coins)
@@ -378,6 +430,32 @@ def coin_gate_route_failures(level: Level, visited: set[tuple[int, int]]) -> lis
     return failures
 
 
+def bounce_route_failures(level: Level, visited: set[tuple[int, int]]) -> list[str]:
+    bounces = [
+        (x, y)
+        for y, row in enumerate(level.rows)
+        for x, symbol in enumerate(row)
+        if symbol == BOUNCE
+    ]
+    if bounces and not any(pos in visited for pos in bounces):
+        return [f"route did not touch any bounce tile from {bounces}"]
+    return []
+
+
+def phase_goal_failures(level: Level) -> list[str]:
+    if level.phase_goal_period <= 0 and not level.phase_goal_active:
+        return []
+    failures = []
+    if level.phase_goal_period <= 0:
+        failures.append("phase goal period must be positive")
+    if not level.phase_goal_active:
+        failures.append("phase goal active phases are empty")
+    invalid = sorted(phase for phase in level.phase_goal_active if phase < 0 or phase >= level.phase_goal_period)
+    if invalid:
+        failures.append(f"phase goal active phases out of range: {invalid}")
+    return failures
+
+
 def main() -> int:
     failures = []
     expected_total = 24
@@ -401,6 +479,12 @@ def main() -> int:
             print(f"FAIL {level.name}: enemy path crosses wall: {enemy_path_failures}")
             continue
 
+        phase_failures = phase_goal_failures(level)
+        if phase_failures:
+            failures.append(level.name)
+            print(f"FAIL {level.name}: invalid phase goal config: {phase_failures}")
+            continue
+
         level_number = int(level.name.removeprefix("level_").removesuffix(".txt"))
         if level_number >= 13 and len(level.coins) > 3:
             failures.append(level.name)
@@ -419,9 +503,14 @@ def main() -> int:
                 failures.append(level.name)
                 print(f"FAIL {level.name}: coin-gate route incomplete: {route_failures}")
                 continue
-            if level_number == 4 and solution != "RD":
+            bounce_failures = bounce_route_failures(level, visited)
+            if bounce_failures:
                 failures.append(level.name)
-                print(f"FAIL {level.name}: expected laser tutorial route RD, got {solution}")
+                print(f"FAIL {level.name}: bounce route incomplete: {bounce_failures}")
+                continue
+            if level_number == 4 and solution != "RDR":
+                failures.append(level.name)
+                print(f"FAIL {level.name}: expected laser tutorial route RDR, got {solution}")
                 continue
             unused = unused_special_tiles(level, visited)
             if unused:

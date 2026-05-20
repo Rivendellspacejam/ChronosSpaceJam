@@ -1,6 +1,7 @@
-@medal_targets gold=5 silver=7
+@medal_targets gold=7 silver=9
+@enemy_path 0,0;-1,0;0,0;-1,0
 ##########
-#P.C..A.##
-#####...##
-#G.K.C..##
+#P..O..G##
+##..##.E##
+#...A..###
 ##########

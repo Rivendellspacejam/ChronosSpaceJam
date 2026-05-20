@@ -13,6 +13,7 @@ const SYM_ENEMY: String = "E"
 const SYM_TIME_GATE: String = "T"
 const SYM_COIN: String = "C"
 const SYM_COIN_GATE: String = "K"
+const SYM_BOUNCE: String = "O"
 const SYM_BLOCKER_H: String = "-"
 const SYM_BLOCKER_V: String = "|"
 
@@ -46,6 +47,9 @@ var _enemy_patrol_paths: Array = []
 var _enemy_path_assign_index: int = 0
 var _current_slide_direction: Vector2i = Vector2i.ZERO
 var _preview_key_was_held: bool = false
+var _phase_goal_period: int = 0
+var _phase_goal_active_phases: Array[int] = []
+var _goal_grid_pos: Vector2i = Vector2i(-1, -1)
 
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
@@ -80,6 +84,7 @@ class TileInfo:
 	var is_goal: bool = false
 	var is_anchor: bool = false
 	var is_coin: bool = false
+	var is_bounce: bool = false
 
 func load_level(level_index: int) -> Vector2i:
 	clear_level()
@@ -92,8 +97,10 @@ func load_level(level_index: int) -> Vector2i:
 
 	_enemy_patrol_paths = level_bundle.get("enemy_paths", [])
 	_enemy_path_assign_index = 0
+	_configure_phase_goal(level_bundle.get("phase_goal", {}))
 	_read_grid(rows)
 	_build_visuals()
+	_update_goal_visual_for_tick(TickManager.current_tick)
 	_configure_future_preview_effect()
 	refresh_all_move_previews()
 	return player_start
@@ -110,6 +117,10 @@ func clear_level() -> void:
 	_collected_coins.clear()
 	_enemy_patrol_paths.clear()
 	_enemy_path_assign_index = 0
+	_phase_goal_period = 0
+	_phase_goal_active_phases.clear()
+	_goal_grid_pos = Vector2i(-1, -1)
+	_goal_node = null
 	grid.clear()
 	_clear_children(walls_container)
 	_clear_children(floors_container)
@@ -196,6 +207,22 @@ func get_coin_total() -> int:
 
 func get_coin_count() -> int:
 	return _collected_coins.size()
+
+func is_phase_goal_configured() -> bool:
+	return _phase_goal_period > 0 and not _phase_goal_active_phases.is_empty()
+
+func is_goal_active_at_tick(tick: int) -> bool:
+	if not is_phase_goal_configured():
+		return true
+
+	var phase := TickManager.phase_for_tick(tick, _phase_goal_period)
+	return phase in _phase_goal_active_phases
+
+func get_bounce_destination(bounce_pos: Vector2i, direction: Vector2i) -> Vector2i:
+	return bounce_pos - (direction * 2)
+
+func is_valid_bounce_destination(gpos: Vector2i, direction: Vector2i, tick: int) -> bool:
+	return not is_blocked_for_tick(gpos, direction, tick)
 
 func collect_coin(gpos: Vector2i) -> void:
 	if not _coin_nodes.has(gpos) or _collected_coins.has(gpos):
@@ -299,6 +326,13 @@ func _read_grid(rows: Array) -> void:
 
 		grid.append(row)
 
+func _configure_phase_goal(config: Dictionary) -> void:
+	_phase_goal_period = int(config.get("period", 0))
+	_phase_goal_active_phases.clear()
+	var active_phases: Array = config.get("active", [])
+	for phase in active_phases:
+		_phase_goal_active_phases.append(int(phase))
+
 func _apply_base_tile_info(info: TileInfo, gpos: Vector2i, symbol: String, extra_collected_coins: int = 0) -> void:
 	_apply_base_tile_info_for_tick(info, gpos, symbol, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
 
@@ -309,10 +343,13 @@ func _apply_base_tile_info_for_tick(info: TileInfo, gpos: Vector2i, symbol: Stri
 			info.blocks = true
 		SYM_GOAL:
 			info.type = "goal"
-			info.is_goal = true
+			info.is_goal = is_goal_active_at_tick(tick)
 		SYM_ANCHOR:
 			info.type = "anchor"
 			info.is_anchor = true
+		SYM_BOUNCE:
+			info.type = "bounce"
+			info.is_bounce = true
 		SYM_COIN:
 			info.type = "coin"
 			info.is_coin = not _collected_coins.has(gpos)
@@ -411,9 +448,12 @@ func _build_visuals() -> void:
 					_create_sprite(WALL_TEXTURE, world_pos, walls_container)
 				SYM_GOAL:
 					_goal_node = _create_sprite(GOAL_TEXTURE, world_pos, objects_container)
+					_goal_grid_pos = gpos
 					_apply_goal_shader(_goal_node)
 				SYM_ANCHOR:
 					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+				SYM_BOUNCE:
+					_create_bounce_tile(world_pos)
 				SYM_COIN:
 					_create_coin(gpos, world_pos)
 				SYM_COIN_GATE:
@@ -443,6 +483,16 @@ func _apply_goal_shader(sprite: Sprite2D) -> void:
 	material.shader = GOAL_PORTAL_SHADER
 	sprite.material = material
 
+func _update_goal_visual_for_tick(tick: int) -> void:
+	if _goal_node == null:
+		return
+
+	var active := is_goal_active_at_tick(tick)
+	_goal_node.modulate = Color(0.4, 1.0, 0.95, 1.0) if active else Color(0.18, 0.36, 0.42, 0.55)
+	var shader_material := _goal_node.material as ShaderMaterial
+	if shader_material != null:
+		shader_material.set_shader_parameter("pulse_strength", 1.0 if active else 0.15)
+
 func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	var ts = float(TILE_SIZE)
 	var rect = ColorRect.new()
@@ -456,6 +506,39 @@ func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 
 	rect.color = Color(0.6, 0.4, 0.8, 0.9)
 	objects_container.add_child(rect)
+
+func _create_bounce_tile(world_pos: Vector2) -> void:
+	var marker := Node2D.new()
+	marker.position = world_pos
+	objects_container.add_child(marker)
+
+	var base := ColorRect.new()
+	base.size = Vector2(float(TILE_SIZE) - 8.0, float(TILE_SIZE) - 8.0)
+	base.position = -base.size / 2.0
+	base.color = Color(0.08, 0.72, 0.9, 0.62)
+	marker.add_child(base)
+
+	var core := ColorRect.new()
+	core.size = Vector2(20.0, 20.0)
+	core.position = -core.size / 2.0
+	core.color = Color(0.85, 1.0, 1.0, 0.9)
+	marker.add_child(core)
+
+	var top := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, -16.0))
+	var bottom := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, 10.0))
+	var left := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(-16.0, -12.0))
+	var right := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(10.0, -12.0))
+	marker.add_child(top)
+	marker.add_child(bottom)
+	marker.add_child(left)
+	marker.add_child(right)
+
+func _make_bounce_mark(size: Vector2, offset: Vector2) -> ColorRect:
+	var rect := ColorRect.new()
+	rect.size = size
+	rect.position = offset
+	rect.color = Color(0.35, 1.0, 0.95, 1.0)
+	return rect
 
 func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
 	var marker = Node2D.new()
@@ -562,6 +645,7 @@ func _configure_future_preview_effect() -> void:
 
 
 func _refresh_future_board_preview(next_tick: int) -> void:
+	_add_phase_goal_future_preview(next_tick)
 	for gate in _time_gates.values():
 		_add_time_gate_future_preview(gate, next_tick)
 	for laser in _lasers.values():
@@ -570,6 +654,16 @@ func _refresh_future_board_preview(next_tick: int) -> void:
 		_add_spike_future_preview(spike, next_tick)
 	for enemy in _enemies.values():
 		_add_enemy_future_preview(enemy, next_tick)
+
+func _add_phase_goal_future_preview(next_tick: int) -> void:
+	if not is_phase_goal_configured() or _goal_node == null:
+		return
+
+	var sprite := Sprite2D.new()
+	sprite.texture = GOAL_TEXTURE
+	sprite.position = grid_to_world(_goal_grid_pos)
+	sprite.modulate = Color(0.4, 1.0, 0.95, 0.85) if is_goal_active_at_tick(next_tick) else Color(0.1, 0.22, 0.28, 0.82)
+	future_preview_layer.add_child(sprite)
 
 
 func _add_time_gate_future_preview(gate: Node, next_tick: int) -> void:
@@ -704,6 +798,7 @@ func _set_future_preview_cue_visible(is_visible: bool) -> void:
 
 func _on_tick_advanced_refresh_previews(tick: int) -> void:
 	_play_environment_phase_pulses(tick)
+	_update_goal_visual_for_tick(tick)
 	refresh_all_move_previews()
 
 

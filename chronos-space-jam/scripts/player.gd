@@ -143,6 +143,14 @@ func _build_slide_path(direction: Vector2i, hazard_tick: int) -> Array:
 		if tile_info.kills_in_path or tile_info.is_goal or tile_info.is_anchor:
 			break
 
+		if tile_info.is_bounce:
+			var bounce_destination: Vector2i = level_manager.get_bounce_destination(check_pos, direction)
+			var fallback_destination: Vector2i = path[path.size() - 2] if path.size() >= 2 else grid_pos
+			if not level_manager.is_valid_bounce_destination(bounce_destination, direction, hazard_tick):
+				bounce_destination = fallback_destination
+			path.append(bounce_destination)
+			break
+
 		check_pos += direction
 
 	return path

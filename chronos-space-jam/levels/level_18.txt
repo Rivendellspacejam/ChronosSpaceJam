@@ -1,6 +1,7 @@
-@medal_targets gold=5 silver=7
-##########
-#P.C....##
-#####...##
-#G.K.C..##
-##########
+@start_tick=-1
+@medal_targets gold=7 silver=9
+#########
+#P..O.TG#
+##..##..#
+#...A..##
+#########

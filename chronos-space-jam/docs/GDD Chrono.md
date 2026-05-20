@@ -1,44 +1,44 @@
-# Chrono Slide — Game Design Document
+﻿# Chrono Slide â€” Game Design Document
 
-**Working Title:** Chrono Slide  
-**Genre:** Top-Down Puzzle Arcade / Spacetime Sliding Puzzle  
-**Platform Target:** PC / Web Build  
-**Game Jam Duration:** 14–21 Mei  
-**Theme:** Time and Space  
-**Team Size:** 4 People  
-**Document Version:** v0.2  
-**Last Updated:** 18 Mei 2026  
+**Working Title:** Chrono Slide
+**Genre:** Top-Down Puzzle Arcade / Spacetime Sliding Puzzle
+**Platform Target:** PC / Web Build
+**Game Jam Duration:** 14â€“21 Mei
+**Theme:** Time and Space
+**Team Size:** 4 People
+**Document Version:** v0.2
+**Last Updated:** 18 Mei 2026
 **Implementation Reference:** `docs/TASK_BREAKDOWN.md`
 
 ---
 
 ## Development Status (Current Phase)
 
-**Current production phase:** **Phase 7 — QA, Balancing & Submission Prep**  
+**Current production phase:** **Phase 7 â€” QA, Balancing & Submission Prep**
 Core gameplay, all planned mechanics, UI flow, and level content are **complete**. Remaining work is **export, itch.io packaging, and optional art/audio polish**.
 
 | Phase | Focus | Status |
 | :---- | :---- | :---- |
-| 0 — Foundation | Project scaffold, grid, level format, input, game states | **Done** |
-| 1 — Core Loop | Sliding, collision, goal, death, move count, progression | **Done** |
-| 2 — Time System | Tick manager, phase objects, gate, laser, spike, enemy patrol | **Done** |
-| 3 — Space Mechanics | Anchor, gravity blocker, collision priority, puzzle loops | **Done** |
-| 4 — Level Content | Tutorial curve + playable chambers | **Done** (12 levels shipped in build) |
-| 5 — UI & Feel | HUD, menus, tutorials, death/clear, pause, tick pulse, screen shake | **Done** |
-| 6 — Polish & Publishing | Final art, full SFX, web export, itch.io page | **Partial** |
-| 7 — QA & Submission | Playthrough, edge cases, readability, upload checklist | **In progress** |
+| 0 â€” Foundation | Project scaffold, grid, level format, input, game states | **Done** |
+| 1 â€” Core Loop | Sliding, collision, goal, death, move count, progression | **Done** |
+| 2 â€” Time System | Tick manager, phase objects, gate, laser, spike, enemy patrol | **Done** |
+| 3 â€” Space Mechanics | Anchor, gravity blocker, collision priority, puzzle loops | **Done** |
+| 4 â€” Level Content | Tutorial curve + playable chambers | **Done** (24 levels shipped in build) |
+| 5 â€” UI & Feel | HUD, menus, tutorials, death/clear, pause, tick pulse, screen shake | **Done** |
+| 6 â€” Polish & Publishing | Final art, full SFX, web export, itch.io page | **Partial** |
+| 7 â€” QA & Submission | Playthrough, edge cases, readability, upload checklist | **In progress** |
 
 ### Playable build snapshot (18 Mei 2026)
 
-- **Engine:** Godot 4.6 (GL Compatibility)  
-- **Levels:** 12 (`level_1.txt` … `level_12.txt`) with move-count targets and best-shift tracking  
-- **Tick order (locked):** Input → Tick Update → World Phase Update → Player Slide  
-- **Phase objects:** Time Gate, Laser (2-phase), Spike (3-phase), Enemy Patrol (configurable path)  
-- **Space tiles:** Anchor, horizontal/vertical Gravity Blocker  
-- **UI:** Main menu, level select, pause, settings (audio/display/shake), credits, level-clear panel, intro + ending story  
-- **Audio (partial):** Menu music loop, UI click/back, slide, tick, death, level-clear SFX  
+- **Engine:** Godot 4.6 (GL Compatibility)
+- **Levels:** 24 (`level_1.txt` â€¦ `level_24.txt`) with move-count targets and best-shift tracking
+- **Tick order (locked):** Input â†’ Tick Update â†’ World Phase Update â†’ Player Slide
+- **Phase objects:** Time Gate, Laser (2-phase), Spike (3-phase), Enemy Patrol (configurable path)
+- **Space tiles:** Anchor, horizontal/vertical Gravity Blocker, Bounce Tile
+- **UI:** Main menu, level select, pause, settings (audio/display/shake), credits, level-clear panel, intro + ending story
+- **Audio (partial):** Menu music loop, UI click/back, slide, tick, death, level-clear SFX
 - **Feedback:** Phase visuals on hazards/gates, tick HUD pulse, hold-P one-tick future board preview, configurable screen shake
-- **Not in build:** Medal tiers, global phase preview HUD, bounce tile, phase-only goal, one-way blocker, level editor, rewind
+- **Not in build:** Global phase preview HUD, one-way blocker, level editor, rewind
 
 ### Level roster (implemented names)
 
@@ -55,14 +55,26 @@ Core gameplay, all planned mechanics, UI flow, and level content are **complete*
 | 9 | Foldback | Extended difficulty |
 | 10 | Pressure Route | Extended difficulty |
 | 11 | Clock Floor | Extended difficulty |
-| 12 | Direction for Time | Final chamber → ending screen |
+| 12 | Direction for Time | Final chamber â†’ ending screen |
+| 13 | Gold Lock | Gold coin / coin gate introduction |
+| 14 | Two-Key Bend | Coin-gate route around a bend |
+| 15 | Vault Route | Coin collection with timing pressure |
+| 16 | Rebound Contact | Bounce Tile introduction |
+| 17 | Backstep Bend | Bounce creates a new stop point |
+| 18 | Pulse Rebound | Bounce plus Time Gate timing |
+| 19 | Red Recoil | Bounce plus laser readability |
+| 20 | Patrol Ricochet | Bounce plus patrol reading |
+| 21 | Phase Exit | Phase-active goal introduction |
+| 22 | Locked Moment | Phase Goal plus coin gate |
+| 23 | Rebound Window | Bounce timing into a Phase Goal |
+| 24 | Final Alignment | Coins, bounce, Phase Goal, and time rules |
 
-Levels 9–12 extend the original 8-level gamejam plan; mechanics reuse and combine earlier teachings with larger arenas and tighter move targets.
+Levels 9â€“12 extend the original 8-level gamejam plan; levels 13â€“24 form the second-half arc: gold coins / coin gates, then Bounce Tiles, then phase-active goals.
 
 ### Submission blockers (remaining)
 
-- Web/export build verification (`PUB-01`)  
-- itch.io page assets, screenshots, and public upload (`PUB-02`, `QA-08`)  
+- Web/export build verification (`PUB-01`)
+- itch.io page assets, screenshots, and public upload (`PUB-02`, `QA-08`)
 - Optional: final tile art pass, gameplay music loop beyond menu, full trap SFX set (`ART-01`, `AUDIO-01`, `AUDIO-02`)
 
 ---
@@ -87,19 +99,19 @@ Tema **Time and Space** diterjemahkan langsung ke dalam core gameplay.
 
 Space hadir melalui:
 
-- Arena top-down berbasis grid.  
-- Player yang bergerak berdasarkan arah gravitasi.  
-- Sliding movement sampai menabrak obstacle.  
-- Gravity blocker yang membatasi arah gerak tertentu.  
+- Arena top-down berbasis grid.
+- Player yang bergerak berdasarkan arah gravitasi.
+- Sliding movement sampai menabrak obstacle.
+- Gravity blocker yang membatasi arah gerak tertentu.
 - Tile khusus yang memengaruhi posisi, jalur, atau kondisi ruang.
 
 ### 2.2 Time
 
 Time hadir melalui:
 
-- Setiap input player memajukan waktu sebanyak **1 tick**.  
-- Musuh dan trap berganti phase setiap tick.  
-- Gate dapat terbuka atau tertutup berdasarkan tick tertentu.  
+- Setiap input player memajukan waktu sebanyak **1 tick**.
+- Musuh dan trap berganti phase setiap tick.
+- Gate dapat terbuka atau tertutup berdasarkan tick tertentu.
 - Puzzle diselesaikan dengan membaca pola waktu, bukan hanya mencari jalur ruang.
 
 ### 2.3 Core Theme Statement
@@ -118,8 +130,8 @@ Player tidak berjalan normal. Saat player menekan **W/A/S/D**, gravitasi berpind
 
 Waktu tidak berjalan otomatis. Waktu hanya bergerak ketika player melakukan input arah.
 
-- Tekan W/A/S/D \= player bergerak \+ time tick maju 1\.  
-- Tidak ada tombol wait.  
+- Tekan W/A/S/D \= player bergerak \+ time tick maju 1\.
+- Tidak ada tombol wait.
 - Player tidak bisa memajukan waktu tanpa bergerak.
 
 Hal ini membuat setiap input memiliki konsekuensi posisi dan waktu sekaligus.
@@ -130,9 +142,9 @@ Enemy, trap, dan gate memiliki phase masing-masing. Setiap kali time tick maju, 
 
 Contoh:
 
-- Laser menyala pada tick genap dan mati pada tick ganjil.  
-- Spike muncul setiap 3 tick.  
-- Musuh berpindah posisi mengikuti pola 4 langkah.  
+- Laser menyala pada tick genap dan mati pada tick ganjil.
+- Spike muncul setiap 3 tick.
+- Musuh berpindah posisi mengikuti pola 4 langkah.
 - Gate terbuka hanya pada phase tertentu.
 
 ### 3.4 Puzzle Precision
@@ -147,22 +159,22 @@ Player merasa seperti sedang mengendalikan sebuah objek kecil di dalam ruang eks
 
 Sensasi yang ingin dicapai:
 
-- Tegang karena setiap input berisiko.  
-- Puas saat menemukan urutan gerak yang tepat.  
-- Cepat dipahami, tetapi menantang untuk dikuasai.  
+- Tegang karena setiap input berisiko.
+- Puas saat menemukan urutan gerak yang tepat.
+- Cepat dipahami, tetapi menantang untuk dikuasai.
 - Mirip sliding puzzle, tetapi dengan tekanan obstacle ala arcade.
 
 ---
 
 ## 5\. Core Loop
 
-1. Player mengamati level.  
-2. Player membaca posisi goal, obstacle, enemy, trap, dan gate.  
-3. Player memilih input W/A/S/D.  
+1. Player mengamati level.
+2. Player membaca posisi goal, obstacle, enemy, trap, dan gate.
+3. Player memilih input W/A/S/D.
 4. Time tick maju 1\.
 5. Enemy, trap, dan gate berganti phase.
 6. Player meluncur ke arah gravitasi.
-7. Player mengevaluasi posisi baru dan phase baru.  
+7. Player mengevaluasi posisi baru dan phase baru.
 8. Ulangi sampai player mencapai goal atau mati.
 
 ---
@@ -194,18 +206,18 @@ Tidak ada tombol untuk menunggu satu tick. Waktu hanya maju jika player melakuka
 
 Player dapat mengubah gravitasi ke empat arah:
 
-- Up  
-- Down  
-- Left  
+- Up
+- Down
+- Left
 - Right
 
 Ketika gravitasi berubah, player akan bergerak terus ke arah tersebut sampai bertemu kondisi penghenti.
 
 ### Rules
 
-- Input arah selalu mencoba mengubah gravitasi.  
-- Jika arah valid, player mulai sliding.  
-- Player tidak bisa berhenti di tengah jalan secara manual.  
+- Input arah selalu mencoba mengubah gravitasi.
+- Jika arah valid, player mulai sliding.
+- Player tidak bisa berhenti di tengah jalan secara manual.
 - Player berhenti saat menabrak wall, blocker, atau tile penghenti.
 
 ---
@@ -216,9 +228,9 @@ Player bergerak dalam garis lurus sesuai arah gravitasi.
 
 ### Behavior
 
-- Player bergerak dari tile ke tile.  
-- Player berhenti saat tile berikutnya tidak dapat dilewati.  
-- Jika player melewati hazard aktif, player mati.  
+- Player bergerak dari tile ke tile.
+- Player berhenti saat tile berikutnya tidak dapat dilewati.
+- Jika player melewati hazard aktif, player mati.
 - Jika player masuk goal aktif, level selesai.
 
 ---
@@ -229,8 +241,8 @@ Wall adalah obstacle dasar yang menghentikan player.
 
 ### Function
 
-- Tidak bisa dilewati.  
-- Menjadi batas arena.  
+- Tidak bisa dilewati.
+- Menjadi batas arena.
 - Digunakan untuk membentuk jalur puzzle.
 
 ---
@@ -241,8 +253,8 @@ Gravity Blocker adalah tile yang hanya memblokir player dari arah gravitasi tert
 
 Contoh:
 
-- Blocker horizontal hanya menghentikan gerakan kiri/kanan.  
-- Blocker vertical hanya menghentikan gerakan atas/bawah.  
+- Blocker horizontal hanya menghentikan gerakan kiri/kanan.
+- Blocker vertical hanya menghentikan gerakan atas/bawah.
 - One-way blocker hanya bisa dilewati dari arah tertentu.
 
 ### Design Purpose
@@ -257,8 +269,8 @@ Anchor Tile adalah tile khusus yang dapat menghentikan player tanpa harus menabr
 
 ### Function
 
-- Memberikan titik berhenti strategis.  
-- Membantu membuat puzzle lebih fleksibel.  
+- Memberikan titik berhenti strategis.
+- Membantu membuat puzzle lebih fleksibel.
 - Mengurangi frustrasi karena player tidak selalu harus mencari wall.
 
 ### Rule
@@ -267,19 +279,20 @@ Jika player melewati Anchor Tile, player berhenti di atas tile tersebut.
 
 ---
 
-## 7.1.6 Bounce Tile Optional
+## 7.1.6 Bounce Tile
 
-Bounce Tile memantulkan player ke arah tertentu.
+Bounce Tile adalah rebound plate yang menolak player saat disentuh selama slide.
 
 ### Function
 
-- Menambah variasi level.  
-- Dapat dipakai di level lanjutan.  
-- Tidak wajib untuk MVP.
+- Menambah titik berhenti baru tanpa menjadi wall biasa.
+- Saat player slide menuju Bounce Tile, player menyentuh plate lalu terdorong mundur dua cell dari posisi plate.
+- Hasil akhirnya menyisakan satu cell kosong di antara player dan Bounce Tile.
+- Bounce mengakhiri slide dan tidak menambah tick kedua.
 
-### Recommendation
+### Implementation
 
-Gunakan hanya jika core mechanic utama sudah stabil.
+Symbol level: `O`. Introduced in levels 16Ã¢â‚¬â€œ20, then reused in the phase-goal arc.
 
 ---
 
@@ -291,9 +304,9 @@ Setiap input arah memajukan waktu sebanyak **1 tick**.
 
 ### Rule
 
-- Player tekan W/A/S/D.  
-- Player bergerak sesuai arah gravitasi.  
-- Setelah input diterima, global time tick bertambah 1\.  
+- Player tekan W/A/S/D.
+- Player bergerak sesuai arah gravitasi.
+- Setelah input diterima, global time tick bertambah 1\.
 - Semua elemen time-based memperbarui phase.
 
 ### Important Constraint
@@ -302,8 +315,8 @@ Player tidak bisa menunggu tanpa bergerak.
 
 Ini berarti:
 
-- Tidak ada tombol skip turn.  
-- Tidak ada tombol wait.  
+- Tidak ada tombol skip turn.
+- Tidak ada tombol wait.
 - Setiap kemajuan waktu harus dibayar dengan perubahan posisi.
 
 ---
@@ -365,31 +378,31 @@ Untuk menghindari kebingungan, update tick harus konsisten.
 
 ### Recommended Order
 
-1. Player memilih input.  
-2. Time tick bertambah 1\.  
-3. Trap, enemy, dan gate update phase.  
-4. Player bergerak/sliding.  
-5. Collision dicek selama player bergerak.  
+1. Player memilih input.
+2. Time tick bertambah 1\.
+3. Trap, enemy, dan gate update phase.
+4. Player bergerak/sliding.
+5. Collision dicek selama player bergerak.
 6. Player berhenti atau mati.
 
 ### Alternative Order
 
-1. Player memilih input.  
-2. Player bergerak/sliding.  
-3. Time tick bertambah 1\.  
-4. Trap, enemy, dan gate update phase.  
+1. Player memilih input.
+2. Player bergerak/sliding.
+3. Time tick bertambah 1\.
+4. Trap, enemy, dan gate update phase.
 5. Collision dicek di posisi akhir.
 
 ### Recommended Choice for This Game
 
 Gunakan urutan pertama:
 
-Input → Tick Update → World Phase Update → Player Slide
+Input â†’ Tick Update â†’ World Phase Update â†’ Player Slide
 
 Alasannya:
 
-- Setiap input terasa seperti memutar waktu sebelum ruang bergerak.  
-- Player bisa membaca phase berikutnya dari UI.  
+- Setiap input terasa seperti memutar waktu sebelum ruang bergerak.
+- Player bisa membaca phase berikutnya dari UI.
 - Hazard yang aktif saat player melintas terasa lebih jelas.
 
 Namun, jika playtest terasa terlalu sulit, gunakan urutan kedua agar lebih mudah dipahami.
@@ -404,8 +417,8 @@ Time Gate adalah gate yang terbuka atau tertutup berdasarkan tick/phase.
 
 ### Rule
 
-- Jika gate open, player bisa melewati.  
-- Jika gate closed, gate berfungsi seperti wall.  
+- Jika gate open, player bisa melewati.
+- Jika gate closed, gate berfungsi seperti wall.
 - Gate dapat memiliki phase pattern berbeda.
 
 Contoh:
@@ -420,8 +433,8 @@ Gate C Pattern: Closed, Closed, Open, Closed
 
 Time Gate memaksa player menggabungkan:
 
-- Jalur sliding yang benar.  
-- Urutan input yang benar.  
+- Jalur sliding yang benar.
+- Urutan input yang benar.
 - Timing phase yang benar.
 
 ---
@@ -484,8 +497,8 @@ Enemy tidak bergerak real-time, melainkan berpindah saat tick berubah.
 
 Player mati jika:
 
-- Player berhenti di tile yang sama dengan enemy.  
-- Player melewati tile yang ditempati enemy.  
+- Player berhenti di tile yang sama dengan enemy.
+- Player melewati tile yang ditempati enemy.
 - Enemy phase berikutnya berpindah ke tile player, jika rule ini diaktifkan.
 
 Untuk MVP, cukup gunakan aturan:
@@ -494,23 +507,19 @@ Player mati jika menyentuh tile enemy aktif saat sliding atau setelah berhenti.
 
 ---
 
-## 7.3.4 Goal Timing Optional
+## 7.3.4 Goal Timing
 
 Goal dapat selalu aktif atau hanya aktif pada phase tertentu.
 
-### MVP Recommendation
+### Implemented Rule
 
-Goal selalu aktif.
-
-### Advanced Level Option
-
-Goal hanya aktif pada tick tertentu.
+Goal normal tetap selalu aktif. Level dengan metadata `@phase_goal period=<n> active=<phases>` hanya clear ketika `tick % period` berada di daftar active phase.
 
 Contoh:
 
 Goal active only when tick % 4 \== 0
 
-Gunakan hanya di level akhir agar tidak terlalu membingungkan.
+Saat inactive, goal terlihat redup dan berperilaku seperti floor passable. Phase Goal diperkenalkan di levels 21-24.
 
 ---
 
@@ -544,9 +553,9 @@ Player menang jika mencapai goal.
 
 Player kalah jika:
 
-- Menyentuh hazard aktif.  
-- Menyentuh enemy.  
-- Keluar dari arena, jika level memungkinkan.  
+- Menyentuh hazard aktif.
+- Menyentuh enemy.
+- Keluar dari arena, jika level memungkinkan.
 - Terjebak tanpa kemungkinan input yang valid, jika sistem detect deadlock diterapkan.
 
 ### 9.3 Restart
@@ -571,7 +580,7 @@ Best: 9
 
 HUD minimal harus menampilkan:
 
-Gravity: →
+Gravity: â†’
 
 Tick: 7
 
@@ -585,8 +594,8 @@ Menampilkan arah gravitasi saat ini.
 
 Bisa berupa:
 
-- Panah besar di dekat player.  
-- Ikon di HUD.  
+- Panah besar di dekat player.
+- Ikon di HUD.
 - Efek visual arah gerak.
 
 ### 10.2 Tick Counter
@@ -617,13 +626,13 @@ Level awal harus mengajarkan satu konsep per level.
 
 Recommended progression:
 
-1. Gravity slide only.  
-2. Add wall and basic goal.  
-3. Add time tick display.  
-4. Add time gate.  
-5. Add laser phase.  
-6. Add spike warning.  
-7. Add enemy patrol.  
+1. Gravity slide only.
+2. Add wall and basic goal.
+3. Add time tick display.
+4. Add time gate.
+5. Add laser phase.
+6. Add spike warning.
+7. Add enemy patrol.
 8. Combine all mechanics.
 
 ---
@@ -634,8 +643,8 @@ Karena player tidak bisa menunggu, setiap puzzle harus menyediakan cara untuk me
 
 Artinya level harus punya:
 
-- Jalur untuk “membuang tick”.  
-- Loop kecil untuk mengatur timing.  
+- Jalur untuk â€œmembuang tickâ€.
+- Loop kecil untuk mengatur timing.
 - Anchor atau wall agar player bisa mengontrol posisi.
 
 Jika tidak, puzzle bisa terasa unfair.
@@ -648,9 +657,9 @@ Trap dan gate harus punya visual phase yang jelas.
 
 Contoh:
 
-- Laser off \= redup.  
-- Laser on \= terang.  
-- Spike warning \= bergetar / warna berubah.  
+- Laser off \= redup.
+- Laser on \= terang.
+- Spike warning \= bergetar / warna berubah.
 - Gate about to open \= ada glow.
 
 ---
@@ -663,8 +672,8 @@ Untuk level gamejam, lebih baik arena kecil tetapi puzzle-nya jelas.
 
 Recommended size:
 
-- Tutorial: 6x6 sampai 8x8.  
-- Main level: 8x8 sampai 12x12.  
+- Tutorial: 6x6 sampai 8x8.
+- Main level: 8x8 sampai 12x12.
 - Final level: maksimal 14x14.
 
 ---
@@ -673,7 +682,7 @@ Recommended size:
 
 ---
 
-## Level 1 — First Shift
+## Level 1 â€” First Shift
 
 ### Purpose
 
@@ -681,8 +690,8 @@ Mengajarkan gravity sliding.
 
 ### Elements
 
-- Player  
-- Wall  
+- Player
+- Wall
 - Goal
 
 ### Description
@@ -695,7 +704,7 @@ Player memahami bahwa WASD bukan movement biasa, melainkan mengubah arah gravita
 
 ---
 
-## Level 2 — Time Starts Moving
+## Level 2 â€” Time Starts Moving
 
 ### Purpose
 
@@ -703,7 +712,7 @@ Mengajarkan bahwa input memajukan tick.
 
 ### Elements
 
-- Tick counter  
+- Tick counter
 - Simple gate
 
 ### Description
@@ -712,7 +721,7 @@ Gate terbuka pada tick ganjil dan tertutup pada tick genap. Player harus memilih
 
 ---
 
-## Level 3 — No Waiting
+## Level 3 â€” No Waiting
 
 ### Purpose
 
@@ -720,7 +729,7 @@ Mengajarkan bahwa player tidak bisa skip tick tanpa bergerak.
 
 ### Elements
 
-- Time Gate  
+- Time Gate
 - Wall loop kecil
 
 ### Description
@@ -729,7 +738,7 @@ Player perlu mengambil jalur memutar untuk memajukan tick sebelum masuk gate.
 
 ---
 
-## Level 4 — Laser Rhythm
+## Level 4 â€” Laser Rhythm
 
 ### Purpose
 
@@ -737,7 +746,7 @@ Mengajarkan trap phase.
 
 ### Elements
 
-- Laser on/off  
+- Laser on/off
 - Time Gate optional
 
 ### Description
@@ -746,7 +755,7 @@ Laser aktif pada tick genap dan mati pada tick ganjil. Player harus melintasi ar
 
 ---
 
-## Level 5 — Spike Warning
+## Level 5 â€” Spike Warning
 
 ### Purpose
 
@@ -754,7 +763,7 @@ Mengajarkan trap 3 phase.
 
 ### Elements
 
-- Spike safe/warning/active  
+- Spike safe/warning/active
 - Anchor Tile
 
 ### Description
@@ -763,7 +772,7 @@ Spike memberi warning satu tick sebelum aktif. Player harus membaca pola dan ber
 
 ---
 
-## Level 6 — Patrol Pattern
+## Level 6 â€” Patrol Pattern
 
 ### Purpose
 
@@ -771,7 +780,7 @@ Mengajarkan enemy phase.
 
 ### Elements
 
-- Enemy Patrol 4 phase  
+- Enemy Patrol 4 phase
 - Time Gate
 
 ### Description
@@ -780,7 +789,7 @@ Enemy berpindah posisi setiap tick. Player harus menghindari posisi enemy sambil
 
 ---
 
-## Level 7 — Gravity Blocker
+## Level 7 â€” Gravity Blocker
 
 ### Purpose
 
@@ -788,7 +797,7 @@ Mengajarkan space constraint.
 
 ### Elements
 
-- Gravity Blocker  
+- Gravity Blocker
 - Time Gate
 
 ### Description
@@ -797,7 +806,7 @@ Beberapa jalur hanya bisa dilewati jika player datang dengan arah gravitasi tert
 
 ---
 
-## Level 8 — Final Sync
+## Level 8 â€” Final Sync
 
 ### Purpose
 
@@ -805,11 +814,11 @@ Final challenge.
 
 ### Elements
 
-- Time Gate  
-- Laser  
-- Spike  
-- Enemy Patrol  
-- Gravity Blocker  
+- Time Gate
+- Laser
+- Spike
+- Enemy Patrol
+- Gravity Blocker
 - Anchor Tile
 
 ### Description
@@ -818,7 +827,7 @@ Player harus membaca semua pola dan mencapai goal dengan urutan input yang tepat
 
 ---
 
-## Level 9–12 — Extended Chambers (Post–Gamejam Scope)
+## Level 9â€“12 â€” Extended Chambers (Postâ€“Gamejam Scope)
 
 Added after the original 8-level curve. No new mechanics; difficulty comes from larger layouts, combined hazards, and lower move-count targets.
 
@@ -835,22 +844,22 @@ Added after the original 8-level curve. No new mechanics; difficulty comes from 
 
 ### 13.1 Easy Levels
 
-- Sedikit hazard.  
-- Pattern 2 phase.  
-- Arena kecil.  
+- Sedikit hazard.
+- Pattern 2 phase.
+- Arena kecil.
 - Banyak wall untuk berhenti.
 
 ### 13.2 Medium Levels
 
-- Kombinasi time gate dan trap.  
-- Pattern 3–4 phase.  
+- Kombinasi time gate dan trap.
+- Pattern 3â€“4 phase.
 - Ada kebutuhan untuk membuang tick.
 
 ### 13.3 Hard Levels
 
-- Enemy patrol dan trap bersamaan.  
-- Gate terbuka pada phase spesifik.  
-- Space lebih sempit.  
+- Enemy patrol dan trap bersamaan.
+- Gate terbuka pada phase spesifik.
+- Space lebih sempit.
 - Move count challenge.
 
 ---
@@ -879,9 +888,9 @@ Setiap level dapat punya target move.
 
 Contoh:
 
-Gold: ≤ 8 shifts
+Gold: â‰¤ 8 shifts
 
-Silver: ≤ 12 shifts
+Silver: â‰¤ 12 shifts
 
 Bronze: Clear
 
@@ -897,10 +906,10 @@ Visual sederhana, clean, dan readable.
 
 Recommended style:
 
-- Minimalist neon grid.  
-- Sci-fi laboratory.  
-- Abstract spacetime chamber.  
-- Player berupa kotak kecil dengan glow.  
+- Minimalist neon grid.
+- Sci-fi laboratory.
+- Abstract spacetime chamber.
+- Player berupa kotak kecil dengan glow.
 - Time objects memiliki animasi phase yang jelas.
 
 ### 15.2 Color Language
@@ -924,21 +933,21 @@ Recommended style:
 
 ### 16.1 Music
 
-- Minimal electronic loop.  
-- Tension-based but not too intense.  
+- Minimal electronic loop.
+- Tension-based but not too intense.
 - Tempo dapat terasa seperti clock/tick.
 
 ### 16.2 SFX
 
 Required SFX:
 
-- Gravity shift input.  
-- Player slide.  
-- Player hit wall.  
-- Tick change.  
-- Gate open/close.  
-- Trap activate/deactivate.  
-- Player death.  
+- Gravity shift input.
+- Player slide.
+- Player hit wall.
+- Tick change.
+- Gate open/close.
+- Trap activate/deactivate.
+- Player death.
 - Level clear.
 
 ### 16.3 Audio Theme
@@ -947,7 +956,7 @@ Setiap tick bisa diberi subtle sound agar player merasa waktu bergerak.
 
 Contoh:
 
-Input → tick sound → world phase changes → slide sound
+Input â†’ tick sound â†’ world phase changes â†’ slide sound
 
 ---
 
@@ -1001,9 +1010,9 @@ Game membutuhkan satu sistem utama bernama **Tick Manager**.
 
 ### Responsibilities
 
-- Menyimpan global tick.  
-- Menerima event input player.  
-- Memajukan tick.  
+- Menyimpan global tick.
+- Menerima event input player.
+- Memajukan tick.
 - Memberi sinyal update phase ke semua time-based object.
 
 Pseudo-flow:
@@ -1056,11 +1065,11 @@ Selama sliding, player harus dicek pada setiap tile yang dilalui.
 
 Check order:
 
-1. Is next tile wall/blocker/closed gate?  
-2. If yes, stop before it.  
-3. If next tile hazard/enemy active, player dies.  
-4. If next tile goal, level clear.  
-5. If next tile anchor, stop on it.  
+1. Is next tile wall/blocker/closed gate?
+2. If yes, stop before it.
+3. If next tile hazard/enemy active, player dies.
+4. If next tile goal, level clear.
+5. If next tile anchor, stop on it.
 6. Otherwise continue sliding.
 
 ---
@@ -1069,103 +1078,103 @@ Check order:
 
 Status as of **18 Mei 2026** (see **Development Status** at top of document).
 
-### Must Have — **Complete**
+### Must Have â€” **Complete**
 
-- [x] Player gravity sliding.  
-- [x] Wall collision.  
-- [x] Goal tile.  
-- [x] Restart level.  
-- [x] Global tick system.  
-- [x] Time Gate.  
-- [x] At least one trap type (laser + spike + enemy in full build).  
-- [x] At least 5 playable levels (**12** in current build).  
+- [x] Player gravity sliding.
+- [x] Wall collision.
+- [x] Goal tile.
+- [x] Restart level.
+- [x] Global tick system.
+- [x] Time Gate.
+- [x] At least one trap type (laser + spike + enemy in full build).
+- [x] At least 5 playable levels (**24** in current build).
 - [x] Basic UI: tick, gravity direction, move count.
 
-### Should Have — **Complete**
+### Should Have â€” **Complete**
 
-- [x] Laser trap.  
-- [x] Spike trap.  
-- [x] Enemy patrol.  
-- [x] Anchor tile.  
-- [x] Gravity blocker.  
-- [x] 8 levels total (**12** in current build).  
-- [x] Simple main menu.  
+- [x] Laser trap.
+- [x] Spike trap.
+- [x] Enemy patrol.
+- [x] Anchor tile.
+- [x] Gravity blocker.
+- [x] 8 levels total (**24** in current build).
+- [x] Simple main menu.
 - [x] Level select.
 
-### Could Have — **Mixed**
+### Could Have â€” **Mixed**
 
-- [ ] Medal system (move targets + best shift only; no Gold/Silver/Bronze tiers).  
+- [ ] Medal system (move targets + best shift only; no Gold/Silver/Bronze tiers).
 - [x] Phase preview UI (hold-P one-tick future board view, tick pulse; no global phase HUD).
-- [ ] Goal active only on certain ticks.  
-- [ ] Bounce tile.  
-- [x] Screen shake / polish (with settings toggle).  
-- [x] Simple story intro (intro + per-level names; ending screen after level 12).
+- [x] Goal active only on certain ticks.
+- [x] Bounce tile.
+- [x] Screen shake / polish (with settings toggle).
+- [x] Simple story intro (intro + per-level names; ending screen after level 24).
 
-### Won't Have for Game Jam — **Still out of scope**
+### Won't Have for Game Jam â€” **Still out of scope**
 
-- Complex rewind mechanic.  
-- Full timeline system.  
-- Real-time enemy AI.  
-- Large open world.  
-- Level editor.  
+- Complex rewind mechanic.
+- Full timeline system.
+- Real-time enemy AI.
+- Large open world.
+- Level editor.
 - Online leaderboard.
 
 ---
 
 ## 19\. Recommended 1-Week Production Plan
 
-Plan below was the original schedule (14–21 Mei). **Completion status** reflects the build on **18 Mei 2026**.
+Plan below was the original schedule (14â€“21 Mei). **Completion status** reflects the build on **18 Mei 2026**.
 
-## Day 1 — Core Prototype — **Done**
+## Day 1 â€” Core Prototype â€” **Done**
 
-- [x] Implement player sliding.  
-- [x] Implement wall collision.  
-- [x] Implement goal.  
-- [x] Implement restart.  
+- [x] Implement player sliding.
+- [x] Implement wall collision.
+- [x] Implement goal.
+- [x] Implement restart.
 - [x] Make 1 test level.
 
-## Day 2 — Time Tick System — **Done**
+## Day 2 â€” Time Tick System â€” **Done**
 
-- [x] Implement global tick.  
-- [x] Tick updates on W/A/S/D input.  
-- [x] Add UI tick counter.  
+- [x] Implement global tick.
+- [x] Tick updates on W/A/S/D input.
+- [x] Add UI tick counter.
 - [x] Add simple time gate.
 
-## Day 3 — Trap System — **Done**
+## Day 3 â€” Trap System â€” **Done**
 
-- [x] Add laser trap.  
-- [x] Add spike trap or one additional trap.  
-- [x] Implement phase pattern per object.  
-- [x] Make 2–3 levels.
+- [x] Add laser trap.
+- [x] Add spike trap or one additional trap.
+- [x] Implement phase pattern per object.
+- [x] Make 2â€“3 levels.
 
-## Day 4 — Space Mechanics — **Done**
+## Day 4 â€” Space Mechanics â€” **Done**
 
-- [x] Add anchor tile.  
-- [x] Add gravity blocker.  
-- [x] Improve level design.  
-- [x] Make 2–3 more levels.
+- [x] Add anchor tile.
+- [x] Add gravity blocker.
+- [x] Improve level design.
+- [x] Make 2â€“3 more levels.
 
-## Day 5 — Enemy \+ Level Polish — **Done**
+## Day 5 â€” Enemy \+ Level Polish â€” **Done**
 
-- [x] Add enemy patrol if scope allows.  
-- [x] Build final level.  
-- [x] Balance difficulty.  
+- [x] Add enemy patrol if scope allows.
+- [x] Build final level.
+- [x] Balance difficulty.
 - [~] Add SFX placeholders (core SFX in; not full pack).
 
-## Day 6 — UI, Art, Audio Polish — **Mostly done**
+## Day 6 â€” UI, Art, Audio Polish â€” **Mostly done**
 
-- [x] Add menu.  
-- [x] Add level clear screen.  
-- [x] Add death effect.  
-- [~] Add simple music (menu loop; no dedicated gameplay loop).  
+- [x] Add menu.
+- [x] Add level clear screen.
+- [x] Add death effect.
+- [~] Add simple music (menu loop; no dedicated gameplay loop).
 - [~] Improve visual clarity (readable placeholders + some tile art; final art pass deferred).
 
-## Day 7 — Testing and Submission — **In progress**
+## Day 7 â€” Testing and Submission â€” **In progress**
 
-- [x] Playtest all levels (12-level pass complete).  
-- [x] Fix bugs (ongoing for blockers only).  
-- [x] Add credits.  
-- [ ] Build and upload.  
+- [x] Playtest all levels (24-level verifier pass complete).
+- [x] Fix bugs (ongoing for blockers only).
+- [x] Add credits.
+- [ ] Build and upload.
 - [ ] Prepare screenshots and description.
 
 ---
@@ -1174,41 +1183,41 @@ Plan below was the original schedule (14–21 Mei). **Completion status** reflec
 
 For a 4-person team:
 
-### Programmer 1 — Core Systems
+### Programmer 1 â€” Core Systems
 
 Responsible for:
 
-- Player movement.  
-- Collision.  
-- Tick manager.  
+- Player movement.
+- Collision.
+- Tick manager.
 - Level transition.
 
-### Programmer 2 — Gameplay Objects
+### Programmer 2 â€” Gameplay Objects
 
 Responsible for:
 
-- Time gate.  
-- Trap system.  
-- Enemy patrol.  
+- Time gate.
+- Trap system.
+- Enemy patrol.
 - Gravity blocker.
 
 ### Designer / Level Designer
 
 Responsible for:
 
-- Level layout.  
-- Difficulty progression.  
-- Tutorialization.  
+- Level layout.
+- Difficulty progression.
+- Tutorialization.
 - Balancing move count.
 
 ### Artist / UI / Audio Integrator
 
 Responsible for:
 
-- Tile visuals.  
-- Player and obstacle readability.  
-- UI/HUD.  
-- SFX/music implementation.  
+- Tile visuals.
+- Player and obstacle readability.
+- UI/HUD.
+- SFX/music implementation.
 - Itch.io page assets.
 
 Jika semua anggota programmer, tetap bagi berdasarkan fitur agar tidak saling tabrakan.
@@ -1249,10 +1258,10 @@ Read the rhythm.
 
 Game akan terasa lebih enak jika:
 
-- Sliding cepat tapi tidak instan.  
-- Ada impact kecil saat player menabrak wall.  
-- Tick change punya sound/visual feedback.  
-- Gate dan trap punya animasi phase yang jelas.  
+- Sliding cepat tapi tidak instan.
+- Ada impact kecil saat player menabrak wall.
+- Tick change punya sound/visual feedback.
+- Gate dan trap punya animasi phase yang jelas.
 - Death cepat, restart cepat.
 
 ### Restart Speed
@@ -1261,7 +1270,7 @@ Karena game bisa sulit, restart harus sangat cepat.
 
 Target:
 
-Death → Restart available in \< 1 second
+Death â†’ Restart available in \< 1 second
 
 ---
 
@@ -1271,7 +1280,7 @@ Death → Restart available in \< 1 second
 | :---- | :---- | :---- |
 | Puzzle terlalu sulit | Player bingung dengan tick dan sliding | Buat level kecil dan tutorial bertahap |
 | No-wait rule membuat puzzle unfair | Player tidak bisa mengatur timing | Sediakan loop atau anchor tile untuk membuang tick |
-| Terlalu banyak phase | Sulit dibaca | Mulai dari 2 phase, lalu naik ke 3–4 phase |
+| Terlalu banyak phase | Sulit dibaca | Mulai dari 2 phase, lalu naik ke 3â€“4 phase |
 | Scope membesar | Game tidak selesai | Fokus pada Time Gate \+ Laser dulu |
 | Visual tidak jelas | Player tidak tahu trap aktif atau tidak | Gunakan warna dan animasi yang kontras |
 | Movement terasa lambat | Game jadi membosankan | Sliding harus cepat dan responsif |
@@ -1282,13 +1291,13 @@ Death → Restart available in \< 1 second
 
 Game dianggap playable jika sudah memiliki:
 
-- 5 level selesai.  
-- Player bisa slide dengan WASD.  
-- Setiap input menambah tick.  
-- Time Gate berubah berdasarkan tick.  
-- Minimal satu hazard berbasis phase.  
-- Player bisa mati dan restart.  
-- Player bisa mencapai goal dan lanjut level.  
+- 5 level selesai.
+- Player bisa slide dengan WASD.
+- Setiap input menambah tick.
+- Time Gate berubah berdasarkan tick.
+- Minimal satu hazard berbasis phase.
+- Player bisa mati dan restart.
+- Player bisa mencapai goal dan lanjut level.
 - UI menampilkan tick dan move count.
 
 **Status (18 Mei 2026):** All minimum criteria are met in the current Godot build. Submit-ready checklist items still open: verified **web export**, **itch.io page** (screenshots, controls copy, public build link).
@@ -1319,4 +1328,4 @@ Shift gravity, advance time, and survive a room where every move changes the wor
 
 ## 28\. Indonesian Short Description
 
-**Chrono Slide** adalah game puzzle top-down bertema ruang dan waktu. Setiap input mengubah arah gravitasi dan memajukan waktu satu tick. Hindari trap yang berubah phase, manfaatkan gate waktu, dan capai goal dengan urutan gerakan yang tepat.  
+**Chrono Slide** adalah game puzzle top-down bertema ruang dan waktu. Setiap input mengubah arah gravitasi dan memajukan waktu satu tick. Hindari trap yang berubah phase, manfaatkan gate waktu, dan capai goal dengan urutan gerakan yang tepat.

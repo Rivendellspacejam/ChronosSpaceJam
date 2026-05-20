@@ -16,9 +16,18 @@ const ENDING_LINES: Array[String] = [
 
 const LEVEL_STORIES: Dictionary = {
 	12: [
-		"OPERATOR: Chamber 13 adds key-coins to the gravity rig.",
-		"SYSTEM: Collect every coin to unlock the gold gate around the exit.",
+		"OPERATOR: Chamber 13 adds gold keys to the gravity rig.",
+		"SYSTEM: Collect every gold coin to unlock the gold gate around the exit.",
 		"OPERATOR: The gate opens the instant the last coin is claimed. Keep sliding.",
+	],
+	15: [
+		"OPERATOR: Chamber 16 adds rebound plates to the gravity rig.",
+		"SYSTEM: Hit a rebound plate and it pushes you one tile back.",
+		"OPERATOR: It is not a wall. It is a new stopping point.",
+	],
+	20: [
+		"SYSTEM: Exit sync detected. This goal opens only on its active tick.",
+		"OPERATOR: Reaching the door is not enough now. Reach it at the right moment.",
 	],
 }
 
@@ -37,16 +46,16 @@ const LEVEL_NAMES: Dictionary = {
 	11: "Direction for Time",
 	12: "Gold Lock",
 	13: "Two-Key Bend",
-	14: "Vault Corner",
-	15: "Patrol Vault",
-	16: "Anchor Lock",
-	17: "Long Coin",
-	18: "Red Vault",
-	19: "Anchor Cache",
-	20: "Triple Turn",
-	21: "Warning Hoard",
-	22: "Patrol Cache",
-	23: "Final Vault",
+	14: "Vault Route",
+	15: "Rebound Contact",
+	16: "Backstep Bend",
+	17: "Pulse Rebound",
+	18: "Red Recoil",
+	19: "Patrol Ricochet",
+	20: "Phase Exit",
+	21: "Locked Moment",
+	22: "Rebound Window",
+	23: "Final Alignment",
 }
 
 var _seen_level_stories: Dictionary = {}
