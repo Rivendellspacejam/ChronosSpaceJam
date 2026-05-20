@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ending.gd" id="1"]
 [ext_resource type="AudioStream" path="res://assets/audio/ending_loop.wav" id="2"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/ending_timescape.png" id="3"]
 
 [node name="Ending" type="Control"]
 layout_mode = 3
@@ -20,6 +21,29 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.01, 0.018, 0.028, 1)
+
+[node name="BackgroundArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(0.78, 1, 0.92, 0.72)
+
+[node name="AtmosphereShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.005, 0.012, 0.018, 0.38)
 
 [node name="GlowBand" type="ColorRect" parent="."]
 layout_mode = 1
@@ -106,5 +130,5 @@ horizontal_alignment = 2
 
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2")
-volume_db = -1.0
+volume_db = -13.0
 autoplay = true

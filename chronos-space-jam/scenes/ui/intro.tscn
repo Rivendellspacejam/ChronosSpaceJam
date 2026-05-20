@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/intro.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/menu_timescape.png" id="2"]
 
 [node name="Intro" type="Control"]
 layout_mode = 3
@@ -19,6 +20,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.015, 0.018, 0.03, 1)
+
+[node name="BackgroundArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(0.68, 0.86, 1, 0.54)
 
 [node name="GridLines" type="ColorRect" parent="."]
 layout_mode = 1

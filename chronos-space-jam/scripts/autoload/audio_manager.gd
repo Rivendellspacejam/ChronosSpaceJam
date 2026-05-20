@@ -9,6 +9,7 @@ const SLIDE_START := preload("res://assets/audio/slide_start.wav")
 const TICK := preload("res://assets/audio/tick.wav")
 const DEATH := preload("res://assets/audio/death.wav")
 const LEVEL_CLEAR := preload("res://assets/audio/level_clear.wav")
+const START_STINGER := preload("res://assets/audio/start_stinger.wav")
 const SFX_POOL_SIZE := 8
 const MUSIC_KEEPALIVE_INTERVAL: float = 0.2
 
@@ -77,6 +78,9 @@ func play_death() -> void:
 
 func play_level_clear() -> void:
 	_play_sfx(LEVEL_CLEAR, -4.0)
+
+func play_start_stinger() -> void:
+	_play_sfx(START_STINGER, -3.0)
 
 func play_dialog_blip() -> void:
 	_play_sfx(TICK, -18.0, randf_range(1.6, 2.1))

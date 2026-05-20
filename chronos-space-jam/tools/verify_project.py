@@ -157,10 +157,12 @@ def verify_context_music() -> None:
         if not asset_path.exists():
             fail(f"missing context music asset: {asset}")
         duration, rms = read_wav_duration_and_rms(asset_path)
-        if duration < 6.0:
+        if duration < 45.0:
             fail(f"context music asset too short: {asset} duration={duration:.2f}s")
-        if rms < 3200.0:
+        if rms < 1400.0:
             fail(f"context music asset too quiet: {asset} rms={rms:.0f}")
+        if rms > 6500.0:
+            fail(f"context music asset too loud: {asset} rms={rms:.0f}")
 
     required = {
         "gameplay music preload": "const GAMEPLAY_MUSIC := preload(\"res://assets/audio/gameplay_loop.wav\")" in audio_manager,
@@ -168,6 +170,9 @@ def verify_context_music() -> None:
         "menu scene has background player": "BackgroundMusic" in main_menu_scene and "menu_loop.wav" in main_menu_scene,
         "gameplay scene has background player": "BackgroundMusic" in game_level_scene and "gameplay_loop.wav" in game_level_scene,
         "ending scene has background player": "BackgroundMusic" in ending_scene and "ending_loop.wav" in ending_scene,
+        "menu music leaves room for sfx": "background_music.volume_db = -12.0" in main_menu,
+        "gameplay music leaves room for sfx": "background_music.volume_db = -15.0" in game_level,
+        "ending music leaves room for sfx": "background_music.volume_db = -13.0" in ending,
         "menu process keeps music playing": "_ensure_background_music_playing()" in main_menu,
         "gameplay process keeps music playing": "_ensure_background_music_playing()" in game_level,
         "ending process keeps music playing": "_ensure_background_music_playing()" in ending,
@@ -181,6 +186,51 @@ def verify_context_music() -> None:
             fail(f"missing context music behavior: {label}")
 
     print("OK context music")
+
+def verify_immersive_polish_assets() -> None:
+    audio_manager = read("scripts/autoload/audio_manager.gd")
+    main_menu = read("scripts/main_menu.gd")
+    main_menu_scene = read("scenes/ui/main_menu.tscn")
+    level_select_scene = read("scenes/ui/level_select.tscn")
+    ending_scene = read("scenes/ui/ending.tscn")
+    arena_backdrop = read("scripts/arena_backdrop.gd")
+
+    image_assets = [
+        "assets/backgrounds/menu_timescape.png",
+        "assets/backgrounds/gameplay_void.png",
+        "assets/backgrounds/ending_timescape.png",
+    ]
+    for asset in image_assets:
+        asset_path = ROOT / asset
+        if not asset_path.exists():
+            fail(f"missing immersive background asset: {asset}")
+        if asset_path.stat().st_size < 64_000:
+            fail(f"immersive background asset too small/simple: {asset}")
+
+    stinger_path = ROOT / "assets/audio/start_stinger.wav"
+    if not stinger_path.exists():
+        fail("missing cinematic start stinger")
+    duration, rms = read_wav_duration_and_rms(stinger_path)
+    if duration < 1.4:
+        fail(f"start stinger too short: duration={duration:.2f}s")
+    if rms < 2500.0:
+        fail(f"start stinger too quiet: rms={rms:.0f}")
+
+    required = {
+        "AudioManager exposes start stinger": "func play_start_stinger() -> void:" in audio_manager,
+        "Start button uses cinematic stinger": "AudioManager.play_start_stinger()" in main_menu,
+        "menu uses background art": "menu_timescape.png" in main_menu_scene and "TextureRect" in main_menu_scene,
+        "level select uses background art": "menu_timescape.png" in level_select_scene and "TextureRect" in level_select_scene,
+        "ending uses background art": "ending_timescape.png" in ending_scene and "TextureRect" in ending_scene,
+        "gameplay backdrop uses void art": "gameplay_void.png" in arena_backdrop and "draw_texture_rect" in arena_backdrop,
+        "arena has professional framing": "draw_arc" in arena_backdrop and "corner" in arena_backdrop.lower(),
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing immersive polish: {label}")
+
+    print("OK immersive polish")
 
 def read_wav_duration_and_rms(path: Path) -> tuple[float, float]:
     with wave.open(str(path), "rb") as wav:
@@ -224,6 +274,7 @@ def main() -> int:
     verify_scene_flow()
     verify_level_select_locking()
     verify_context_music()
+    verify_immersive_polish_assets()
     verify_script_patterns()
     return 0
 
