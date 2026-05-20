@@ -152,8 +152,13 @@ def verify_context_music() -> None:
     settings_manager = read("scripts/autoload/settings_manager.gd")
     game_level = read("scripts/game_level.gd")
     main_menu = read("scripts/main_menu.gd")
+    level_select = read("scripts/level_select.gd")
+    credits = read("scripts/credits.gd")
+    intro = read("scripts/intro.gd")
     ending = read("scripts/ending.gd")
     main_menu_scene = read("scenes/ui/main_menu.tscn")
+    level_select_scene = read("scenes/ui/level_select.tscn")
+    credits_scene = read("scenes/ui/credits.tscn")
     game_level_scene = read("scenes/game/game_level.tscn")
     ending_scene = read("scenes/ui/ending.tscn")
 
@@ -166,6 +171,9 @@ def verify_context_music() -> None:
         asset_path = ROOT / asset
         if not asset_path.exists():
             fail(f"missing context music asset: {asset}")
+        import_path = ROOT / f"{asset}.import"
+        if not import_path.exists() or "edit/loop_mode=1" not in import_path.read_text():
+            fail(f"context music asset must import as a loop: {asset}")
         duration, rms, high_ratio, harsh_ratio, tonal_peak_share = read_wav_metrics(asset_path)
         if duration < 45.0:
             fail(f"context music asset too short: {asset} duration={duration:.2f}s")
@@ -191,10 +199,25 @@ def verify_context_music() -> None:
             if distance < 0.005:
                 fail(f"music tracks are too similar: {left_name} vs {right_name} distance={distance:.3f}")
 
+    menu_duration, _menu_rms, _menu_high_ratio, _menu_harsh_ratio, _menu_tonal = read_wav_metrics(ROOT / "assets/audio/menu_loop.wav")
+    gameplay_duration, _gameplay_rms, gameplay_high_ratio, gameplay_harsh_ratio, _gameplay_tonal = read_wav_metrics(ROOT / "assets/audio/gameplay_gravity_loop.wav")
+    if abs(menu_duration - gameplay_duration) < 12.0:
+        fail("menu and first gameplay loops need different musical pacing/duration")
+    if gameplay_high_ratio <= 0.12 or gameplay_harsh_ratio <= 0.40:
+        fail(f"gameplay music should keep an energetic chiptune identity: high={gameplay_high_ratio:.3f} harsh={gameplay_harsh_ratio:.3f}")
+    menu_transients = estimate_transient_rate(ROOT / "assets/audio/menu_loop.wav")
+    gameplay_transients = estimate_transient_rate(ROOT / "assets/audio/gameplay_gravity_loop.wav")
+    if gameplay_transients - menu_transients < 4.0:
+        fail(f"gameplay music needs a stronger rhythmic identity than menu music: menu={menu_transients:.2f} gameplay={gameplay_transients:.2f}")
+
     required = {
         "gameplay music preload": "const GAMEPLAY_MUSIC := preload(\"res://assets/audio/gameplay_gravity_loop.wav\")" in audio_manager,
         "ending music preload": "const ENDING_MUSIC := preload(\"res://assets/audio/ending_loop.wav\")" in audio_manager,
-        "menu scene has background player": "BackgroundMusic" in main_menu_scene and "menu_loop.wav" in main_menu_scene,
+        "menu scenes own reliable background players": "BackgroundMusic" in main_menu_scene and "BackgroundMusic" in level_select_scene and "BackgroundMusic" in credits_scene,
+        "menu scenes resume persistent position": "AudioManager.configure_menu_music_player(background_music)" in main_menu and "AudioManager.configure_menu_music_player(background_music)" in level_select and "AudioManager.configure_menu_music_player(background_music)" in credits,
+        "persistent menu music remembers position": "func remember_menu_music_position" in audio_manager and "player.get_playback_position()" in audio_manager,
+        "persistent menu music does not restart same track": "func configure_menu_music_player" in audio_manager and "_menu_music_player.play(_menu_music_position)" in audio_manager,
+        "ui sfx does not restart playing music": "if _music_player.playing:\n\t\treturn" in audio_manager and "get_music_recovery_play_count" in audio_manager,
         "gameplay scene has background player": "BackgroundMusic" in game_level_scene and "gameplay_gravity_loop.wav" in game_level_scene,
         "ending scene has background player": "BackgroundMusic" in ending_scene and "ending_loop.wav" in ending_scene,
         "settings audio defaults versioned": "const AUDIO_DEFAULTS_VERSION := 2" in settings_manager,
@@ -203,15 +226,18 @@ def verify_context_music() -> None:
         "settings reset audio defaults to 50": "func _reset_audio_defaults() -> void:" in settings_manager,
         "gameplay selects theme music": "func _music_stream_for_level(index: int) -> AudioStream:" in game_level,
         "gameplay maps six music themes": all(f"GAMEPLAY_{theme.upper()}_MUSIC" in game_level for theme in GAMEPLAY_THEMES),
-        "menu music is loud enough at 50 percent": "background_music.volume_db = 2.0" in main_menu,
-        "gameplay music is loud enough at 50 percent": "background_music.volume_db = 4.0" in game_level,
+        "menu music is loud enough at 50 percent": "_menu_music_player.volume_db = 2.0" in audio_manager,
+        "gameplay music leaves room for sfx": "background_music.volume_db = 1.0" in game_level,
         "ending music is loud enough at 50 percent": "background_music.volume_db = 2.0" in ending,
-        "menu process keeps music playing": "_ensure_background_music_playing()" in main_menu,
+        "autoload keeps music playing": "_resume_music_if_needed()" in audio_manager and "MUSIC_KEEPALIVE_INTERVAL" in audio_manager,
         "gameplay process keeps music playing": "_ensure_background_music_playing()" in game_level,
         "ending process keeps music playing": "_ensure_background_music_playing()" in ending,
-        "menu stops autoload music": "AudioManager.stop_music()" in main_menu,
+        "menu navigation does not stop music": "AudioManager.stop_music()" not in main_menu and "AudioManager.stop_music()" not in credits and "func _ready() -> void:\n\tAudioManager.configure_menu_music_player(background_music)" in level_select,
+        "level start stops menu music": "AudioManager.stop_music()\n\tGameManager.current_level_index = index" in level_select,
         "gameplay stops autoload music": "AudioManager.stop_music()" in game_level,
         "ending stops autoload music": "AudioManager.stop_music()" in ending,
+        "intro dialogue accepts gui click": "gui_input.connect(_on_dialog_gui_input)" in intro and "accept_event()" in intro,
+        "ending dialogue accepts gui click": "gui_input.connect(_on_dialog_gui_input)" in ending and "accept_event()" in ending,
     }
 
     for label, passed in required.items():
@@ -360,6 +386,33 @@ def read_wav_signature(path: Path) -> tuple[float, float, float, float]:
     variance = sum((value - mean) ** 2 for value in envelopes) / float(len(envelopes))
     high_ratio, harsh_ratio = estimate_high_frequency_ratios(samples, 44100)
     return (mean / 32768.0, math.sqrt(variance) / 32768.0, high_ratio, harsh_ratio)
+
+def estimate_transient_rate(path: Path) -> float:
+    with wave.open(str(path), "rb") as wav:
+        frame_count = min(wav.getnframes(), wav.getframerate() * 32)
+        raw = wav.readframes(frame_count)
+        samples = struct.unpack("<" + "h" * (len(raw) // 2), raw)
+        sample_rate = wav.getframerate()
+    if not samples:
+        return 0.0
+
+    window = max(1, sample_rate // 50)
+    envelopes = []
+    for index in range(0, len(samples), window):
+        chunk = samples[index:index + window]
+        if chunk:
+            envelopes.append(sum(abs(sample) for sample in chunk) / float(len(chunk)))
+    if len(envelopes) < 3:
+        return 0.0
+
+    mean = sum(envelopes) / float(len(envelopes))
+    threshold = mean * 0.18
+    transient_count = 0
+    for index in range(1, len(envelopes)):
+        if envelopes[index] - envelopes[index - 1] > threshold:
+            transient_count += 1
+    duration = len(samples) / float(sample_rate)
+    return transient_count / duration
 
 def signature_distance(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> float:
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(left, right)))

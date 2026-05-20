@@ -20,6 +20,10 @@ var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_cursor: int = 0
 var _music_resume_attempts: int = 0
 var _music_keepalive_timer: float = 0.0
+var _music_start_generation: int = 0
+var _music_recovery_play_count: int = 0
+var _menu_music_position: float = 0.0
+var _menu_music_player: AudioStreamPlayer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -45,7 +49,7 @@ func _input(_event: InputEvent) -> void:
 	_resume_music_if_needed()
 
 func start_menu_music() -> void:
-	_start_music(MENU_MUSIC, 0.0)
+	_start_music(MENU_MUSIC, 2.0)
 
 func start_gameplay_music() -> void:
 	_start_music(GAMEPLAY_MUSIC, -2.0)
@@ -56,10 +60,53 @@ func start_ending_music() -> void:
 func stop_music() -> void:
 	if _music_player != null:
 		_music_player.stop()
+	if is_instance_valid(_menu_music_player):
+		_menu_music_player.stop()
 	_current_music_source = null
 
 func get_music_player() -> AudioStreamPlayer:
 	return _music_player
+
+func get_music_start_generation() -> int:
+	return _music_start_generation
+
+func get_music_recovery_play_count() -> int:
+	return _music_recovery_play_count
+
+func get_menu_music_position() -> float:
+	return _menu_music_position
+
+func configure_menu_music_player(player: AudioStreamPlayer) -> void:
+	if player == null:
+		return
+	if _music_player != null:
+		_music_player.stop()
+	_current_music_source = null
+	_menu_music_player = player
+	_menu_music_player.bus = "Master"
+	if _menu_music_player.stream == null:
+		_menu_music_player.stream = MENU_MUSIC
+	_apply_menu_music_player_volume()
+	_menu_music_player.play(_menu_music_position)
+	call_deferred("_resume_menu_music_player")
+	if is_inside_tree():
+		for delay in [0.05, 0.2, 0.5]:
+			get_tree().create_timer(delay).timeout.connect(_resume_menu_music_player)
+
+func remember_menu_music_position(player: AudioStreamPlayer) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+	var position := player.get_playback_position()
+	if position > 0.0:
+		_menu_music_position = position
+
+func _resume_menu_music_player() -> void:
+	if not is_instance_valid(_menu_music_player):
+		return
+	if _menu_music_player.playing:
+		return
+	_apply_menu_music_player_volume()
+	_menu_music_player.play(_menu_music_position)
 
 func play_ui_click() -> void:
 	_play_sfx(UI_CLICK, -4.0)
@@ -92,7 +139,10 @@ func _setup_music_player() -> void:
 	_apply_music_volume()
 
 func _start_music(stream: AudioStream, volume_db: float) -> void:
-	if _current_music_source == stream and _music_player.playing:
+	if _current_music_source == stream:
+		_music_track_volume_db = volume_db
+		_apply_music_volume()
+		_resume_music_if_needed()
 		return
 
 	_recreate_music_player()
@@ -100,11 +150,12 @@ func _start_music(stream: AudioStream, volume_db: float) -> void:
 	_music_track_volume_db = volume_db
 	_music_resume_attempts = 0
 	_music_keepalive_timer = 0.0
+	_music_start_generation += 1
 	_music_player.stop()
 	_music_player.stream = _looping_music(stream)
 	_apply_music_volume()
 	if is_node_ready():
-		_music_player.call_deferred("play")
+		_music_player.play()
 	else:
 		call_deferred("_resume_music_if_needed")
 	_schedule_music_resume_retries()
@@ -118,6 +169,7 @@ func _recreate_music_player() -> void:
 	_setup_music_player()
 
 func _apply_music_volume() -> void:
+	_apply_menu_music_player_volume()
 	if _music_player == null:
 		return
 	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
@@ -125,6 +177,14 @@ func _apply_music_volume() -> void:
 		return
 
 	_music_player.volume_db = _music_track_volume_db + linear_to_db(SettingsManager.music_volume / 100.0)
+
+func _apply_menu_music_player_volume() -> void:
+	if not is_instance_valid(_menu_music_player):
+		return
+	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
+		_menu_music_player.volume_db = -80.0
+		return
+	_menu_music_player.volume_db = 2.0 + linear_to_db(SettingsManager.music_volume / 100.0)
 
 func _resume_music_if_needed() -> void:
 	if _music_player == null or _current_music_source == null:
@@ -134,7 +194,7 @@ func _resume_music_if_needed() -> void:
 		_music_player.stream = _looping_music(_current_music_source)
 	if not _music_player.playing:
 		_apply_music_volume()
-		_music_player.call_deferred("play")
+		_music_player.play()
 
 func _schedule_music_resume_retries() -> void:
 	if not is_inside_tree():
@@ -188,8 +248,10 @@ func _play_sfx(stream: AudioStream, volume_db: float = 0.0, pitch_scale: float =
 func _resume_music_after_audio_interaction() -> void:
 	if _music_player == null or _current_music_source == null:
 		return
-	if _music_resume_attempts >= 16 and _music_player.playing:
+	if _music_player.playing:
 		return
 
-	_music_player.stream = _looping_music(_current_music_source)
-	_music_player.call_deferred("play")
+	if _music_player.stream == null:
+		_music_player.stream = _looping_music(_current_music_source)
+	_music_recovery_play_count += 1
+	_music_player.play()

@@ -18,6 +18,8 @@ func _ready() -> void:
 	AudioManager.stop_music()
 	_ensure_background_music_playing()
 	_apply_story_box_style()
+	gui_input.connect(_on_dialog_gui_input)
+	story_box.gui_input.connect(_on_dialog_gui_input)
 	_lines = StoryManager.get_ending_lines()
 	stats_label.text = "BEST ROUTE MEMORY: " + str(GameManager.best_moves.size()) + "/" + str(GameManager.TOTAL_LEVELS) + " chambers"
 	_show_line(0)
@@ -52,6 +54,11 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel") or _is_click(event):
 		_advance()
+
+func _on_dialog_gui_input(event: InputEvent) -> void:
+	if _is_click(event):
+		_advance()
+		accept_event()
 
 func _advance() -> void:
 	if _typing:

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://q55t5cdo25q1"]
+[gd_scene load_steps=4 format=3 uid="uid://q55t5cdo25q1"]
 
 [ext_resource type="Script" uid="uid://dm8jwq8jlfji2" path="res://scripts/level_select.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/menu_timescape.png" id="2"]
+[ext_resource type="AudioStream" path="res://assets/audio/menu_loop.wav" id="3"]
 
 [node name="LevelSelect" type="Control" unique_id=1865124854]
 layout_mode = 3
@@ -77,3 +78,8 @@ custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "BACK"
+
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3")
+volume_db = 2.0
+autoplay = true
