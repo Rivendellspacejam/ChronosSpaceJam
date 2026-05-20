@@ -298,8 +298,9 @@ def verify_immersive_polish_assets() -> None:
         "gameplay backdrop fills viewport": "func _viewport_backdrop_rect" in arena_backdrop and "get_viewport_rect().size" in arena_backdrop and "get_camera_2d()" in arena_backdrop,
         "gameplay backdrop avoids fixed cropped rect": "Vector2(-420.0, -300.0)" not in arena_backdrop and "arena_size + Vector2(840.0, 600.0)" not in arena_backdrop,
         "gameplay backdrop has full-width base color": "_theme_base_color" in arena_backdrop and "draw_rect(backdrop_rect, _theme_base_color" in arena_backdrop,
-        "gameplay backdrop tiles oversized texture": "draw_texture_rect(_theme_texture, backdrop_rect, true" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
+        "gameplay backdrop stretches texture without visible tile seams": "draw_texture_rect(_theme_texture, backdrop_rect, false" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
         "gameplay backdrop draws full viewport detail": "func _draw_viewport_theme_grid" in arena_backdrop,
+        "gameplay backdrop has right-side energy detail": "func _draw_viewport_energy_bands" in arena_backdrop and "rect.end.x" in arena_backdrop,
         "arena has professional framing": "draw_arc" in arena_backdrop and "corner" in arena_backdrop.lower(),
     }
 
