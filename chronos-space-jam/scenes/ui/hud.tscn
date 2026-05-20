@@ -64,7 +64,7 @@ offset_bottom = 46.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "Future Preview: +1 Tick"
+text = "Future Preview"
 horizontal_alignment = 1
 
 [node name="DeathPanel" type="PanelContainer" parent="." unique_id=2111634696]
