@@ -1,10 +1,20 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/game_level.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/level_manager.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4"]
 [ext_resource type="Script" path="res://scripts/arena_backdrop.gd" id="5"]
+[ext_resource type="Shader" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_future_preview_static"]
+shader = ExtResource("6")
+shader_parameter/noise_strength = 0.08
+shader_parameter/scanline_strength = 0.06
+shader_parameter/scanline_count = 220.0
+shader_parameter/jitter_strength = 0.0015
+shader_parameter/speed = 18.0
+shader_parameter/tint = Vector4(0.55, 0.95, 1, 1)
 
 [node name="GameLevel" type="Node2D"]
 script = ExtResource("1")
@@ -27,7 +37,16 @@ z_index = 1
 [node name="FuturePreviewLayer" type="Node2D" parent="LevelManager"]
 z_index = 1
 
+[node name="FuturePreviewEffect" type="ColorRect" parent="LevelManager"]
+visible = false
+z_index = 3
+material = SubResource("ShaderMaterial_future_preview_static")
+offset_right = 384.0
+offset_bottom = 384.0
+mouse_filter = 2
+
 [node name="Player" type="Node2D" parent="."]
+z_index = 4
 script = ExtResource("3")
 
 [node name="PlayerVisual" type="ColorRect" parent="Player"]

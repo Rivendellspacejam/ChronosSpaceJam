@@ -49,6 +49,7 @@ var _preview_key_was_held: bool = false
 @onready var walls_container: Node2D = $Walls
 @onready var floors_container: Node2D = $Floors
 @onready var future_preview_layer: Node2D = $FuturePreviewLayer
+@onready var future_preview_effect: ColorRect = $FuturePreviewEffect
 @onready var objects_container: Node2D = $Objects
 @onready var hud: CanvasLayer = $"../HUD"
 
@@ -92,6 +93,7 @@ func load_level(level_index: int) -> Vector2i:
 	_enemy_path_assign_index = 0
 	_read_grid(rows)
 	_build_visuals()
+	_configure_future_preview_effect()
 	refresh_all_move_previews()
 	return player_start
 
@@ -514,6 +516,7 @@ func refresh_all_move_previews() -> void:
 	var next_tick := TickManager.current_tick + 1
 	_set_live_phase_objects_visible(false)
 	_refresh_future_board_preview(next_tick)
+	_set_future_preview_effect_visible(true)
 	_set_future_preview_cue_visible(true)
 
 
@@ -534,8 +537,21 @@ func _should_show_move_previews() -> bool:
 func _clear_all_previews() -> void:
 	if future_preview_layer != null:
 		_clear_children(future_preview_layer)
+	_set_future_preview_effect_visible(false)
 	_set_live_phase_objects_visible(true)
 	_set_future_preview_cue_visible(false)
+
+
+func _configure_future_preview_effect() -> void:
+	if future_preview_effect == null:
+		return
+
+	future_preview_effect.position = Vector2.ZERO
+	future_preview_effect.size = Vector2(
+		float(grid_width * TILE_SIZE),
+		float(grid_height * TILE_SIZE)
+	)
+	future_preview_effect.visible = false
 
 
 func _refresh_future_board_preview(next_tick: int) -> void:
@@ -667,6 +683,11 @@ func _set_live_phase_objects_visible(is_visible: bool) -> void:
 		for obj in registry.values():
 			if is_instance_valid(obj):
 				obj.visible = is_visible
+
+
+func _set_future_preview_effect_visible(is_visible: bool) -> void:
+	if future_preview_effect != null:
+		future_preview_effect.visible = is_visible
 
 
 func _set_future_preview_cue_visible(is_visible: bool) -> void:
