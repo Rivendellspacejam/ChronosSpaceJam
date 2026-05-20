@@ -18,7 +18,7 @@ const SYM_BLOCKER_H: String = "-"
 const SYM_BLOCKER_V: String = "|"
 
 const FLOOR_TEXTURE := preload("res://assets/floor_tile.png")
-const WALL_TEXTURE := preload("res://assets/wall_tile.png")
+const WALL_TEXTURE := preload("res://assets/wall_tile-new.png")
 const GOAL_TEXTURE := preload("res://assets/goal_tile-new.png")
 const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdshader")
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
