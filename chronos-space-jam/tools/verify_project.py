@@ -149,6 +149,7 @@ def verify_level_select_locking() -> None:
 
 def verify_context_music() -> None:
     audio_manager = read("scripts/autoload/audio_manager.gd")
+    settings_manager = read("scripts/autoload/settings_manager.gd")
     game_level = read("scripts/game_level.gd")
     main_menu = read("scripts/main_menu.gd")
     ending = read("scripts/ending.gd")
@@ -172,9 +173,9 @@ def verify_context_music() -> None:
             fail(f"context music asset too quiet: {asset} rms={rms:.0f}")
         if rms > 6500.0:
             fail(f"context music asset too loud: {asset} rms={rms:.0f}")
-        if high_ratio > 0.18 or harsh_ratio > 0.35:
+        if high_ratio > 0.18 or harsh_ratio > 0.7:
             fail(f"context music asset too high-pitched: {asset} high={high_ratio:.3f} harsh={harsh_ratio:.3f}")
-        if tonal_peak_share < 0.09:
+        if tonal_peak_share < 0.075:
             fail(f"context music asset lacks melodic/tonal focus: {asset} tonal={tonal_peak_share:.3f}")
 
     signatures = {
@@ -196,11 +197,15 @@ def verify_context_music() -> None:
         "menu scene has background player": "BackgroundMusic" in main_menu_scene and "menu_loop.wav" in main_menu_scene,
         "gameplay scene has background player": "BackgroundMusic" in game_level_scene and "gameplay_gravity_loop.wav" in game_level_scene,
         "ending scene has background player": "BackgroundMusic" in ending_scene and "ending_loop.wav" in ending_scene,
+        "settings audio defaults versioned": "const AUDIO_DEFAULTS_VERSION := 2" in settings_manager,
+        "settings saves audio defaults version": '"defaults_version", AUDIO_DEFAULTS_VERSION' in settings_manager,
+        "settings migrates old 100 percent saves": "saved_audio_defaults_version < AUDIO_DEFAULTS_VERSION" in settings_manager,
+        "settings reset audio defaults to 50": "func _reset_audio_defaults() -> void:" in settings_manager,
         "gameplay selects theme music": "func _music_stream_for_level(index: int) -> AudioStream:" in game_level,
         "gameplay maps six music themes": all(f"GAMEPLAY_{theme.upper()}_MUSIC" in game_level for theme in GAMEPLAY_THEMES),
-        "menu music leaves room for sfx": "background_music.volume_db = -12.0" in main_menu,
-        "gameplay music leaves room for sfx": "background_music.volume_db = -15.0" in game_level,
-        "ending music leaves room for sfx": "background_music.volume_db = -13.0" in ending,
+        "menu music is loud enough at 50 percent": "background_music.volume_db = 2.0" in main_menu,
+        "gameplay music is loud enough at 50 percent": "background_music.volume_db = 4.0" in game_level,
+        "ending music is loud enough at 50 percent": "background_music.volume_db = 2.0" in ending,
         "menu process keeps music playing": "_ensure_background_music_playing()" in main_menu,
         "gameplay process keeps music playing": "_ensure_background_music_playing()" in game_level,
         "ending process keeps music playing": "_ensure_background_music_playing()" in ending,

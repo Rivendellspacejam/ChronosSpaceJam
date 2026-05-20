@@ -4,6 +4,7 @@ signal settings_changed
 signal move_previews_changed(enabled: bool)
 
 const SETTINGS_PATH := "user://settings.cfg"
+const AUDIO_DEFAULTS_VERSION := 2
 
 var master_volume : float = 50.0
 var music_volume  : float = 50.0
@@ -43,6 +44,7 @@ func apply_display() -> void:
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
+	cfg.set_value("audio", "defaults_version", AUDIO_DEFAULTS_VERSION)
 	cfg.set_value("audio", "master_volume", master_volume)
 	cfg.set_value("audio", "music_volume",  music_volume)
 	cfg.set_value("audio", "sfx_volume",    sfx_volume)
@@ -57,8 +59,11 @@ func save_settings() -> void:
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SETTINGS_PATH) != OK:
+		_reset_audio_defaults()
+		save_settings()
 		return
 
+	var saved_audio_defaults_version := int(cfg.get_value("audio", "defaults_version", 0))
 	master_volume = cfg.get_value("audio", "master_volume", 50.0)
 	music_volume  = cfg.get_value("audio", "music_volume",  50.0)
 	sfx_volume    = cfg.get_value("audio", "sfx_volume",    50.0)
@@ -68,6 +73,16 @@ func load_settings() -> void:
 	screen_shake_enabled   = cfg.get_value("gameplay", "screen_shake",           true)
 	screen_shake_intensity = cfg.get_value("gameplay", "screen_shake_intensity", 50.0)
 	move_previews_enabled  = cfg.get_value("gameplay", "move_previews",          true)
+
+	if saved_audio_defaults_version < AUDIO_DEFAULTS_VERSION:
+		_reset_audio_defaults()
+		save_settings()
+
+func _reset_audio_defaults() -> void:
+	master_volume = 50.0
+	music_volume = 50.0
+	sfx_volume = 50.0
+	mute_all = false
 
 func _ensure_audio_buses() -> void:
 	_ensure_bus("Music")

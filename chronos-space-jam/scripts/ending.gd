@@ -31,7 +31,7 @@ func _apply_background_music_volume() -> void:
 	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
 		background_music.volume_db = -80.0
 		return
-	background_music.volume_db = -13.0 + linear_to_db(SettingsManager.music_volume / 100.0)
+	background_music.volume_db = 2.0 + linear_to_db(SettingsManager.music_volume / 100.0)
 
 func _process(delta: float) -> void:
 	_ensure_background_music_playing()

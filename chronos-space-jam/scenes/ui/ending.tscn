@@ -130,5 +130,5 @@ horizontal_alignment = 2
 
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2")
-volume_db = -13.0
+volume_db = 2.0
 autoplay = true
