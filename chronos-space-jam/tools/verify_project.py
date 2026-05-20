@@ -34,6 +34,26 @@ def count_dictionary_numeric_keys(text: str, name: str) -> int:
     return len(re.findall(r"^\s*\d+\s*:", match.group(1), re.M))
 
 
+def parse_level_medal_targets(text: str) -> dict[int, tuple[int, int]]:
+    match = re.search(r"const\s+LEVEL_MEDAL_TARGETS\s*:\s*Dictionary\s*=\s*\{(.*?)\n\}", text, re.S)
+    if not match:
+        fail("missing dictionary LEVEL_MEDAL_TARGETS")
+
+    targets: dict[int, tuple[int, int]] = {}
+    pattern = re.compile(
+        r'^\s*(\d+)\s*:\s*\{\s*"gold"\s*:\s*(\d+)\s*,\s*"silver"\s*:\s*(\d+)\s*\}\s*,?\s*$',
+        re.M,
+    )
+    for entry in pattern.finditer(match.group(1)):
+        level_index = int(entry.group(1))
+        gold = int(entry.group(2))
+        silver = int(entry.group(3))
+        if gold > silver:
+            fail(f"LEVEL_MEDAL_TARGETS[{level_index}] gold {gold} exceeds silver {silver}")
+        targets[level_index] = (gold, silver)
+    return targets
+
+
 def verify_level_contract() -> None:
     game_manager = read("scripts/autoload/game_manager.gd")
     story_manager = read("scripts/autoload/story_manager.gd")
@@ -58,9 +78,13 @@ def verify_level_contract() -> None:
     if "C-0RE:" in story_manager:
         fail("story still contains C-0RE self-dialogue")
 
-    targets = count_dictionary_numeric_keys(game_manager, "LEVEL_TARGETS")
-    if targets != total_levels:
-        fail(f"LEVEL_TARGETS has {targets} entries, expected {total_levels}")
+    medal_targets = parse_level_medal_targets(game_manager)
+    if len(medal_targets) != total_levels:
+        fail(f"LEVEL_MEDAL_TARGETS has {len(medal_targets)} entries, expected {total_levels}")
+    expected_target_indices = set(range(total_levels))
+    actual_target_indices = set(medal_targets)
+    if actual_target_indices != expected_target_indices:
+        fail(f"LEVEL_MEDAL_TARGETS indices are not contiguous: {sorted(actual_target_indices)}")
 
     if "ENDING_LINES" not in story_manager:
         fail("StoryManager has no ENDING_LINES")

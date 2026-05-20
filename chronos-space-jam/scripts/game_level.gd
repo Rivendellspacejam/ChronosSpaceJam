@@ -120,5 +120,5 @@ func _on_player_died() -> void:
 	AudioManager.play_death()
 	apply_shake(15.0, 0.4)
 
-func _on_level_cleared(_move_count: int, _best_moves: int, _target: int) -> void:
+func _on_level_cleared(_move_count: int, _best_moves: int, _medal_data: Dictionary) -> void:
 	AudioManager.play_level_clear()

@@ -2,7 +2,7 @@ extends Node
 
 signal state_changed(new_state: int)
 signal level_loaded(level_index: int)
-signal level_cleared(move_count: int, best_moves: int, target: int)
+signal level_cleared(move_count: int, best_moves: int, medal_data: Dictionary)
 signal player_died()
 
 enum GameState {
@@ -24,31 +24,31 @@ const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
 	Vector2i(0, 1),
 ]
 const TOTAL_LEVELS: int = 24
-const LEVEL_TARGETS: Dictionary = {
-	0: 3,
-	1: 3,
-	2: 5,
-	3: 5,
-	4: 8,
-	5: 8,
-	6: 9,
-	7: 10,
-	8: 11,
-	9: 12,
-	10: 14,
-	11: 15,
-	12: 2,
-	13: 5,
-	14: 5,
-	15: 8,
-	16: 6,
-	17: 5,
-	18: 5,
-	19: 5,
-	20: 5,
-	21: 8,
-	22: 9,
-	23: 9,
+const LEVEL_MEDAL_TARGETS: Dictionary = {
+	0: {"gold": 3, "silver": 5},
+	1: {"gold": 3, "silver": 5},
+	2: {"gold": 5, "silver": 7},
+	3: {"gold": 5, "silver": 7},
+	4: {"gold": 8, "silver": 10},
+	5: {"gold": 8, "silver": 10},
+	6: {"gold": 9, "silver": 11},
+	7: {"gold": 10, "silver": 12},
+	8: {"gold": 11, "silver": 13},
+	9: {"gold": 12, "silver": 14},
+	10: {"gold": 14, "silver": 16},
+	11: {"gold": 15, "silver": 17},
+	12: {"gold": 2, "silver": 4},
+	13: {"gold": 5, "silver": 7},
+	14: {"gold": 5, "silver": 7},
+	15: {"gold": 8, "silver": 10},
+	16: {"gold": 6, "silver": 8},
+	17: {"gold": 5, "silver": 7},
+	18: {"gold": 5, "silver": 7},
+	19: {"gold": 5, "silver": 7},
+	20: {"gold": 5, "silver": 7},
+	21: {"gold": 8, "silver": 10},
+	22: {"gold": 9, "silver": 11},
+	23: {"gold": 9, "silver": 11},
 }
 
 var current_state: int = GameState.MENU
@@ -96,9 +96,9 @@ func on_level_cleared(move_count: int) -> void:
 	if not best_moves.has(current_level_index) or move_count < best_moves[current_level_index]:
 		best_moves[current_level_index] = move_count
 
-	var target = LEVEL_TARGETS.get(current_level_index, 0)
+	var medal_data = get_level_medal_data(current_level_index, move_count)
 	set_state(GameState.LEVEL_CLEAR)
-	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count), target)
+	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count), medal_data)
 
 func on_player_died() -> void:
 	set_state(GameState.DEAD)
@@ -106,6 +106,27 @@ func on_player_died() -> void:
 
 func get_level_path(index: int) -> String:
 	return LEVEL_DIR + "level_" + str(index + 1) + ".txt"
+
+func get_level_medal_targets(level_index: int) -> Dictionary:
+	return LEVEL_MEDAL_TARGETS.get(level_index, {"gold": 0, "silver": 0}).duplicate()
+
+func get_medal_for_moves(level_index: int, move_count: int) -> String:
+	var targets := get_level_medal_targets(level_index)
+	var gold_target := int(targets.get("gold", 0))
+	var silver_target := int(targets.get("silver", gold_target))
+	if move_count <= gold_target:
+		return "Gold"
+	if move_count <= silver_target:
+		return "Silver"
+	return "Bronze"
+
+func get_level_medal_data(level_index: int, move_count: int) -> Dictionary:
+	var targets := get_level_medal_targets(level_index)
+	return {
+		"medal": get_medal_for_moves(level_index, move_count),
+		"gold": int(targets.get("gold", 0)),
+		"silver": int(targets.get("silver", 0)),
+	}
 
 func load_level_data(index: int) -> Array:
 	return load_level_bundle(index).get("rows", [])

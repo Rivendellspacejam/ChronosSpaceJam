@@ -28,7 +28,9 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var clear_panel = $ClearPanel
 @onready var clear_shifts_label = $ClearPanel/VBoxContainer/ShiftsValue
 @onready var clear_best_label = $ClearPanel/VBoxContainer/BestValue
-@onready var clear_target_label = $ClearPanel/VBoxContainer/TargetValue
+@onready var clear_medal_label = $ClearPanel/VBoxContainer/MedalValue
+@onready var clear_gold_label = $ClearPanel/VBoxContainer/GoldTargetValue
+@onready var clear_silver_label = $ClearPanel/VBoxContainer/SilverTargetValue
 @onready var tutorial_label = $TutorialLabel
 @onready var story_panel = $StoryPanel
 @onready var story_speaker_label = $StoryPanel/MarginContainer/VBoxContainer/SpeakerLabel
@@ -36,6 +38,11 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var story_hint_label = $StoryPanel/MarginContainer/VBoxContainer/HintLabel
 
 const STORY_TYPE_SPEED: float = 48.0
+const MEDAL_COLORS: Dictionary = {
+	"Gold": Color(1, 0.85, 0.2, 1),
+	"Silver": Color(0.75, 0.85, 0.95, 1),
+	"Bronze": Color(0.85, 0.45, 0.18, 1),
+}
 
 var _story_lines: Array[String] = []
 var _story_index: int = 0
@@ -126,11 +133,14 @@ func _show_panel_with_fade(panel: CanvasItem) -> void:
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.tween_property(panel, "modulate:a", 1.0, 0.33)
 
-func _on_level_cleared(move_count: int, best_moves: int, target: int) -> void:
+func _on_level_cleared(move_count: int, best_moves: int, medal_data: Dictionary) -> void:
+	var medal := str(medal_data.get("medal", "Bronze"))
 	clear_shifts_label.text = "Time Shifts: " + str(move_count)
 	clear_best_label.text = "Best: " + str(best_moves)
-	if clear_target_label:
-		clear_target_label.text = "Target: " + str(target)
+	clear_medal_label.text = "Medal: " + medal
+	clear_medal_label.add_theme_color_override("font_color", MEDAL_COLORS.get(medal, MEDAL_COLORS["Bronze"]))
+	clear_gold_label.text = "Gold: " + str(medal_data.get("gold", 0))
+	clear_silver_label.text = "Silver: " + str(medal_data.get("silver", 0))
 
 func _on_level_loaded(level_index: int) -> void:
 	if not TUTORIAL_TEXTS.has(level_index):
