@@ -232,7 +232,10 @@ func collect_coin(gpos: Vector2i) -> void:
 	var coin_node = _coin_nodes[gpos]
 	if is_instance_valid(coin_node):
 		coin_node.visible = false
+	AudioManager.play_coin_pickup()
 	_update_coin_gate_visuals()
+	if _all_coins_collected() and not _coin_gate_nodes.is_empty():
+		AudioManager.play_coin_gate_open()
 
 func is_tile_blocking(gpos: Vector2i, direction: Vector2i) -> bool:
 	return is_blocked(gpos, direction)
@@ -769,6 +772,9 @@ func _play_environment_phase_pulses(tick: int) -> void:
 		return
 
 	var previous_tick := tick - 1
+	var time_gate_changed := false
+	var laser_changed := false
+	var spike_changed := false
 	for registry in [_time_gates, _lasers, _spikes]:
 		for obj in registry.values():
 			if not is_instance_valid(obj) or not obj.has_method("get_state_for_tick"):
@@ -777,6 +783,21 @@ func _play_environment_phase_pulses(tick: int) -> void:
 				continue
 			if obj.has_method("play_phase_pulse"):
 				obj.play_phase_pulse()
+			if registry == _time_gates:
+				time_gate_changed = true
+			elif registry == _lasers:
+				laser_changed = true
+			elif registry == _spikes:
+				spike_changed = true
+
+	if time_gate_changed:
+		AudioManager.play_time_gate_shift()
+	if laser_changed:
+		AudioManager.play_laser_shift()
+	if spike_changed:
+		AudioManager.play_spike_shift()
+	if not _enemies.is_empty():
+		AudioManager.play_enemy_step()
 
 
 func _set_live_phase_objects_visible(is_visible: bool) -> void:

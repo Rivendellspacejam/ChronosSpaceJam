@@ -103,6 +103,7 @@ func _start_slide(direction: Vector2i) -> void:
 	var first_step := grid_pos + direction
 	if level_manager.is_static_blocked_before_tick(first_step, direction):
 		level_manager.set_slide_direction(Vector2i.ZERO)
+		AudioManager.play_blocked_move()
 		return
 
 	var move_tick := TickManager.current_tick + 1
@@ -112,6 +113,7 @@ func _start_slide(direction: Vector2i) -> void:
 	# This prevents walls, blockers, or closed time gates from becoming a wait button.
 	if _slide_path.is_empty():
 		level_manager.set_slide_direction(Vector2i.ZERO)
+		AudioManager.play_blocked_move()
 		return
 
 	gravity_direction = direction
@@ -172,14 +174,18 @@ func _arrive_at_tile() -> void:
 		_die()
 		return
 	if tile_info.is_goal:
+		AudioManager.play_goal_enter()
 		_reach_goal()
 		return
 	if _is_killed_by_enemy():
 		_die()
 		return
 	if tile_info.is_anchor:
+		AudioManager.play_anchor_stop()
 		_finish_slide()
 		return
+	if tile_info.is_bounce:
+		AudioManager.play_bounce_pad()
 
 	_slide_index += 1
 	if _slide_index >= _slide_path.size():

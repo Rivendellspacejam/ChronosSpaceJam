@@ -253,6 +253,8 @@ def verify_context_music() -> None:
 def verify_immersive_polish_assets() -> None:
     audio_manager = read("scripts/autoload/audio_manager.gd")
     main_menu = read("scripts/main_menu.gd")
+    player = read("scripts/player.gd")
+    level_manager = read("scripts/level_manager.gd")
     main_menu_scene = read("scenes/ui/main_menu.tscn")
     level_select_scene = read("scenes/ui/level_select.tscn")
     ending_scene = read("scenes/ui/ending.tscn")
@@ -286,9 +288,43 @@ def verify_immersive_polish_assets() -> None:
     if rms < 2500.0:
         fail(f"start stinger too quiet: rms={rms:.0f}")
 
+    gameplay_sfx = [
+        "coin_pickup",
+        "coin_gate_open",
+        "bounce_pad",
+        "goal_enter",
+        "anchor_stop",
+        "blocked_move",
+        "time_gate_shift",
+        "laser_shift",
+        "spike_shift",
+        "enemy_step",
+    ]
+    for name in gameplay_sfx:
+        asset = f"assets/audio/{name}.wav"
+        asset_path = ROOT / asset
+        if not asset_path.exists():
+            fail(f"missing gameplay sfx asset: {asset}")
+        duration, rms = read_wav_duration_and_rms(asset_path)
+        if duration < 0.08:
+            fail(f"gameplay sfx too short: {asset} duration={duration:.2f}s")
+        if duration > 1.2:
+            fail(f"gameplay sfx too long: {asset} duration={duration:.2f}s")
+        if rms < 1200.0:
+            fail(f"gameplay sfx too quiet: {asset} rms={rms:.0f}")
+
     required = {
         "AudioManager exposes start stinger": "func play_start_stinger() -> void:" in audio_manager,
+        "AudioManager exposes gameplay sfx": all(f"func play_{name}() -> void:" in audio_manager for name in gameplay_sfx),
         "Start button uses cinematic stinger": "AudioManager.play_start_stinger()" in main_menu,
+        "coin pickup uses sfx": "AudioManager.play_coin_pickup()" in level_manager,
+        "coin gate open uses sfx": "AudioManager.play_coin_gate_open()" in level_manager,
+        "bounce plate uses sfx": "AudioManager.play_bounce_pad()" in player,
+        "goal door enter uses sfx": "AudioManager.play_goal_enter()" in player,
+        "anchor stop uses sfx": "AudioManager.play_anchor_stop()" in player,
+        "blocked input uses sfx": "AudioManager.play_blocked_move()" in player,
+        "phase objects use sfx": "AudioManager.play_time_gate_shift()" in level_manager and "AudioManager.play_laser_shift()" in level_manager and "AudioManager.play_spike_shift()" in level_manager,
+        "enemy movement uses sfx": "AudioManager.play_enemy_step()" in level_manager,
         "menu uses background art": "menu_timescape.png" in main_menu_scene and "TextureRect" in main_menu_scene,
         "level select uses background art": "menu_timescape.png" in level_select_scene and "TextureRect" in level_select_scene,
         "ending uses background art": "ending_timescape.png" in ending_scene and "TextureRect" in ending_scene,
