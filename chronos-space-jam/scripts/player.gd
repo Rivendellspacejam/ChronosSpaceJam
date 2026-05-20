@@ -26,7 +26,7 @@ var input_buffer_window = 0.15
 var buffered_direction: Vector2i = Vector2i.ZERO
 var buffer_timer: float = 0.0
 
-@onready var _visual: ColorRect = $PlayerVisual
+@onready var _visual: Sprite2D = $PlayerVisual
 @onready var _glow: ColorRect = $PlayerGlow
 
 func init_player(start_grid_pos: Vector2i, lvl_manager) -> void:

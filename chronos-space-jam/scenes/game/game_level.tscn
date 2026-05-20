@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cmshiorbo7w0h" path="res://scenes/ui/hud.tscn" id="4"]
 [ext_resource type="Script" uid="uid://swq06ys4m3ww" path="res://scripts/arena_backdrop.gd" id="5"]
 [ext_resource type="Shader" uid="uid://bhsic5kw6ky58" path="res://assets/shaders/future_preview_static.gdshader" id="6"]
+[ext_resource type="Texture2D" uid="uid://otp3ntxslqb8" path="res://assets/player.png" id="7"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_future_preview_static"]
 shader = ExtResource("6")
@@ -48,26 +49,16 @@ mouse_filter = 2
 z_index = 4
 script = ExtResource("3")
 
-[node name="PlayerVisual" type="ColorRect" parent="Player" unique_id=1294673977]
-offset_left = -16.0
-offset_top = -16.0
-offset_right = 16.0
-offset_bottom = 16.0
-color = Color(0.95, 0.95, 1, 1)
+[node name="PlayerVisual" type="Sprite2D" parent="Player" unique_id=1294673977]
+texture = ExtResource("7")
 
 [node name="PlayerGlow" type="ColorRect" parent="Player" unique_id=1601619238]
+z_index = -1
 offset_left = -26.0
 offset_top = -26.0
 offset_right = 26.0
 offset_bottom = 26.0
 color = Color(0.25, 0.9, 1, 0.28)
-
-[node name="PlayerCore" type="ColorRect" parent="Player" unique_id=104459342]
-offset_left = -7.0
-offset_top = -7.0
-offset_right = 7.0
-offset_bottom = 7.0
-color = Color(0.1, 0.18, 0.32, 1)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1351219556]
 
