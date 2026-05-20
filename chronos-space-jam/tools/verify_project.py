@@ -34,24 +34,17 @@ def count_dictionary_numeric_keys(text: str, name: str) -> int:
     return len(re.findall(r"^\s*\d+\s*:", match.group(1), re.M))
 
 
-def parse_level_medal_targets(text: str) -> dict[int, tuple[int, int]]:
-    match = re.search(r"const\s+LEVEL_MEDAL_TARGETS\s*:\s*Dictionary\s*=\s*\{(.*?)\n\}", text, re.S)
+def parse_level_file_medal_targets(path: Path) -> tuple[int, int]:
+    pattern = re.compile(r"^@medal_targets\s+gold=(\d+)\s+silver=(\d+)$", re.M)
+    match = pattern.search(path.read_text())
     if not match:
-        fail("missing dictionary LEVEL_MEDAL_TARGETS")
+        fail(f"{path.name} missing @medal_targets gold=<n> silver=<n>")
 
-    targets: dict[int, tuple[int, int]] = {}
-    pattern = re.compile(
-        r'^\s*(\d+)\s*:\s*\{\s*"gold"\s*:\s*(\d+)\s*,\s*"silver"\s*:\s*(\d+)\s*\}\s*,?\s*$',
-        re.M,
-    )
-    for entry in pattern.finditer(match.group(1)):
-        level_index = int(entry.group(1))
-        gold = int(entry.group(2))
-        silver = int(entry.group(3))
-        if gold > silver:
-            fail(f"LEVEL_MEDAL_TARGETS[{level_index}] gold {gold} exceeds silver {silver}")
-        targets[level_index] = (gold, silver)
-    return targets
+    gold = int(match.group(1))
+    silver = int(match.group(2))
+    if gold > silver:
+        fail(f"{path.name} gold target {gold} exceeds silver target {silver}")
+    return gold, silver
 
 
 def verify_level_contract() -> None:
@@ -78,13 +71,8 @@ def verify_level_contract() -> None:
     if "C-0RE:" in story_manager:
         fail("story still contains C-0RE self-dialogue")
 
-    medal_targets = parse_level_medal_targets(game_manager)
-    if len(medal_targets) != total_levels:
-        fail(f"LEVEL_MEDAL_TARGETS has {len(medal_targets)} entries, expected {total_levels}")
-    expected_target_indices = set(range(total_levels))
-    actual_target_indices = set(medal_targets)
-    if actual_target_indices != expected_target_indices:
-        fail(f"LEVEL_MEDAL_TARGETS indices are not contiguous: {sorted(actual_target_indices)}")
+    for level_file in level_files:
+        parse_level_file_medal_targets(level_file)
 
     if "ENDING_LINES" not in story_manager:
         fail("StoryManager has no ENDING_LINES")

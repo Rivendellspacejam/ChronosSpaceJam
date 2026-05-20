@@ -17,6 +17,7 @@ enum GameState {
 
 const LEVEL_DIR: String = "res://levels/"
 const ENEMY_PATH_PREFIX: String = "@enemy_path"
+const MEDAL_TARGETS_PREFIX: String = "@medal_targets"
 const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
 	Vector2i(0, 0),
 	Vector2i(1, 0),
@@ -24,32 +25,6 @@ const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
 	Vector2i(0, 1),
 ]
 const TOTAL_LEVELS: int = 24
-const LEVEL_MEDAL_TARGETS: Dictionary = {
-	0: {"gold": 3, "silver": 5},
-	1: {"gold": 3, "silver": 5},
-	2: {"gold": 5, "silver": 7},
-	3: {"gold": 5, "silver": 7},
-	4: {"gold": 8, "silver": 10},
-	5: {"gold": 8, "silver": 10},
-	6: {"gold": 9, "silver": 11},
-	7: {"gold": 10, "silver": 12},
-	8: {"gold": 11, "silver": 13},
-	9: {"gold": 12, "silver": 14},
-	10: {"gold": 14, "silver": 16},
-	11: {"gold": 15, "silver": 17},
-	12: {"gold": 2, "silver": 4},
-	13: {"gold": 5, "silver": 7},
-	14: {"gold": 5, "silver": 7},
-	15: {"gold": 8, "silver": 10},
-	16: {"gold": 6, "silver": 8},
-	17: {"gold": 5, "silver": 7},
-	18: {"gold": 5, "silver": 7},
-	19: {"gold": 5, "silver": 7},
-	20: {"gold": 5, "silver": 7},
-	21: {"gold": 8, "silver": 10},
-	22: {"gold": 9, "silver": 11},
-	23: {"gold": 9, "silver": 11},
-}
 
 var current_state: int = GameState.MENU
 var current_level_index: int = 0
@@ -108,7 +83,7 @@ func get_level_path(index: int) -> String:
 	return LEVEL_DIR + "level_" + str(index + 1) + ".txt"
 
 func get_level_medal_targets(level_index: int) -> Dictionary:
-	return LEVEL_MEDAL_TARGETS.get(level_index, {"gold": 0, "silver": 0}).duplicate()
+	return load_level_bundle(level_index).get("medal_targets", {"gold": 0, "silver": 0}).duplicate()
 
 func get_medal_for_moves(level_index: int, move_count: int) -> String:
 	var targets := get_level_medal_targets(level_index)
@@ -149,9 +124,13 @@ func load_level_bundle(index: int) -> Dictionary:
 	var rows: Array = []
 	var enemy_paths: Array = []
 	var start_tick: int = 0
+	var medal_targets: Dictionary = {"gold": 0, "silver": 0}
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
 		if line.is_empty():
+			continue
+		if line.begins_with(MEDAL_TARGETS_PREFIX):
+			medal_targets = _parse_medal_targets_line(line)
 			continue
 		if line.begins_with(ENEMY_PATH_PREFIX):
 			var offsets = _parse_enemy_path_line(line)
@@ -168,10 +147,24 @@ func load_level_bundle(index: int) -> Dictionary:
 		rows.append(line)
 
 	file.close()
-	var bundle = {"rows": rows, "enemy_paths": enemy_paths, "start_tick": start_tick}
+	var bundle = {"rows": rows, "enemy_paths": enemy_paths, "start_tick": start_tick, "medal_targets": medal_targets}
 	_level_data_cache[index] = bundle
 	return bundle
 
+func _parse_medal_targets_line(line: String) -> Dictionary:
+	var targets := {"gold": 0, "silver": 0}
+	var tokens := line.substr(MEDAL_TARGETS_PREFIX.length()).strip_edges().split(" ", false)
+	for token in tokens:
+		var pieces := token.split("=", false, 1)
+		if pieces.size() != 2:
+			push_warning("Invalid medal target token: %s" % token)
+			continue
+		var key := pieces[0].strip_edges()
+		if key != "gold" and key != "silver":
+			push_warning("Invalid medal target key: %s" % key)
+			continue
+		targets[key] = int(pieces[1].strip_edges())
+	return targets
 
 func _parse_enemy_path_line(line: String) -> Array[Vector2i]:
 	var offsets: Array[Vector2i] = []

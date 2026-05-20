@@ -30,6 +30,7 @@ BLOCK_V = "|"
 SPECIAL_TILES = {ANCHOR, GATE, COIN_GATE, COIN, LASER, SPIKE, ENEMY, BLOCK_H, BLOCK_V}
 ENEMY_PATH_PREFIX = "@enemy_path"
 START_TICK_PREFIX = "@start_tick"
+MEDAL_TARGETS_PREFIX = "@medal_targets"
 DEFAULT_ENEMY_PATH = ((0, 0), (1, 0), (1, 1), (0, 1))
 
 
@@ -72,7 +73,9 @@ def load_level(path: Path) -> Level:
     rows = tuple(
         line
         for line in raw_lines
-        if not line.startswith(ENEMY_PATH_PREFIX) and not line.startswith(START_TICK_PREFIX)
+        if not line.startswith(ENEMY_PATH_PREFIX)
+        and not line.startswith(START_TICK_PREFIX)
+        and not line.startswith(MEDAL_TARGETS_PREFIX)
     )
     parsed_paths = tuple(
         parse_enemy_path_line(line) for line in raw_lines if line.startswith(ENEMY_PATH_PREFIX)
