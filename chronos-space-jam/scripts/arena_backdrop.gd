@@ -46,9 +46,9 @@ func _draw() -> void:
 	var arena_size := Vector2(float(grid_width * TILE_SIZE), float(grid_height * TILE_SIZE))
 	var outer := Rect2(Vector2(-18.0, -18.0), arena_size + Vector2(36.0, 36.0))
 	var inner := Rect2(Vector2.ZERO, arena_size)
-	var void_rect := Rect2(Vector2(-420.0, -300.0), arena_size + Vector2(840.0, 600.0))
+	var backdrop_rect := _viewport_backdrop_rect(arena_size)
 
-	draw_texture_rect(_theme_texture, void_rect, true, _theme_tint, true)
+	draw_texture_rect(_theme_texture, backdrop_rect, false, _theme_tint, true)
 	draw_rect(outer, Color(0.018, 0.025, 0.05, 1.0), true)
 	draw_rect(outer, Color(0.1, 0.62, 0.78, 0.22), false, 4.0)
 	draw_rect(inner, Color(0.02, 0.04, 0.075, 0.82), true)
@@ -85,3 +85,15 @@ func _draw_corner_brackets(rect: Rect2) -> void:
 	draw_line(Vector2(left, bottom), Vector2(left, bottom - corner_length), color, width)
 	draw_line(Vector2(right, bottom), Vector2(right - corner_length, bottom), color, width)
 	draw_line(Vector2(right, bottom), Vector2(right, bottom - corner_length), color, width)
+
+func _viewport_backdrop_rect(arena_size: Vector2) -> Rect2:
+	var viewport_size := get_viewport_rect().size
+	var camera := get_viewport().get_camera_2d()
+	if camera != null:
+		var zoom := Vector2(maxf(camera.zoom.x, 0.01), maxf(camera.zoom.y, 0.01))
+		var visible_size := viewport_size / zoom
+		var center := to_local(camera.get_screen_center_position())
+		return Rect2(center - (visible_size * 0.5) - Vector2(160.0, 160.0), visible_size + Vector2(320.0, 320.0))
+
+	var padded_size := Vector2(maxf(arena_size.x + 960.0, viewport_size.x), maxf(arena_size.y + 720.0, viewport_size.y))
+	return Rect2((arena_size - padded_size) * 0.5, padded_size)

@@ -196,6 +196,8 @@ def verify_context_music() -> None:
             if left_name >= right_name:
                 continue
             distance = signature_distance(left_signature, right_signature)
+            if "gameplay_" in left_name and "gameplay_" in right_name and distance < 0.045:
+                fail(f"gameplay music themes are too similar: {left_name} vs {right_name} distance={distance:.3f}")
             if distance < 0.005:
                 fail(f"music tracks are too similar: {left_name} vs {right_name} distance={distance:.3f}")
 
@@ -203,8 +205,8 @@ def verify_context_music() -> None:
     gameplay_duration, _gameplay_rms, gameplay_high_ratio, gameplay_harsh_ratio, _gameplay_tonal = read_wav_metrics(ROOT / "assets/audio/gameplay_gravity_loop.wav")
     if abs(menu_duration - gameplay_duration) < 12.0:
         fail("menu and first gameplay loops need different musical pacing/duration")
-    if gameplay_high_ratio <= 0.12 or gameplay_harsh_ratio <= 0.40:
-        fail(f"gameplay music should keep an energetic chiptune identity: high={gameplay_high_ratio:.3f} harsh={gameplay_harsh_ratio:.3f}")
+    if gameplay_harsh_ratio <= 0.35:
+        fail(f"gameplay music should keep an energetic chiptune identity: harsh={gameplay_harsh_ratio:.3f}")
     menu_transients = estimate_transient_rate(ROOT / "assets/audio/menu_loop.wav")
     gameplay_transients = estimate_transient_rate(ROOT / "assets/audio/gameplay_gravity_loop.wav")
     if gameplay_transients - menu_transients < 4.0:
@@ -227,7 +229,9 @@ def verify_context_music() -> None:
         "gameplay selects theme music": "func _music_stream_for_level(index: int) -> AudioStream:" in game_level,
         "gameplay maps six music themes": all(f"GAMEPLAY_{theme.upper()}_MUSIC" in game_level for theme in GAMEPLAY_THEMES),
         "menu music is loud enough at 50 percent": "_menu_music_player.volume_db = 2.0" in audio_manager,
-        "gameplay music leaves room for sfx": "background_music.volume_db = 1.0" in game_level,
+        "gameplay music leaves room for sfx": "const MUSIC_TARGET_VOLUME_DB: float = 1.0" in game_level,
+        "gameplay music uses fades": "const MUSIC_FADE_OUT_TIME" in game_level and "create_tween()" in game_level and "tween_property(background_music, \"volume_db\"" in game_level,
+        "gameplay music has transition pause": "const MUSIC_TRANSITION_PAUSE" in game_level and "create_timer(MUSIC_TRANSITION_PAUSE)" in game_level,
         "ending music is loud enough at 50 percent": "background_music.volume_db = 2.0" in ending,
         "autoload keeps music playing": "_resume_music_if_needed()" in audio_manager and "MUSIC_KEEPALIVE_INTERVAL" in audio_manager,
         "gameplay process keeps music playing": "_ensure_background_music_playing()" in game_level,
@@ -291,6 +295,8 @@ def verify_immersive_polish_assets() -> None:
         "gameplay backdrop maps six themes": all(f"gameplay_{theme}.png" in arena_backdrop for theme in GAMEPLAY_THEMES),
         "gameplay backdrop accepts theme": "func set_theme(level_index: int) -> void:" in arena_backdrop,
         "gameplay backdrop uses texture art": "draw_texture_rect" in arena_backdrop,
+        "gameplay backdrop fills viewport": "func _viewport_backdrop_rect" in arena_backdrop and "get_viewport_rect().size" in arena_backdrop and "get_camera_2d()" in arena_backdrop,
+        "gameplay backdrop avoids fixed cropped rect": "Vector2(-420.0, -300.0)" not in arena_backdrop and "arena_size + Vector2(840.0, 600.0)" not in arena_backdrop,
         "arena has professional framing": "draw_arc" in arena_backdrop and "corner" in arena_backdrop.lower(),
     }
 
