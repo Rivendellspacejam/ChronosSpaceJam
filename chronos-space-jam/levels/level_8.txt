@@ -6,4 +6,4 @@
 .#####.##.
 P.........
 
-@start_tick=-1
+@start_tick=0
