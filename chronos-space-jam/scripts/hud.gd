@@ -121,6 +121,9 @@ func show_level_story(level_index: int, finished_callback: Callable) -> void:
 func set_future_preview_visible(is_visible: bool) -> void:
 	future_preview_label.visible = is_visible
 
+func get_stats_panel_screen_rect() -> Rect2:
+	return Rect2(stats_panel.global_position, stats_panel.size).grow(14.0)
+
 func _on_tick_pulse(_tick: int) -> void:
 	var tween = create_tween()
 	tick_value_label.modulate = Color(1, 1, 0)

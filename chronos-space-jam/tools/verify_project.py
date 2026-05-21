@@ -349,15 +349,19 @@ def verify_gameplay_ui_polish() -> None:
     hud_scene = read("scenes/ui/hud.tscn")
     pause_menu = read("scripts/pause_menu.gd")
     pause_scene = read("scenes/ui/pause_menu.tscn")
+    game_level = read("scripts/game_level.gd")
 
     required = {
         "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
+        "HUD exposes stats safe rect": "func get_stats_panel_screen_rect() -> Rect2:" in hud and "stats_panel.global_position" in hud,
         "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
         "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
         "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
         "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
         "pause menu uses a styled command panel": "PausePanel" in pause_scene and "_apply_pause_panel_style" in pause_menu,
         "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
+        "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
+        "gameplay camera fits large levels beside HUD": "_zoom_to_fit_level(level_size, safe_rect.size)" in game_level and "_camera_position_for_screen_center" in game_level,
     }
 
     for label, passed in required.items():
