@@ -5,23 +5,31 @@ extends Control
 @onready var level_select_button = $VBoxContainer/LevelSelectButton
 @onready var credits_button = $VBoxContainer/CreditsButton
 @onready var settings_button = $VBoxContainer/SettingsButton
+@onready var reset_progress_button = $VBoxContainer/ResetProgressButton
 @onready var quit_button = $VBoxContainer/QuitButton
 @onready var settings_menu = $SettingsMenu
 @onready var title_label = $VBoxContainer/TitleLabel
 @onready var background_music: AudioStreamPlayer = $BackgroundMusic
+@onready var reset_progress_panel: PanelContainer = $ResetProgressPanel
+@onready var confirm_reset_button: Button = $ResetProgressPanel/MarginContainer/VBoxContainer/ButtonRow/ConfirmResetButton
+@onready var cancel_reset_button: Button = $ResetProgressPanel/MarginContainer/VBoxContainer/ButtonRow/CancelResetButton
 
 var _title_phase: float = 0.0
 
 func _ready() -> void:
 	AudioManager.configure_menu_music_player(background_music)
-	_update_start_button_text()
+	_refresh_progress_controls()
 	start_button.pressed.connect(_on_start)
 	level_select_button.pressed.connect(_on_level_select)
 	credits_button.pressed.connect(_on_credits)
 	settings_button.pressed.connect(_on_settings)
+	reset_progress_button.pressed.connect(_on_reset_progress_requested)
+	confirm_reset_button.pressed.connect(_on_reset_progress_confirmed)
+	cancel_reset_button.pressed.connect(_on_reset_progress_cancelled)
 	quit_button.pressed.connect(_on_quit)
 	_wire_menu_button_audio()
 	_style_menu_buttons()
+	_apply_reset_panel_style()
 
 func _process(delta: float) -> void:
 	_title_phase += delta * 1.8
@@ -51,25 +59,41 @@ func _on_credits() -> void:
 func _on_settings() -> void:
 	AudioManager.play_ui_click()
 	vbox.visible = false
+	reset_progress_panel.visible = false
 	settings_menu.return_target = vbox
 	settings_menu.visible = true
+
+func _on_reset_progress_requested() -> void:
+	AudioManager.play_ui_click()
+	reset_progress_panel.visible = true
+
+func _on_reset_progress_confirmed() -> void:
+	AudioManager.play_ui_click()
+	GameManager.clear_progress()
+	reset_progress_panel.visible = false
+	_refresh_progress_controls()
+
+func _on_reset_progress_cancelled() -> void:
+	AudioManager.play_ui_back()
+	reset_progress_panel.visible = false
 
 func _on_quit() -> void:
 	AudioManager.play_ui_click()
 	get_tree().quit()
 
 func _wire_menu_button_audio() -> void:
-	for button in [start_button, level_select_button, credits_button, settings_button, quit_button]:
+	for button in [start_button, level_select_button, credits_button, settings_button, reset_progress_button, quit_button, confirm_reset_button, cancel_reset_button]:
 		_wire_button_audio(button)
 
-func _update_start_button_text() -> void:
+func _refresh_progress_controls() -> void:
 	start_button.text = "CONTINUE" if GameManager.has_saved_progress() else "START GAME"
+	reset_progress_button.visible = GameManager.has_saved_progress()
 
 func _wire_button_audio(button: Button) -> void:
 	button.mouse_entered.connect(AudioManager.play_ui_click)
 
 func _style_menu_buttons() -> void:
-	for button in [start_button, level_select_button, credits_button, settings_button, quit_button]:
+	for button in [start_button, level_select_button, credits_button, settings_button, reset_progress_button, quit_button, confirm_reset_button, cancel_reset_button]:
 		_apply_button_style(button)
 
 func _apply_button_style(button: Button) -> void:
@@ -81,6 +105,22 @@ func _apply_button_style(button: Button) -> void:
 	button.add_theme_stylebox_override("pressed", pressed)
 	button.add_theme_color_override("font_color", Color(0.88, 0.96, 1.0, 1.0))
 	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+
+func _apply_reset_panel_style() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.015, 0.02, 0.035, 0.96)
+	style.border_color = Color(1.0, 0.85, 0.2, 0.95)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_left = 4
+	style.corner_radius_bottom_right = 4
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 10
+	reset_progress_panel.add_theme_stylebox_override("panel", style)
 
 func _make_button_style(fill: Color, border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

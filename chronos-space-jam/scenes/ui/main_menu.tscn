@@ -54,9 +54,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -200.0
+offset_top = -230.0
 offset_right = 200.0
-offset_bottom = 200.0
+offset_bottom = 230.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
@@ -103,11 +103,75 @@ custom_minimum_size = Vector2(0, 45)
 theme_override_font_sizes/font_size = 20
 text = "SETTINGS"
 
+[node name="ResetProgressButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 45)
+theme_override_font_sizes/font_size = 20
+text = "RESET PROGRESS"
+
 [node name="QuitButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 45)
 theme_override_font_sizes/font_size = 20
 text = "QUIT"
+
+[node name="ResetProgressPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -95.0
+offset_right = 260.0
+offset_bottom = 95.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ResetProgressPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResetProgressPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="ResetProgressPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "RESET PROGRESS?"
+horizontal_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="ResetProgressPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 16
+text = "This will erase unlocked levels and best routes."
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="ResetProgressPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CancelResetButton" type="Button" parent="ResetProgressPanel/MarginContainer/VBoxContainer/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 40)
+theme_override_font_sizes/font_size = 18
+text = "CANCEL"
+
+[node name="ConfirmResetButton" type="Button" parent="ResetProgressPanel/MarginContainer/VBoxContainer/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 40)
+theme_override_font_sizes/font_size = 18
+text = "WIPE DATA"
 
 [node name="ControlsHint" type="Label" parent="."]
 layout_mode = 1

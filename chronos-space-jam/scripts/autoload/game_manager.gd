@@ -118,6 +118,17 @@ func load_progress() -> void:
 			continue
 		best_moves[level_index] = int(cfg.get_value("best_moves", key, 0))
 
+func clear_progress() -> void:
+	current_level_index = 0
+	highest_unlocked_level_index = 0
+	dev_unlock_all_levels = false
+	best_moves.clear()
+	clear_level_cache()
+
+	var dir := DirAccess.open("user://")
+	if dir != null and dir.file_exists("progress.cfg"):
+		dir.remove("progress.cfg")
+
 func _best_move_key(level_index: int) -> String:
 	return "level_" + str(level_index)
 
