@@ -78,6 +78,7 @@ color = Color(0.25, 0.9, 1, 0.28)
 [node name="HUD" parent="." unique_id=1263411581 instance=ExtResource("4")]
 
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+process_mode = 3
 stream = ExtResource("9")
 volume_db = 1.0
 autoplay = true

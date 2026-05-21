@@ -39,6 +39,7 @@ func _ready() -> void:
 	_ensure_pause_muffle_bus()
 	AudioManager.stop_music()
 	background_music.stop()
+	background_music.process_mode = Node.PROCESS_MODE_ALWAYS
 	background_music.bus = PAUSE_MUFFLE_BUS
 	background_music.volume_db = MUSIC_SILENCE_DB
 	player.add_to_group("player")
