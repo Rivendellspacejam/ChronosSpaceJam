@@ -360,6 +360,7 @@ def verify_gameplay_ui_polish() -> None:
     game_level = read("scripts/game_level.gd")
     level_manager = read("scripts/level_manager.gd")
     enemy_patrol = read("scripts/enemy_patrol.gd")
+    laser = read("scripts/laser.gd")
     tick_manager = read("scripts/autoload/tick_manager.gd")
     player = read("scripts/player.gd")
 
@@ -383,6 +384,8 @@ def verify_gameplay_ui_polish() -> None:
         "enemy phase movement is animated": "_play_phase_transition" in enemy_patrol and "PHASE_FADE_OUT_TIME" in enemy_patrol and "tween_callback" in enemy_patrol,
         "anchor stop has magnetic capture effect": "play_anchor_capture(grid_pos, gravity_direction)" in player and "func play_anchor_capture" in level_manager and "_spawn_anchor_capture_effect" in level_manager,
         "anchor capture draws energy ring and pull lines": "Line2D" in level_manager and "ANCHOR_CAPTURE_RING_POINTS" in level_manager and "_add_anchor_pull_lines" in level_manager,
+        "laser has visible emitter weapon": "_build_emitter_visual" in laser and "_make_emitter_rect" in laser and "beam_axis == 1" in laser,
+        "laser phase changes animate": "_animate_laser_activation" in laser and "_animate_laser_deactivation" in laser and "LASER_CHARGE_TIME" in laser,
     }
 
     for label, passed in required.items():
