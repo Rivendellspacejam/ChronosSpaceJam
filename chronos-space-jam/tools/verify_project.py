@@ -373,9 +373,10 @@ def verify_gameplay_ui_polish() -> None:
         "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
         "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
         "gameplay camera fits large levels beside HUD": "_zoom_to_fit_level(level_size, safe_rect.size)" in game_level and "_camera_position_for_screen_center" in game_level,
-        "enemy fades when overlapping anchor tile": "func enemy_overlay_alpha_for_cell" in level_manager and "SYM_ANCHOR" in level_manager and "ENEMY_OVER_ANCHOR_ALPHA: float = 0.72" in level_manager and "_update_overlap_visibility()" in enemy_patrol,
-        "enemy renders above anchor before fading": "ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy.z_index = ENEMY_OBJECT_Z_INDEX" in level_manager,
-        "enemy future preview uses overlap alpha": "enemy_overlay_alpha_for_cell(next_grid_pos)" in level_manager and "sprite.modulate" in level_manager,
+        "anchor fades when occupied by enemy": "ANCHOR_OCCUPIED_ALPHA: float = 0.42" in level_manager and "_anchor_nodes" in level_manager and "func update_anchor_overlap_visibility() -> void:" in level_manager,
+        "enemy remains fully visible over anchor": "ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy.z_index = ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy_overlay_alpha_for_cell" not in level_manager,
+        "anchor future preview uses enemy occupancy": "_update_anchor_preview_overlap_visibility(next_tick)" in level_manager and "func _is_enemy_at_for_tick" in level_manager,
+        "enemy update refreshes anchor opacity": "_update_anchor_overlap_visibility()" in enemy_patrol and "level_manager.update_anchor_overlap_visibility()" in enemy_patrol,
     }
 
     for label, passed in required.items():

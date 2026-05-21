@@ -35,8 +35,8 @@ const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
 const LASER_TEXTURE := preload("res://assets/laser_tile.png")
 const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
 const ENEMY_OBJECT_Z_INDEX: int = 2
-const ENEMY_OVER_ANCHOR_ALPHA: float = 0.72
-const ENEMY_NORMAL_ALPHA: float = 1.0
+const ANCHOR_OCCUPIED_ALPHA: float = 0.42
+const ANCHOR_NORMAL_ALPHA: float = 1.0
 
 var grid: Array = []
 var grid_width: int = 0
@@ -47,6 +47,7 @@ var _time_gates: Dictionary = {}
 var _lasers: Dictionary = {}
 var _spikes: Dictionary = {}
 var _enemies: Dictionary = {}
+var _anchor_nodes: Dictionary = {}
 var _coin_nodes: Dictionary = {}
 var _coin_gate_nodes: Dictionary = {}
 var _bounce_nodes: Dictionary = {}
@@ -111,6 +112,7 @@ func load_level(level_index: int) -> Vector2i:
 	_read_grid(rows)
 	_build_visuals()
 	_update_goal_visual_for_tick(TickManager.current_tick)
+	update_anchor_overlap_visibility()
 	_configure_future_preview_effect()
 	refresh_all_move_previews()
 	return player_start
@@ -122,6 +124,7 @@ func clear_level() -> void:
 	_lasers.clear()
 	_spikes.clear()
 	_enemies.clear()
+	_anchor_nodes.clear()
 	_coin_nodes.clear()
 	_coin_gate_nodes.clear()
 	_clear_bounce_impacts()
@@ -350,10 +353,13 @@ func is_enemy_at(gpos: Vector2i) -> bool:
 			return true
 	return false
 
-func enemy_overlay_alpha_for_cell(gpos: Vector2i) -> float:
-	if get_tile_at(gpos) == SYM_ANCHOR:
-		return ENEMY_OVER_ANCHOR_ALPHA
-	return ENEMY_NORMAL_ALPHA
+func update_anchor_overlap_visibility() -> void:
+	for gpos in _anchor_nodes:
+		var anchor := _anchor_nodes[gpos] as Sprite2D
+		if not is_instance_valid(anchor):
+			continue
+		var alpha := ANCHOR_OCCUPIED_ALPHA if is_enemy_at(gpos) else ANCHOR_NORMAL_ALPHA
+		anchor.modulate = Color(1.0, 1.0, 1.0, alpha)
 
 func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
 	return _base_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
@@ -512,7 +518,7 @@ func _build_visuals() -> void:
 					_goal_grid_pos = gpos
 					_apply_goal_shader(_goal_node)
 				SYM_ANCHOR:
-					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+					_create_anchor_tile(gpos, world_pos)
 				SYM_BOUNCE:
 					_create_bounce_tile(gpos, world_pos)
 				SYM_COIN:
@@ -538,6 +544,10 @@ func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> Spr
 	sprite.position = world_pos
 	parent.add_child(sprite)
 	return sprite
+
+func _create_anchor_tile(gpos: Vector2i, world_pos: Vector2) -> void:
+	var anchor := _create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+	_anchor_nodes[gpos] = anchor
 
 func _apply_goal_shader(sprite: Sprite2D) -> void:
 	var material := ShaderMaterial.new()
@@ -650,9 +660,29 @@ func _should_show_move_previews() -> bool:
 func _clear_all_previews() -> void:
 	if future_preview_layer != null:
 		_clear_children(future_preview_layer)
+	update_anchor_overlap_visibility()
 	_set_future_preview_effect_visible(false)
 	_set_live_phase_objects_visible(true)
 	_set_future_preview_cue_visible(false)
+
+func _update_anchor_preview_overlap_visibility(tick: int) -> void:
+	for gpos in _anchor_nodes:
+		var anchor := _anchor_nodes[gpos] as Sprite2D
+		if not is_instance_valid(anchor):
+			continue
+		var alpha := ANCHOR_OCCUPIED_ALPHA if _is_enemy_at_for_tick(gpos, tick) else ANCHOR_NORMAL_ALPHA
+		anchor.modulate = Color(1.0, 1.0, 1.0, alpha)
+
+func _is_enemy_at_for_tick(gpos: Vector2i, tick: int) -> bool:
+	for enemy in _enemies.values():
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("get_grid_pos_for_tick"):
+			if enemy.get_grid_pos_for_tick(tick) == gpos:
+				return true
+		elif enemy.current_grid_pos == gpos:
+			return true
+	return false
 
 
 func _configure_future_preview_effect() -> void:
@@ -668,6 +698,7 @@ func _configure_future_preview_effect() -> void:
 
 
 func _refresh_future_board_preview(next_tick: int) -> void:
+	_update_anchor_preview_overlap_visibility(next_tick)
 	_add_phase_goal_future_preview(next_tick)
 	for gate in _time_gates.values():
 		_add_time_gate_future_preview(gate, next_tick)
@@ -775,7 +806,6 @@ func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
 	sprite.hframes = 5
 	sprite.frame = 0
 	sprite.position = grid_to_world(next_grid_pos)
-	sprite.modulate = Color(1.0, 1.0, 1.0, enemy_overlay_alpha_for_cell(next_grid_pos))
 	future_preview_layer.add_child(sprite)
 
 
