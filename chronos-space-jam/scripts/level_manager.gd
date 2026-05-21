@@ -34,6 +34,8 @@ const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
 const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 
 const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
+const COIN_GATE_CLOSED_TEXTURE := preload("res://assets/gate_closed.png")
+const COIN_GATE_OPEN_TEXTURE := preload("res://assets/gate_opened.png")
 const LASER_TEXTURE := preload("res://assets/laser_tile.png")
 const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
 const ENEMY_OBJECT_Z_INDEX: int = 2
@@ -661,20 +663,16 @@ func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
 	_coin_nodes[gpos] = marker
 
 func _create_coin_gate(gpos: Vector2i, world_pos: Vector2) -> void:
-	var rect = ColorRect.new()
-	rect.size = Vector2(float(TILE_SIZE) - 8.0, float(TILE_SIZE) - 8.0)
-	rect.position = world_pos - Vector2(float(TILE_SIZE) / 2.0 - 4.0, float(TILE_SIZE) / 2.0 - 4.0)
-	rect.color = Color(1.0, 0.72, 0.18, 0.95)
-	objects_container.add_child(rect)
-	_coin_gate_nodes[gpos] = rect
+	var gate := _create_sprite(COIN_GATE_CLOSED_TEXTURE, world_pos, objects_container)
+	_coin_gate_nodes[gpos] = gate
 
 func _update_coin_gate_visuals() -> void:
 	var open := _all_coins_collected()
 	for gpos in _coin_gate_nodes:
-		var gate_node = _coin_gate_nodes[gpos]
+		var gate_node := _coin_gate_nodes[gpos] as Sprite2D
 		if not is_instance_valid(gate_node):
 			continue
-		gate_node.color = Color(0.1, 1.0, 0.6, 0.22) if open else Color(1.0, 0.72, 0.18, 0.95)
+		gate_node.texture = COIN_GATE_OPEN_TEXTURE if open else COIN_GATE_CLOSED_TEXTURE
 
 func _create_phase_object(scene: PackedScene, gpos: Vector2i, world_pos: Vector2, registry: Dictionary) -> Node:
 	var instance = scene.instantiate()
