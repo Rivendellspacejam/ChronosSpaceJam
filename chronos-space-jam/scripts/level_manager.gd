@@ -22,6 +22,8 @@ const WALL_TEXTURE := preload("res://assets/wall_tile-new.png")
 const GOAL_TEXTURE := preload("res://assets/goal_tile-new.png")
 const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdshader")
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
+const COIN_TEXTURE := preload("res://assets/coin.png")
+const BOUNCE_TEXTURE := preload("res://assets/bounce.png")
 const TIME_GATE_SCENE := preload("res://scenes/objects/time_gate.tscn")
 const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
 const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
@@ -508,54 +510,10 @@ func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	objects_container.add_child(rect)
 
 func _create_bounce_tile(world_pos: Vector2) -> void:
-	var marker := Node2D.new()
-	marker.position = world_pos
-	objects_container.add_child(marker)
-
-	var base := ColorRect.new()
-	base.size = Vector2(float(TILE_SIZE) - 8.0, float(TILE_SIZE) - 8.0)
-	base.position = -base.size / 2.0
-	base.color = Color(0.08, 0.72, 0.9, 0.62)
-	marker.add_child(base)
-
-	var core := ColorRect.new()
-	core.size = Vector2(20.0, 20.0)
-	core.position = -core.size / 2.0
-	core.color = Color(0.85, 1.0, 1.0, 0.9)
-	marker.add_child(core)
-
-	var top := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, -16.0))
-	var bottom := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, 10.0))
-	var left := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(-16.0, -12.0))
-	var right := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(10.0, -12.0))
-	marker.add_child(top)
-	marker.add_child(bottom)
-	marker.add_child(left)
-	marker.add_child(right)
-
-func _make_bounce_mark(size: Vector2, offset: Vector2) -> ColorRect:
-	var rect := ColorRect.new()
-	rect.size = size
-	rect.position = offset
-	rect.color = Color(0.35, 1.0, 0.95, 1.0)
-	return rect
+	_create_sprite(BOUNCE_TEXTURE, world_pos, objects_container)
 
 func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
-	var marker = Node2D.new()
-	marker.position = world_pos
-	objects_container.add_child(marker)
-
-	var glow = ColorRect.new()
-	glow.size = Vector2(30.0, 30.0)
-	glow.position = -Vector2(15.0, 15.0)
-	glow.color = Color(1.0, 0.85, 0.2, 0.35)
-	marker.add_child(glow)
-
-	var core = ColorRect.new()
-	core.size = Vector2(16.0, 16.0)
-	core.position = -Vector2(8.0, 8.0)
-	core.color = Color(1.0, 0.95, 0.35, 1.0)
-	marker.add_child(core)
+	var marker := _create_sprite(COIN_TEXTURE, world_pos, objects_container)
 	_coin_nodes[gpos] = marker
 
 func _create_coin_gate(gpos: Vector2i, world_pos: Vector2) -> void:
