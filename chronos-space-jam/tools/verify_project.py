@@ -367,7 +367,7 @@ def verify_gameplay_ui_polish() -> None:
         "HUD exposes stats safe rect": "func get_stats_panel_screen_rect() -> Rect2:" in hud and "stats_panel.global_position" in hud,
         "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
         "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
-        "HUD does not display negative start tick": "func get_display_tick() -> int:" in tick_manager and "maxi(0, current_tick)" in tick_manager and "TickManager.get_display_tick()" in hud,
+        "HUD display tick advances from zero": "func get_display_tick() -> int:" in tick_manager and "_display_tick_start = start_tick" in tick_manager and "current_tick - _display_tick_start" in tick_manager and "TickManager.get_display_tick()" in hud,
         "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
         "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
         "death overlay says restart and is compact": "R to restart this run" in hud_scene and "rebuild this run" not in hud_scene and "offset_top = -60.0" in hud_scene and "offset_bottom = 60.0" in hud_scene,
