@@ -320,11 +320,8 @@ def verify_immersive_polish_assets() -> None:
         "coin pickup uses sfx": "AudioManager.play_coin_pickup()" in level_manager,
         "coin gate open uses sfx": "AudioManager.play_coin_gate_open()" in level_manager,
         "bounce plate uses sfx": "AudioManager.play_bounce_pad()" in player,
-        "goal door enter uses sfx": "AudioManager.play_goal_enter()" in player,
-        "anchor stop uses sfx": "AudioManager.play_anchor_stop()" in player,
-        "blocked input uses sfx": "AudioManager.play_blocked_move()" in player,
-        "phase objects use sfx": "AudioManager.play_time_gate_shift()" in level_manager and "AudioManager.play_laser_shift()" in level_manager and "AudioManager.play_spike_shift()" in level_manager,
-        "enemy movement uses sfx": "AudioManager.play_enemy_step()" in level_manager,
+        "gameplay sfx focuses coin and bounce": "AudioManager.play_goal_enter()" not in player and "AudioManager.play_anchor_stop()" not in player and "AudioManager.play_blocked_move()" not in player,
+        "environment pulse sfx is muted": "AudioManager.play_time_gate_shift()" not in level_manager and "AudioManager.play_laser_shift()" not in level_manager and "AudioManager.play_spike_shift()" not in level_manager and "AudioManager.play_enemy_step()" not in level_manager,
         "menu uses background art": "menu_timescape.png" in main_menu_scene and "TextureRect" in main_menu_scene,
         "level select uses background art": "menu_timescape.png" in level_select_scene and "TextureRect" in level_select_scene,
         "ending uses background art": "ending_timescape.png" in ending_scene and "TextureRect" in ending_scene,
@@ -345,6 +342,28 @@ def verify_immersive_polish_assets() -> None:
             fail(f"missing immersive polish: {label}")
 
     print("OK immersive polish")
+
+def verify_gameplay_ui_polish() -> None:
+    hud = read("scripts/hud.gd")
+    hud_scene = read("scenes/ui/hud.tscn")
+    pause_menu = read("scripts/pause_menu.gd")
+    pause_scene = read("scenes/ui/pause_menu.tscn")
+
+    required = {
+        "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
+        "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
+        "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
+        "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
+        "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
+        "pause menu uses a styled command panel": "PausePanel" in pause_scene and "_apply_pause_panel_style" in pause_menu,
+        "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing gameplay UI polish: {label}")
+
+    print("OK gameplay UI polish")
 
 def read_wav_metrics(path: Path) -> tuple[float, float, float, float, float]:
     with wave.open(str(path), "rb") as wav:
@@ -493,6 +512,7 @@ def main() -> int:
     verify_level_select_locking()
     verify_context_music()
     verify_immersive_polish_assets()
+    verify_gameplay_ui_polish()
     verify_script_patterns()
     return 0
 
