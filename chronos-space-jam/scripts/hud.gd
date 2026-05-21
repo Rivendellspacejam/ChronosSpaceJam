@@ -28,9 +28,8 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var clear_panel = $ClearPanel
 @onready var clear_shifts_label = $ClearPanel/VBoxContainer/ShiftsValue
 @onready var clear_best_label = $ClearPanel/VBoxContainer/BestValue
+@onready var clear_medal_icon = $ClearPanel/VBoxContainer/MedalIcon
 @onready var clear_medal_label = $ClearPanel/VBoxContainer/MedalValue
-@onready var clear_gold_label = $ClearPanel/VBoxContainer/GoldTargetValue
-@onready var clear_silver_label = $ClearPanel/VBoxContainer/SilverTargetValue
 @onready var tutorial_label = $TutorialLabel
 @onready var story_panel = $StoryPanel
 @onready var story_speaker_label = $StoryPanel/MarginContainer/VBoxContainer/SpeakerLabel
@@ -42,6 +41,11 @@ const MEDAL_COLORS: Dictionary = {
 	"Gold": Color(1, 0.85, 0.2, 1),
 	"Silver": Color(0.75, 0.85, 0.95, 1),
 	"Bronze": Color(0.85, 0.45, 0.18, 1),
+}
+const MEDAL_TEXTURES: Dictionary = {
+	"Gold": preload("res://assets/first-gold.png"),
+	"Silver": preload("res://assets/second-silver.png"),
+	"Bronze": preload("res://assets/third-bronze.png"),
 }
 
 var _story_lines: Array[String] = []
@@ -137,10 +141,9 @@ func _on_level_cleared(move_count: int, best_moves: int, medal_data: Dictionary)
 	var medal := str(medal_data.get("medal", "Bronze"))
 	clear_shifts_label.text = "Time Shifts: " + str(move_count)
 	clear_best_label.text = "Best: " + str(best_moves)
-	clear_medal_label.text = "Medal: " + medal
+	clear_medal_icon.texture = MEDAL_TEXTURES.get(medal, MEDAL_TEXTURES["Bronze"])
+	clear_medal_label.text = medal
 	clear_medal_label.add_theme_color_override("font_color", MEDAL_COLORS.get(medal, MEDAL_COLORS["Bronze"]))
-	clear_gold_label.text = "Gold: " + str(medal_data.get("gold", 0))
-	clear_silver_label.text = "Silver: " + str(medal_data.get("silver", 0))
 
 func _on_level_loaded(level_index: int) -> void:
 	if not TUTORIAL_TEXTS.has(level_index):

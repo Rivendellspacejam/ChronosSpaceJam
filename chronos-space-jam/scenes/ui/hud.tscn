@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://qoyt2f0qvmqk" path="res://scripts/hud.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://pubs7n5wwgjy" path="res://assets/first-gold.png" id="3"]
 
 [node name="HUD" type="CanvasLayer" unique_id=448392102]
 script = ExtResource("1")
@@ -138,22 +139,16 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 20
-text = "Medal: Gold"
+text = "Gold Medal"
 horizontal_alignment = 1
 
-[node name="GoldTargetValue" type="Label" parent="ClearPanel/VBoxContainer" unique_id=1972451316]
+[node name="MedalIcon" type="TextureRect" parent="ClearPanel/VBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_font_sizes/font_size = 16
-text = "Gold: 0"
-horizontal_alignment = 1
-
-[node name="SilverTargetValue" type="Label" parent="ClearPanel/VBoxContainer" unique_id=759772619]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
-theme_override_font_sizes/font_size = 16
-text = "Silver: 0"
-horizontal_alignment = 1
+size_flags_horizontal = 4
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ContinueHint" type="Label" parent="ClearPanel/VBoxContainer" unique_id=1426442875]
 layout_mode = 2

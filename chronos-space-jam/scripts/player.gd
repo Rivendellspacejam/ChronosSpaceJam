@@ -161,6 +161,9 @@ func _begin_slide_segment() -> void:
 	_slide_from = position
 	_slide_to = level_manager.grid_to_world(_slide_path[_slide_index])
 	_slide_progress = 0.0
+	var target_info = level_manager.get_slide_tile_info(_slide_path[_slide_index])
+	if target_info.is_bounce:
+		level_manager.play_bounce_impact(_slide_path[_slide_index], gravity_direction)
 	_drop_trail()
 
 func _arrive_at_tile() -> void:
