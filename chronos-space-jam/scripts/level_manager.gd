@@ -759,6 +759,8 @@ func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
 
 	var sprite := Sprite2D.new()
 	sprite.texture = ENEMY_TEXTURE
+	sprite.hframes = 5
+	sprite.frame = 0
 	sprite.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
 	future_preview_layer.add_child(sprite)
 
