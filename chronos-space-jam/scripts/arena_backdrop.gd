@@ -63,7 +63,8 @@ func _draw() -> void:
 	var backdrop_rect := _viewport_backdrop_rect(arena_size)
 
 	draw_rect(backdrop_rect, _theme_base_color, true)
-	draw_texture_rect(_theme_texture, backdrop_rect, true, _theme_tint, true)
+	draw_texture_rect(_theme_texture, backdrop_rect, false, _theme_tint, true)
+	_draw_viewport_energy_bands(backdrop_rect)
 	_draw_viewport_theme_grid(backdrop_rect, arena_size * 0.5)
 	draw_rect(outer, Color(0.018, 0.025, 0.05, 1.0), true)
 	draw_rect(outer, Color(0.1, 0.62, 0.78, 0.22), false, 4.0)
@@ -133,3 +134,26 @@ func _draw_viewport_theme_grid(rect: Rect2, orbit_center: Vector2) -> void:
 	for index in range(4):
 		var radius := radius_base + float(index * 160)
 		draw_arc(orbit_center, radius, 0.0, TAU, 160, Color(_theme_line_color.r, _theme_line_color.g, _theme_line_color.b, 0.055), 2.0, true)
+
+func _draw_viewport_energy_bands(rect: Rect2) -> void:
+	var band_count := 9
+	var band_spacing := rect.size.x / float(band_count)
+	for index in range(band_count + 2):
+		var x := rect.position.x + (float(index) * band_spacing) - (band_spacing * 0.5)
+		var wave := sin(float(index) * 1.7) * 90.0
+		var top := Vector2(x + wave, rect.position.y)
+		var bottom := Vector2(x - wave, rect.end.y)
+		var alpha := 0.055 + (0.035 * absf(sin(float(index) * 0.9)))
+		draw_line(top, bottom, Color(_theme_line_color.r, _theme_line_color.g, _theme_line_color.b, alpha), 7.0)
+		draw_line(top + Vector2(band_spacing * 0.28, 0.0), bottom + Vector2(band_spacing * 0.28, 0.0), Color(_theme_line_color.r, _theme_line_color.g, _theme_line_color.b, alpha * 0.55), 2.0)
+
+	var right_detail_x := rect.end.x - (rect.size.x * 0.18)
+	for index in range(5):
+		var y := rect.position.y + (float(index) + 0.5) * rect.size.y / 5.0
+		var length := rect.size.x * 0.26
+		draw_line(
+			Vector2(right_detail_x - length, y - 90.0),
+			Vector2(rect.end.x, y + 80.0),
+			Color(_theme_line_color.r, _theme_line_color.g, _theme_line_color.b, 0.11),
+			4.0
+		)

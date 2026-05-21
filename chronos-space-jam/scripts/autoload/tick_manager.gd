@@ -5,13 +5,18 @@ signal phase_update_requested(current_tick: int)
 
 var current_tick: int = 0
 var move_count: int = 0
+var _display_tick_start: int = 0
 var _environment_objects: Array = []
 var _enemy_objects: Array = []
 
 func reset(start_tick: int = 0) -> void:
 	# Allow initializing the tick counter to a custom start (e.g. -1)
 	current_tick = start_tick
+	_display_tick_start = start_tick
 	move_count = 0
+
+func get_display_tick() -> int:
+	return current_tick - _display_tick_start
 
 func prepare_enemies_for_move() -> void:
 	_update_enemies(current_tick + 1)

@@ -11,6 +11,10 @@ const MUSIC_FADE_OUT_TIME: float = 0.5
 const MUSIC_TRANSITION_PAUSE: float = 0.18
 const MUSIC_FADE_IN_TIME: float = 0.85
 const MUSIC_SILENCE_DB: float = -34.0
+const CAMERA_REFERENCE_FIT: float = 800.0
+const CAMERA_MIN_ZOOM: float = 0.24
+const CAMERA_MAX_ZOOM: float = 2.0
+const CAMERA_SAFE_MARGIN: float = 24.0
 
 @onready var level_manager = $LevelManager
 @onready var player = $Player
@@ -97,15 +101,54 @@ func _load_current_level() -> void:
 	_start_level_story_or_play()
 
 func _center_camera_on_level() -> void:
-	var level_size = Vector2(
+	var level_size: Vector2 = Vector2(
 		float(level_manager.grid_width * level_manager.TILE_SIZE),
 		float(level_manager.grid_height * level_manager.TILE_SIZE)
 	)
-	camera.position = level_size / 2.0
+	var level_center: Vector2 = level_size / 2.0
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var default_zoom: float = _default_level_zoom()
+	var default_screen_rect: Rect2 = _level_screen_rect(level_size, default_zoom, viewport_size * 0.5)
+	var hud_rect: Rect2 = _hud_safe_rect()
 
+	if not default_screen_rect.intersects(hud_rect):
+		camera.position = level_center
+		camera.zoom = Vector2.ONE * default_zoom
+		return
+
+	var safe_rect: Rect2 = _gameplay_safe_rect(viewport_size, hud_rect)
+	var safe_zoom: float = _zoom_to_fit_level(level_size, safe_rect.size)
+	camera.zoom = Vector2.ONE * safe_zoom
+	camera.position = _camera_position_for_screen_center(level_center, viewport_size, safe_rect.get_center(), safe_zoom)
+
+func _default_level_zoom() -> float:
 	var max_dim = maxf(float(level_manager.grid_width), float(level_manager.grid_height))
-	var target_zoom = 800.0 / (max_dim * float(level_manager.TILE_SIZE))
-	camera.zoom = Vector2.ONE * clampf(target_zoom, 0.5, 2.0)
+	var target_zoom = CAMERA_REFERENCE_FIT / (max_dim * float(level_manager.TILE_SIZE))
+	return clampf(target_zoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM)
+
+func _level_screen_rect(level_size: Vector2, zoom: float, screen_center: Vector2) -> Rect2:
+	var screen_size := level_size * zoom
+	return Rect2(screen_center - screen_size * 0.5, screen_size)
+
+func _hud_safe_rect() -> Rect2:
+	if hud != null and hud.has_method("get_stats_panel_screen_rect"):
+		return hud.get_stats_panel_screen_rect()
+	return Rect2(Vector2(16.0, 16.0), Vector2(312.0, 230.0))
+
+func _gameplay_safe_rect(viewport_size: Vector2, hud_rect: Rect2) -> Rect2:
+	var reserved_left := minf(hud_rect.end.x + CAMERA_SAFE_MARGIN, viewport_size.x * 0.48)
+	var size := Vector2(
+		maxf(1.0, viewport_size.x - reserved_left - CAMERA_SAFE_MARGIN),
+		maxf(1.0, viewport_size.y - CAMERA_SAFE_MARGIN * 2.0)
+	)
+	return Rect2(Vector2(reserved_left, CAMERA_SAFE_MARGIN), size)
+
+func _zoom_to_fit_level(level_size: Vector2, frame_size: Vector2) -> float:
+	var target_zoom := minf(frame_size.x / level_size.x, frame_size.y / level_size.y)
+	return clampf(target_zoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM)
+
+func _camera_position_for_screen_center(level_center: Vector2, viewport_size: Vector2, screen_center: Vector2, zoom: float) -> Vector2:
+	return level_center - (screen_center - viewport_size * 0.5) / zoom
 
 func _configure_arena_backdrop() -> void:
 	if arena_backdrop and arena_backdrop.has_method("configure"):
@@ -198,7 +241,6 @@ func _on_level_story_finished() -> void:
 	GameManager.set_state(GameManager.GameState.PLAYING)
 
 func _on_tick_advanced(_tick: int) -> void:
-	AudioManager.play_tick()
 	apply_shake(2.0, 0.1)
 
 func _on_level_loaded(_level_index: int) -> void:

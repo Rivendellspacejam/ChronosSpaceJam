@@ -22,6 +22,10 @@ const WALL_TEXTURE := preload("res://assets/wall_tile-new.png")
 const GOAL_TEXTURE := preload("res://assets/goal_tile-new.png")
 const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdshader")
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
+const COIN_TEXTURE := preload("res://assets/coin.png")
+const BOUNCE_TEXTURE := preload("res://assets/bounce.png")
+const ENEMY_TEXTURE := preload("res://assets/enemy-new.png")
+const BOUNCE_IMPACT_SHADER := preload("res://assets/shaders/bounce_tile_impact.gdshader")
 const TIME_GATE_SCENE := preload("res://scenes/objects/time_gate.tscn")
 const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
 const SPIKE_SCENE := preload("res://scenes/objects/spike.tscn")
@@ -30,6 +34,13 @@ const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
 const LASER_TEXTURE := preload("res://assets/laser_tile.png")
 const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
+const ENEMY_OBJECT_Z_INDEX: int = 2
+const ANCHOR_OCCUPIED_ALPHA: float = 0.42
+const ANCHOR_NORMAL_ALPHA: float = 1.0
+const ANCHOR_CAPTURE_TIME: float = 0.28
+const ANCHOR_CAPTURE_RING_POINTS: int = 28
+const ANCHOR_CAPTURE_RING_RADIUS: float = 31.0
+const ANCHOR_CAPTURE_COLOR := Color(0.42, 1.0, 1.0, 0.9)
 
 var grid: Array = []
 var grid_width: int = 0
@@ -40,8 +51,13 @@ var _time_gates: Dictionary = {}
 var _lasers: Dictionary = {}
 var _spikes: Dictionary = {}
 var _enemies: Dictionary = {}
+var _anchor_nodes: Dictionary = {}
 var _coin_nodes: Dictionary = {}
 var _coin_gate_nodes: Dictionary = {}
+var _bounce_nodes: Dictionary = {}
+var _bounce_base_positions: Dictionary = {}
+var _bounce_impact_tweens: Dictionary = {}
+var _anchor_capture_tweens: Dictionary = {}
 var _collected_coins: Dictionary = {}
 var _enemy_patrol_paths: Array = []
 var _enemy_path_assign_index: int = 0
@@ -101,6 +117,7 @@ func load_level(level_index: int) -> Vector2i:
 	_read_grid(rows)
 	_build_visuals()
 	_update_goal_visual_for_tick(TickManager.current_tick)
+	update_anchor_overlap_visibility()
 	_configure_future_preview_effect()
 	refresh_all_move_previews()
 	return player_start
@@ -112,8 +129,13 @@ func clear_level() -> void:
 	_lasers.clear()
 	_spikes.clear()
 	_enemies.clear()
+	_anchor_nodes.clear()
 	_coin_nodes.clear()
 	_coin_gate_nodes.clear()
+	_clear_bounce_impacts()
+	_clear_anchor_capture_tweens()
+	_bounce_nodes.clear()
+	_bounce_base_positions.clear()
 	_collected_coins.clear()
 	_enemy_patrol_paths.clear()
 	_enemy_path_assign_index = 0
@@ -224,6 +246,46 @@ func get_bounce_destination(bounce_pos: Vector2i, direction: Vector2i) -> Vector
 func is_valid_bounce_destination(gpos: Vector2i, direction: Vector2i, tick: int) -> bool:
 	return not is_blocked_for_tick(gpos, direction, tick)
 
+func play_bounce_impact(bounce_pos: Vector2i, incoming_direction: Vector2i) -> void:
+	var sprite := _bounce_nodes.get(bounce_pos) as Sprite2D
+	if sprite == null:
+		return
+
+	var base_position: Vector2 = _bounce_base_positions.get(bounce_pos, grid_to_world(bounce_pos))
+	var material := sprite.material as ShaderMaterial
+	if material == null:
+		return
+
+	if _bounce_impact_tweens.has(bounce_pos):
+		var existing_tween := _bounce_impact_tweens[bounce_pos] as Tween
+		if existing_tween != null:
+			existing_tween.kill()
+
+	var compression := 0.50
+	var offset := float(TILE_SIZE) * (1.0 - compression) * 0.5
+	sprite.position = base_position + Vector2(float(incoming_direction.x), float(incoming_direction.y)) * offset
+	sprite.scale = Vector2(
+		compression if incoming_direction.x != 0 else 1.0,
+		compression if incoming_direction.y != 0 else 1.0
+	)
+
+	material.set_shader_parameter(
+		"impact_direction",
+		Vector2(float(incoming_direction.x), float(incoming_direction.y))
+	)
+	material.set_shader_parameter("impact_amount", 1.0)
+
+	var tween := create_tween()
+	_bounce_impact_tweens[bounce_pos] = tween
+	tween.set_parallel(true)
+	tween.tween_property(material, "shader_parameter/impact_amount", 0.0, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "position", base_position, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(func() -> void:
+		if _bounce_impact_tweens.get(bounce_pos) == tween:
+			_bounce_impact_tweens.erase(bounce_pos)
+	)
+
 func collect_coin(gpos: Vector2i) -> void:
 	if not _coin_nodes.has(gpos) or _collected_coins.has(gpos):
 		return
@@ -232,7 +294,10 @@ func collect_coin(gpos: Vector2i) -> void:
 	var coin_node = _coin_nodes[gpos]
 	if is_instance_valid(coin_node):
 		coin_node.visible = false
+	AudioManager.play_coin_pickup()
 	_update_coin_gate_visuals()
+	if _all_coins_collected() and not _coin_gate_nodes.is_empty():
+		AudioManager.play_coin_gate_open()
 
 func is_tile_blocking(gpos: Vector2i, direction: Vector2i) -> bool:
 	return is_blocked(gpos, direction)
@@ -293,6 +358,14 @@ func is_enemy_at(gpos: Vector2i) -> bool:
 		if _enemies[enemy_pos].current_grid_pos == gpos:
 			return true
 	return false
+
+func update_anchor_overlap_visibility() -> void:
+	for gpos in _anchor_nodes:
+		var anchor := _anchor_nodes[gpos] as Sprite2D
+		if not is_instance_valid(anchor):
+			continue
+		var alpha := ANCHOR_OCCUPIED_ALPHA if is_enemy_at(gpos) else ANCHOR_NORMAL_ALPHA
+		anchor.modulate = Color(1.0, 1.0, 1.0, alpha)
 
 func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
 	return _base_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
@@ -451,9 +524,9 @@ func _build_visuals() -> void:
 					_goal_grid_pos = gpos
 					_apply_goal_shader(_goal_node)
 				SYM_ANCHOR:
-					_create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+					_create_anchor_tile(gpos, world_pos)
 				SYM_BOUNCE:
-					_create_bounce_tile(world_pos)
+					_create_bounce_tile(gpos, world_pos)
 				SYM_COIN:
 					_create_coin(gpos, world_pos)
 				SYM_COIN_GATE:
@@ -477,6 +550,83 @@ func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> Spr
 	sprite.position = world_pos
 	parent.add_child(sprite)
 	return sprite
+
+func _create_anchor_tile(gpos: Vector2i, world_pos: Vector2) -> void:
+	var anchor := _create_sprite(ANCHOR_TEXTURE, world_pos, objects_container)
+	_anchor_nodes[gpos] = anchor
+
+func play_anchor_capture(anchor_pos: Vector2i, incoming_direction: Vector2i) -> void:
+	var anchor := _anchor_nodes.get(anchor_pos) as Sprite2D
+	if anchor == null:
+		return
+
+	if _anchor_capture_tweens.has(anchor_pos):
+		var existing_tween := _anchor_capture_tweens[anchor_pos] as Tween
+		if existing_tween != null:
+			existing_tween.kill()
+
+	var base_modulate := anchor.modulate
+	var base_alpha := base_modulate.a
+	anchor.scale = Vector2.ONE
+	anchor.rotation = 0.0
+	anchor.modulate = Color(0.72, 1.0, 1.0, base_alpha)
+
+	var tween := create_tween()
+	_anchor_capture_tweens[anchor_pos] = tween
+	tween.set_parallel(true)
+	tween.tween_property(anchor, "scale", Vector2(1.22, 1.22), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(anchor, "rotation", 0.08, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(anchor, "modulate", Color(1.0, 1.0, 1.0, base_alpha), 0.1)
+	tween.chain().tween_property(anchor, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(anchor, "rotation", 0.0, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(func() -> void:
+		if _anchor_capture_tweens.get(anchor_pos) == tween:
+			_anchor_capture_tweens.erase(anchor_pos)
+	)
+
+	_spawn_anchor_capture_effect(grid_to_world(anchor_pos), incoming_direction)
+
+func _spawn_anchor_capture_effect(world_pos: Vector2, incoming_direction: Vector2i) -> void:
+	var effect := Node2D.new()
+	effect.position = world_pos
+	effect.z_index = ENEMY_OBJECT_Z_INDEX + 2
+	objects_container.add_child(effect)
+
+	var ring := _make_anchor_capture_ring()
+	effect.add_child(ring)
+	_add_anchor_pull_lines(effect, incoming_direction)
+
+	effect.scale = Vector2(1.45, 1.45)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(effect, "scale", Vector2(0.42, 0.42), ANCHOR_CAPTURE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(effect, "modulate:a", 0.0, ANCHOR_CAPTURE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(effect.queue_free)
+
+func _make_anchor_capture_ring() -> Line2D:
+	var ring := Line2D.new()
+	ring.width = 3.0
+	ring.default_color = ANCHOR_CAPTURE_COLOR
+	for index in range(ANCHOR_CAPTURE_RING_POINTS + 1):
+		var angle := (TAU * float(index)) / float(ANCHOR_CAPTURE_RING_POINTS)
+		ring.add_point(Vector2(cos(angle), sin(angle)) * ANCHOR_CAPTURE_RING_RADIUS)
+	return ring
+
+func _add_anchor_pull_lines(effect: Node2D, incoming_direction: Vector2i) -> void:
+	var direction := Vector2(float(incoming_direction.x), float(incoming_direction.y))
+	if direction.length_squared() <= 0.0:
+		direction = Vector2.UP
+	direction = direction.normalized()
+	var perpendicular := Vector2(-direction.y, direction.x)
+	for index in range(3):
+		var lane_offset := (float(index) - 1.0) * 7.0
+		var start_distance := float(TILE_SIZE) * (0.92 + float(index) * 0.18)
+		var line := Line2D.new()
+		line.width = 2.0
+		line.default_color = Color(0.68, 1.0, 1.0, 0.78 - float(index) * 0.12)
+		line.add_point(-direction * start_distance + perpendicular * lane_offset)
+		line.add_point(-direction * 8.0 + perpendicular * lane_offset * 0.35)
+		effect.add_child(line)
 
 func _apply_goal_shader(sprite: Sprite2D) -> void:
 	var material := ShaderMaterial.new()
@@ -507,55 +657,16 @@ func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
 	rect.color = Color(0.6, 0.4, 0.8, 0.9)
 	objects_container.add_child(rect)
 
-func _create_bounce_tile(world_pos: Vector2) -> void:
-	var marker := Node2D.new()
-	marker.position = world_pos
-	objects_container.add_child(marker)
-
-	var base := ColorRect.new()
-	base.size = Vector2(float(TILE_SIZE) - 8.0, float(TILE_SIZE) - 8.0)
-	base.position = -base.size / 2.0
-	base.color = Color(0.08, 0.72, 0.9, 0.62)
-	marker.add_child(base)
-
-	var core := ColorRect.new()
-	core.size = Vector2(20.0, 20.0)
-	core.position = -core.size / 2.0
-	core.color = Color(0.85, 1.0, 1.0, 0.9)
-	marker.add_child(core)
-
-	var top := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, -16.0))
-	var bottom := _make_bounce_mark(Vector2(24.0, 6.0), Vector2(-12.0, 10.0))
-	var left := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(-16.0, -12.0))
-	var right := _make_bounce_mark(Vector2(6.0, 24.0), Vector2(10.0, -12.0))
-	marker.add_child(top)
-	marker.add_child(bottom)
-	marker.add_child(left)
-	marker.add_child(right)
-
-func _make_bounce_mark(size: Vector2, offset: Vector2) -> ColorRect:
-	var rect := ColorRect.new()
-	rect.size = size
-	rect.position = offset
-	rect.color = Color(0.35, 1.0, 0.95, 1.0)
-	return rect
+func _create_bounce_tile(gpos: Vector2i, world_pos: Vector2) -> void:
+	var sprite := _create_sprite(BOUNCE_TEXTURE, world_pos, objects_container)
+	var material := ShaderMaterial.new()
+	material.shader = BOUNCE_IMPACT_SHADER
+	sprite.material = material
+	_bounce_nodes[gpos] = sprite
+	_bounce_base_positions[gpos] = world_pos
 
 func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
-	var marker = Node2D.new()
-	marker.position = world_pos
-	objects_container.add_child(marker)
-
-	var glow = ColorRect.new()
-	glow.size = Vector2(30.0, 30.0)
-	glow.position = -Vector2(15.0, 15.0)
-	glow.color = Color(1.0, 0.85, 0.2, 0.35)
-	marker.add_child(glow)
-
-	var core = ColorRect.new()
-	core.size = Vector2(16.0, 16.0)
-	core.position = -Vector2(8.0, 8.0)
-	core.color = Color(1.0, 0.95, 0.35, 1.0)
-	marker.add_child(core)
+	var marker := _create_sprite(COIN_TEXTURE, world_pos, objects_container)
 	_coin_nodes[gpos] = marker
 
 func _create_coin_gate(gpos: Vector2i, world_pos: Vector2) -> void:
@@ -591,6 +702,7 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
 	enemy.patrol_offsets = _patrol_path_for_next_enemy()
+	enemy.z_index = ENEMY_OBJECT_Z_INDEX
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
@@ -627,9 +739,29 @@ func _should_show_move_previews() -> bool:
 func _clear_all_previews() -> void:
 	if future_preview_layer != null:
 		_clear_children(future_preview_layer)
+	update_anchor_overlap_visibility()
 	_set_future_preview_effect_visible(false)
 	_set_live_phase_objects_visible(true)
 	_set_future_preview_cue_visible(false)
+
+func _update_anchor_preview_overlap_visibility(tick: int) -> void:
+	for gpos in _anchor_nodes:
+		var anchor := _anchor_nodes[gpos] as Sprite2D
+		if not is_instance_valid(anchor):
+			continue
+		var alpha := ANCHOR_OCCUPIED_ALPHA if _is_enemy_at_for_tick(gpos, tick) else ANCHOR_NORMAL_ALPHA
+		anchor.modulate = Color(1.0, 1.0, 1.0, alpha)
+
+func _is_enemy_at_for_tick(gpos: Vector2i, tick: int) -> bool:
+	for enemy in _enemies.values():
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("get_grid_pos_for_tick"):
+			if enemy.get_grid_pos_for_tick(tick) == gpos:
+				return true
+		elif enemy.current_grid_pos == gpos:
+			return true
+	return false
 
 
 func _configure_future_preview_effect() -> void:
@@ -645,6 +777,7 @@ func _configure_future_preview_effect() -> void:
 
 
 func _refresh_future_board_preview(next_tick: int) -> void:
+	_update_anchor_preview_overlap_visibility(next_tick)
 	_add_phase_goal_future_preview(next_tick)
 	for gate in _time_gates.values():
 		_add_time_gate_future_preview(gate, next_tick)
@@ -746,14 +879,13 @@ func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
 	if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
 		return
 
-	var preview := Node2D.new()
-	preview.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
-	future_preview_layer.add_child(preview)
-
-	var body := _make_preview_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
-	var core := _make_preview_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
-	preview.add_child(body)
-	preview.add_child(core)
+	var next_grid_pos: Vector2i = enemy.get_grid_pos_for_tick(next_tick)
+	var sprite := Sprite2D.new()
+	sprite.texture = ENEMY_TEXTURE
+	sprite.hframes = 5
+	sprite.frame = 0
+	sprite.position = grid_to_world(next_grid_pos)
+	future_preview_layer.add_child(sprite)
 
 
 func _make_preview_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
@@ -830,6 +962,20 @@ func _clear_children(parent: Node) -> void:
 		return
 	for child in parent.get_children():
 		child.queue_free()
+
+func _clear_bounce_impacts() -> void:
+	for bounce_pos in _bounce_impact_tweens:
+		var tween := _bounce_impact_tweens[bounce_pos] as Tween
+		if tween != null:
+			tween.kill()
+	_bounce_impact_tweens.clear()
+
+func _clear_anchor_capture_tweens() -> void:
+	for anchor_pos in _anchor_capture_tweens:
+		var tween := _anchor_capture_tweens[anchor_pos] as Tween
+		if tween != null:
+			tween.kill()
+	_anchor_capture_tweens.clear()
 
 func play_goal_collect_tween() -> void:
 	if _goal_node == null:

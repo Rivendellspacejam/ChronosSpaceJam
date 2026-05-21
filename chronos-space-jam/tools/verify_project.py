@@ -253,6 +253,8 @@ def verify_context_music() -> None:
 def verify_immersive_polish_assets() -> None:
     audio_manager = read("scripts/autoload/audio_manager.gd")
     main_menu = read("scripts/main_menu.gd")
+    player = read("scripts/player.gd")
+    level_manager = read("scripts/level_manager.gd")
     main_menu_scene = read("scenes/ui/main_menu.tscn")
     level_select_scene = read("scenes/ui/level_select.tscn")
     ending_scene = read("scenes/ui/ending.tscn")
@@ -286,9 +288,49 @@ def verify_immersive_polish_assets() -> None:
     if rms < 2500.0:
         fail(f"start stinger too quiet: rms={rms:.0f}")
 
+    gameplay_sfx = [
+        "coin_pickup",
+        "coin_gate_open",
+        "bounce_pad",
+        "goal_enter",
+        "anchor_stop",
+        "blocked_move",
+        "time_gate_shift",
+        "laser_shift",
+        "spike_shift",
+        "enemy_step",
+    ]
+    for name in gameplay_sfx:
+        asset = f"assets/audio/{name}.wav"
+        asset_path = ROOT / asset
+        if not asset_path.exists():
+            fail(f"missing gameplay sfx asset: {asset}")
+        duration, rms = read_wav_duration_and_rms(asset_path)
+        if duration < 0.08:
+            fail(f"gameplay sfx too short: {asset} duration={duration:.2f}s")
+        if duration > 1.2:
+            fail(f"gameplay sfx too long: {asset} duration={duration:.2f}s")
+        if rms < 1200.0:
+            fail(f"gameplay sfx too quiet: {asset} rms={rms:.0f}")
+
+    coin_duration, coin_rms, coin_high_ratio, _coin_harsh_ratio, _coin_tonal = read_wav_metrics(ROOT / "assets/audio/coin_pickup.wav")
+    if coin_duration < 0.16 or coin_duration > 0.35:
+        fail(f"coin pickup should be a crisp arcade chime: duration={coin_duration:.2f}s")
+    if coin_high_ratio < 0.45:
+        fail(f"coin pickup should be high-pitched and bright: high={coin_high_ratio:.3f}")
+    if coin_rms < 3000.0:
+        fail(f"coin pickup should cut through the mix: rms={coin_rms:.0f}")
+
     required = {
         "AudioManager exposes start stinger": "func play_start_stinger() -> void:" in audio_manager,
+        "AudioManager exposes gameplay sfx": all(f"func play_{name}() -> void:" in audio_manager for name in gameplay_sfx),
         "Start button uses cinematic stinger": "AudioManager.play_start_stinger()" in main_menu,
+        "coin pickup uses sfx": "AudioManager.play_coin_pickup()" in level_manager,
+        "coin gate open uses sfx": "AudioManager.play_coin_gate_open()" in level_manager,
+        "bounce plate uses sfx": "AudioManager.play_bounce_pad()" in player,
+        "core movement feedback remains audible": "AudioManager.play_slide_start()" in player and "AudioManager.play_blocked_move()" in player and "AudioManager.play_goal_enter()" in player and "AudioManager.play_anchor_stop()" in player,
+        "level tick metronome is muted": "AudioManager.play_tick()" not in read("scripts/game_level.gd"),
+        "environment pulse sfx is muted": "AudioManager.play_time_gate_shift()" not in level_manager and "AudioManager.play_laser_shift()" not in level_manager and "AudioManager.play_spike_shift()" not in level_manager and "AudioManager.play_enemy_step()" not in level_manager,
         "menu uses background art": "menu_timescape.png" in main_menu_scene and "TextureRect" in main_menu_scene,
         "level select uses background art": "menu_timescape.png" in level_select_scene and "TextureRect" in level_select_scene,
         "ending uses background art": "ending_timescape.png" in ending_scene and "TextureRect" in ending_scene,
@@ -298,8 +340,9 @@ def verify_immersive_polish_assets() -> None:
         "gameplay backdrop fills viewport": "func _viewport_backdrop_rect" in arena_backdrop and "get_viewport_rect().size" in arena_backdrop and "get_camera_2d()" in arena_backdrop,
         "gameplay backdrop avoids fixed cropped rect": "Vector2(-420.0, -300.0)" not in arena_backdrop and "arena_size + Vector2(840.0, 600.0)" not in arena_backdrop,
         "gameplay backdrop has full-width base color": "_theme_base_color" in arena_backdrop and "draw_rect(backdrop_rect, _theme_base_color" in arena_backdrop,
-        "gameplay backdrop tiles oversized texture": "draw_texture_rect(_theme_texture, backdrop_rect, true" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
+        "gameplay backdrop stretches texture without visible tile seams": "draw_texture_rect(_theme_texture, backdrop_rect, false" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
         "gameplay backdrop draws full viewport detail": "func _draw_viewport_theme_grid" in arena_backdrop,
+        "gameplay backdrop has right-side energy detail": "func _draw_viewport_energy_bands" in arena_backdrop and "rect.end.x" in arena_backdrop,
         "arena has professional framing": "draw_arc" in arena_backdrop and "corner" in arena_backdrop.lower(),
     }
 
@@ -308,6 +351,52 @@ def verify_immersive_polish_assets() -> None:
             fail(f"missing immersive polish: {label}")
 
     print("OK immersive polish")
+
+def verify_gameplay_ui_polish() -> None:
+    hud = read("scripts/hud.gd")
+    hud_scene = read("scenes/ui/hud.tscn")
+    pause_menu = read("scripts/pause_menu.gd")
+    pause_scene = read("scenes/ui/pause_menu.tscn")
+    game_level = read("scripts/game_level.gd")
+    level_manager = read("scripts/level_manager.gd")
+    enemy_patrol = read("scripts/enemy_patrol.gd")
+    laser = read("scripts/laser.gd")
+    tick_manager = read("scripts/autoload/tick_manager.gd")
+    player = read("scripts/player.gd")
+
+    required = {
+        "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
+        "HUD exposes stats safe rect": "func get_stats_panel_screen_rect() -> Rect2:" in hud and "stats_panel.global_position" in hud,
+        "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
+        "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
+        "HUD display tick advances from zero": "func get_display_tick() -> int:" in tick_manager and "_display_tick_start = start_tick" in tick_manager and "current_tick - _display_tick_start" in tick_manager and "TickManager.get_display_tick()" in hud,
+        "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
+        "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
+        "death overlay says restart and is compact": "R to restart this run" in hud_scene and "rebuild this run" not in hud_scene and "offset_top = -60.0" in hud_scene and "offset_bottom = 60.0" in hud_scene,
+        "pause menu uses a styled command panel": "PausePanel" in pause_scene and "_apply_pause_panel_style" in pause_menu,
+        "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
+        "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
+        "gameplay camera fits large levels beside HUD": "_zoom_to_fit_level(level_size, safe_rect.size)" in game_level and "_camera_position_for_screen_center" in game_level,
+        "anchor fades when occupied by enemy": "ANCHOR_OCCUPIED_ALPHA: float = 0.42" in level_manager and "_anchor_nodes" in level_manager and "func update_anchor_overlap_visibility() -> void:" in level_manager,
+        "enemy remains fully visible over anchor": "ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy.z_index = ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy_overlay_alpha_for_cell" not in level_manager,
+        "anchor future preview uses enemy occupancy": "_update_anchor_preview_overlap_visibility(next_tick)" in level_manager and "func _is_enemy_at_for_tick" in level_manager,
+        "enemy update refreshes anchor opacity": "_update_anchor_overlap_visibility()" in enemy_patrol and "level_manager.update_anchor_overlap_visibility()" in enemy_patrol,
+        "enemy phase movement is animated": "_play_phase_transition" in enemy_patrol and "PHASE_FADE_OUT_TIME" in enemy_patrol and "tween_callback" in enemy_patrol,
+        "anchor stop has magnetic capture effect": "play_anchor_capture(grid_pos, gravity_direction)" in player and "func play_anchor_capture" in level_manager and "_spawn_anchor_capture_effect" in level_manager,
+        "anchor capture draws energy ring and pull lines": "Line2D" in level_manager and "ANCHOR_CAPTURE_RING_POINTS" in level_manager and "_add_anchor_pull_lines" in level_manager,
+        "laser has visible emitter weapon": "_build_emitter_visual" in laser and "_make_emitter_rect" in laser and "beam_axis == 1" in laser,
+        "laser emitter has turret detail": "left_nozzle" in laser and "right_muzzle" in laser and "left_fin_top" in laser and "_emitter_core" in laser,
+        "laser emitter stays inside source tile": "Vector2(-23.0, 0.0)" in laser and "Vector2(23.0, 0.0)" in laser and "Vector2(38.0, 24.0)" in laser,
+        "laser visual beam skips source tile": "_beam_overlays: Array[ColorRect]" in laser and "_fit_beam_segments_from_cells" in laser and "if cell == grid_pos:" in laser and "var first_cell: Vector2i = cells[0]" in laser,
+        "laser source remains deadly": "cells.append(laser_pos)" in level_manager and "gpos in get_laser_beam_cells_for_tick(laser_pos, tick)" in level_manager,
+        "laser phase changes animate": "_animate_laser_activation" in laser and "_animate_laser_deactivation" in laser and "LASER_CHARGE_TIME" in laser,
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing gameplay UI polish: {label}")
+
+    print("OK gameplay UI polish")
 
 def read_wav_metrics(path: Path) -> tuple[float, float, float, float, float]:
     with wave.open(str(path), "rb") as wav:
@@ -456,6 +545,7 @@ def main() -> int:
     verify_level_select_locking()
     verify_context_music()
     verify_immersive_polish_assets()
+    verify_gameplay_ui_polish()
     verify_script_patterns()
     return 0
 
