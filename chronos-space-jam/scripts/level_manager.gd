@@ -56,6 +56,8 @@ var _enemies: Dictionary = {}
 var _anchor_nodes: Dictionary = {}
 var _coin_nodes: Dictionary = {}
 var _coin_gate_nodes: Dictionary = {}
+var _coin_base_positions: Dictionary = {}
+var _coin_pickup_tweens: Dictionary = {}
 var _bounce_nodes: Dictionary = {}
 var _bounce_base_positions: Dictionary = {}
 var _bounce_impact_tweens: Dictionary = {}
@@ -132,8 +134,10 @@ func clear_level() -> void:
 	_spikes.clear()
 	_enemies.clear()
 	_anchor_nodes.clear()
+	_clear_coin_pickup_tweens()
 	_coin_nodes.clear()
 	_coin_gate_nodes.clear()
+	_coin_base_positions.clear()
 	_clear_bounce_impacts()
 	_clear_anchor_capture_tweens()
 	_bounce_nodes.clear()
@@ -185,9 +189,13 @@ func restore_undo_state(snapshot: Dictionary) -> void:
 	update_anchor_overlap_visibility()
 
 func _restore_coin_visuals() -> void:
+	_clear_coin_pickup_tweens()
 	for gpos in _coin_nodes:
 		var coin_node := _coin_nodes[gpos] as Sprite2D
 		if is_instance_valid(coin_node):
+			coin_node.position = _coin_base_positions.get(gpos, coin_node.position)
+			coin_node.scale = Vector2.ONE
+			coin_node.modulate = Color.WHITE
 			coin_node.visible = not _collected_coins.has(gpos)
 
 func get_tile_at(gpos: Vector2i) -> String:
@@ -320,13 +328,43 @@ func collect_coin(gpos: Vector2i) -> void:
 		return
 
 	_collected_coins[gpos] = true
-	var coin_node = _coin_nodes[gpos]
-	if is_instance_valid(coin_node):
-		coin_node.visible = false
+	_play_coin_pickup_animation(gpos)
 	AudioManager.play_coin_pickup()
 	_update_coin_gate_visuals()
 	if _all_coins_collected() and not _coin_gate_nodes.is_empty():
 		AudioManager.play_coin_gate_open()
+
+func _play_coin_pickup_animation(gpos: Vector2i) -> void:
+	var coin := _coin_nodes.get(gpos) as Sprite2D
+	if coin == null or not is_instance_valid(coin):
+		return
+
+	if _coin_pickup_tweens.has(gpos):
+		var existing_tween := _coin_pickup_tweens[gpos] as Tween
+		if existing_tween != null:
+			existing_tween.kill()
+
+	var base_position: Vector2 = _coin_base_positions.get(gpos, coin.position)
+	coin.visible = true
+	coin.position = base_position
+	coin.scale = Vector2.ONE
+	coin.modulate = Color.WHITE
+
+	var tween := create_tween()
+	_coin_pickup_tweens[gpos] = tween
+	tween.set_parallel(true)
+	tween.tween_property(coin, "scale", Vector2(1.22, 1.22), 0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(coin, "position", base_position + Vector2(0.0, -7.0), 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(coin, "modulate:a", 0.0, 0.20).set_delay(0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.finished.connect(func() -> void:
+		if is_instance_valid(coin):
+			coin.visible = false
+			coin.position = base_position
+			coin.scale = Vector2.ONE
+			coin.modulate = Color.WHITE
+		if _coin_pickup_tweens.get(gpos) == tween:
+			_coin_pickup_tweens.erase(gpos)
+	)
 
 func is_tile_blocking(gpos: Vector2i, direction: Vector2i) -> bool:
 	return is_blocked(gpos, direction)
@@ -648,6 +686,7 @@ func _create_bounce_tile(gpos: Vector2i, world_pos: Vector2) -> void:
 func _create_coin(gpos: Vector2i, world_pos: Vector2) -> void:
 	var marker := _create_sprite(COIN_TEXTURE, world_pos, objects_container)
 	_coin_nodes[gpos] = marker
+	_coin_base_positions[gpos] = world_pos
 
 func _create_coin_gate(gpos: Vector2i, world_pos: Vector2) -> void:
 	var gate := _create_sprite(COIN_GATE_CLOSED_TEXTURE, world_pos, objects_container)
@@ -952,6 +991,13 @@ func _clear_anchor_capture_tweens() -> void:
 		if tween != null:
 			tween.kill()
 	_anchor_capture_tweens.clear()
+
+func _clear_coin_pickup_tweens() -> void:
+	for coin_pos in _coin_pickup_tweens:
+		var tween := _coin_pickup_tweens[coin_pos] as Tween
+		if tween != null:
+			tween.kill()
+	_coin_pickup_tweens.clear()
 
 func play_goal_collect_tween() -> void:
 	if _goal_node == null:
