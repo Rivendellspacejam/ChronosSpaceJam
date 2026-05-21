@@ -52,6 +52,7 @@ func _on_level_selected(index: int) -> void:
 	AudioManager.play_ui_click()
 	AudioManager.stop_music()
 	GameManager.current_level_index = index
+	GameManager.save_progress()
 	get_tree().change_scene_to_file("res://scenes/game/game_level.tscn")
 
 func _on_back() -> void:

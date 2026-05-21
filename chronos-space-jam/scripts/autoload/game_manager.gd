@@ -19,6 +19,7 @@ const LEVEL_DIR: String = "res://levels/"
 const ENEMY_PATH_PREFIX: String = "@enemy_path"
 const MEDAL_TARGETS_PREFIX: String = "@medal_targets"
 const PHASE_GOAL_PREFIX: String = "@phase_goal"
+const PROGRESS_PATH := "user://progress.cfg"
 const DEFAULT_ENEMY_PATROL: Array[Vector2i] = [
 	Vector2i(0, 0),
 	Vector2i(1, 0),
@@ -37,6 +38,7 @@ var _level_data_cache: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	load_progress()
 
 func set_state(new_state: int) -> void:
 	if current_state == new_state:
@@ -56,6 +58,7 @@ func can_accept_input() -> bool:
 
 func load_level(index: int) -> void:
 	current_level_index = clampi(index, 0, TOTAL_LEVELS - 1)
+	save_progress()
 	clear_level_cache()
 	level_loaded.emit(current_level_index)
 
@@ -74,11 +77,49 @@ func on_level_cleared(move_count: int) -> void:
 	if not best_moves.has(current_level_index) or move_count < best_moves[current_level_index]:
 		best_moves[current_level_index] = move_count
 	highest_unlocked_level_index = maxi(highest_unlocked_level_index, mini(current_level_index + 1, TOTAL_LEVELS - 1))
-	# TODO: UI-05 - Persist best_moves and highest_unlocked_level_index if level-select medals need to survive app restarts.
+	save_progress()
 
 	var medal_data = get_level_medal_data(current_level_index, move_count)
 	set_state(GameState.LEVEL_CLEAR)
 	level_cleared.emit(move_count, best_moves.get(current_level_index, move_count), medal_data)
+
+func has_saved_progress() -> bool:
+	return highest_unlocked_level_index > 0 or not best_moves.is_empty()
+
+func get_continue_level_index() -> int:
+	return clampi(highest_unlocked_level_index, 0, TOTAL_LEVELS - 1)
+
+func save_progress() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("progress", "current_level_index", clampi(current_level_index, 0, TOTAL_LEVELS - 1))
+	cfg.set_value("progress", "highest_unlocked_level_index", clampi(highest_unlocked_level_index, 0, TOTAL_LEVELS - 1))
+	for level_index in best_moves.keys():
+		var clamped_index := clampi(int(level_index), 0, TOTAL_LEVELS - 1)
+		cfg.set_value("best_moves", _best_move_key(clamped_index), int(best_moves[level_index]))
+	cfg.save(PROGRESS_PATH)
+
+func load_progress() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(PROGRESS_PATH) != OK:
+		return
+
+	current_level_index = clampi(int(cfg.get_value("progress", "current_level_index", 0)), 0, TOTAL_LEVELS - 1)
+	highest_unlocked_level_index = clampi(int(cfg.get_value("progress", "highest_unlocked_level_index", 0)), 0, TOTAL_LEVELS - 1)
+	best_moves.clear()
+
+	if not cfg.has_section("best_moves"):
+		return
+
+	for key in cfg.get_section_keys("best_moves"):
+		if not key.begins_with("level_"):
+			continue
+		var level_index := int(key.substr("level_".length()))
+		if level_index < 0 or level_index >= TOTAL_LEVELS:
+			continue
+		best_moves[level_index] = int(cfg.get_value("best_moves", key, 0))
+
+func _best_move_key(level_index: int) -> String:
+	return "level_" + str(level_index)
 
 func is_level_unlocked(index: int) -> bool:
 	if index < 0 or index >= TOTAL_LEVELS:

@@ -14,6 +14,7 @@ var _title_phase: float = 0.0
 
 func _ready() -> void:
 	AudioManager.configure_menu_music_player(background_music)
+	_update_start_button_text()
 	start_button.pressed.connect(_on_start)
 	level_select_button.pressed.connect(_on_level_select)
 	credits_button.pressed.connect(_on_credits)
@@ -32,7 +33,11 @@ func _exit_tree() -> void:
 
 func _on_start() -> void:
 	AudioManager.play_start_stinger()
-	GameManager.current_level_index = 0
+	if GameManager.has_saved_progress():
+		GameManager.load_level(GameManager.get_continue_level_index())
+		get_tree().change_scene_to_file("res://scenes/game/game_level.tscn")
+		return
+	GameManager.load_level(0)
 	get_tree().change_scene_to_file("res://scenes/ui/intro.tscn")
 
 func _on_level_select() -> void:
@@ -56,6 +61,9 @@ func _on_quit() -> void:
 func _wire_menu_button_audio() -> void:
 	for button in [start_button, level_select_button, credits_button, settings_button, quit_button]:
 		_wire_button_audio(button)
+
+func _update_start_button_text() -> void:
+	start_button.text = "CONTINUE" if GameManager.has_saved_progress() else "START GAME"
 
 func _wire_button_audio(button: Button) -> void:
 	button.mouse_entered.connect(AudioManager.play_ui_click)
