@@ -282,7 +282,10 @@ func collect_coin(gpos: Vector2i) -> void:
 	var coin_node = _coin_nodes[gpos]
 	if is_instance_valid(coin_node):
 		coin_node.visible = false
+	AudioManager.play_coin_pickup()
 	_update_coin_gate_visuals()
+	if _all_coins_collected() and not _coin_gate_nodes.is_empty():
+		AudioManager.play_coin_gate_open()
 
 func is_tile_blocking(gpos: Vector2i, direction: Vector2i) -> bool:
 	return is_blocked(gpos, direction)

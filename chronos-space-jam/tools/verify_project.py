@@ -253,6 +253,8 @@ def verify_context_music() -> None:
 def verify_immersive_polish_assets() -> None:
     audio_manager = read("scripts/autoload/audio_manager.gd")
     main_menu = read("scripts/main_menu.gd")
+    player = read("scripts/player.gd")
+    level_manager = read("scripts/level_manager.gd")
     main_menu_scene = read("scenes/ui/main_menu.tscn")
     level_select_scene = read("scenes/ui/level_select.tscn")
     ending_scene = read("scenes/ui/ending.tscn")
@@ -286,9 +288,41 @@ def verify_immersive_polish_assets() -> None:
     if rms < 2500.0:
         fail(f"start stinger too quiet: rms={rms:.0f}")
 
+    gameplay_sfx = [
+        "coin_pickup",
+        "coin_gate_open",
+        "bounce_pad",
+        "goal_enter",
+        "anchor_stop",
+        "blocked_move",
+        "time_gate_shift",
+        "laser_shift",
+        "spike_shift",
+        "enemy_step",
+    ]
+    for name in gameplay_sfx:
+        asset = f"assets/audio/{name}.wav"
+        asset_path = ROOT / asset
+        if not asset_path.exists():
+            fail(f"missing gameplay sfx asset: {asset}")
+        duration, rms = read_wav_duration_and_rms(asset_path)
+        if duration < 0.08:
+            fail(f"gameplay sfx too short: {asset} duration={duration:.2f}s")
+        if duration > 1.2:
+            fail(f"gameplay sfx too long: {asset} duration={duration:.2f}s")
+        if rms < 1200.0:
+            fail(f"gameplay sfx too quiet: {asset} rms={rms:.0f}")
+
     required = {
         "AudioManager exposes start stinger": "func play_start_stinger() -> void:" in audio_manager,
+        "AudioManager exposes gameplay sfx": all(f"func play_{name}() -> void:" in audio_manager for name in gameplay_sfx),
         "Start button uses cinematic stinger": "AudioManager.play_start_stinger()" in main_menu,
+        "coin pickup uses sfx": "AudioManager.play_coin_pickup()" in level_manager,
+        "coin gate open uses sfx": "AudioManager.play_coin_gate_open()" in level_manager,
+        "bounce plate uses sfx": "AudioManager.play_bounce_pad()" in player,
+        "core movement feedback remains audible": "AudioManager.play_slide_start()" in player and "AudioManager.play_blocked_move()" in player and "AudioManager.play_goal_enter()" in player and "AudioManager.play_anchor_stop()" in player,
+        "level tick metronome is muted": "AudioManager.play_tick()" not in read("scripts/game_level.gd"),
+        "environment pulse sfx is muted": "AudioManager.play_time_gate_shift()" not in level_manager and "AudioManager.play_laser_shift()" not in level_manager and "AudioManager.play_spike_shift()" not in level_manager and "AudioManager.play_enemy_step()" not in level_manager,
         "menu uses background art": "menu_timescape.png" in main_menu_scene and "TextureRect" in main_menu_scene,
         "level select uses background art": "menu_timescape.png" in level_select_scene and "TextureRect" in level_select_scene,
         "ending uses background art": "ending_timescape.png" in ending_scene and "TextureRect" in ending_scene,
@@ -298,8 +332,9 @@ def verify_immersive_polish_assets() -> None:
         "gameplay backdrop fills viewport": "func _viewport_backdrop_rect" in arena_backdrop and "get_viewport_rect().size" in arena_backdrop and "get_camera_2d()" in arena_backdrop,
         "gameplay backdrop avoids fixed cropped rect": "Vector2(-420.0, -300.0)" not in arena_backdrop and "arena_size + Vector2(840.0, 600.0)" not in arena_backdrop,
         "gameplay backdrop has full-width base color": "_theme_base_color" in arena_backdrop and "draw_rect(backdrop_rect, _theme_base_color" in arena_backdrop,
-        "gameplay backdrop tiles oversized texture": "draw_texture_rect(_theme_texture, backdrop_rect, true" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
+        "gameplay backdrop stretches texture without visible tile seams": "draw_texture_rect(_theme_texture, backdrop_rect, false" in arena_backdrop and "Vector2(2400.0, 1600.0)" in arena_backdrop,
         "gameplay backdrop draws full viewport detail": "func _draw_viewport_theme_grid" in arena_backdrop,
+        "gameplay backdrop has right-side energy detail": "func _draw_viewport_energy_bands" in arena_backdrop and "rect.end.x" in arena_backdrop,
         "arena has professional framing": "draw_arc" in arena_backdrop and "corner" in arena_backdrop.lower(),
     }
 
@@ -308,6 +343,28 @@ def verify_immersive_polish_assets() -> None:
             fail(f"missing immersive polish: {label}")
 
     print("OK immersive polish")
+
+def verify_gameplay_ui_polish() -> None:
+    hud = read("scripts/hud.gd")
+    hud_scene = read("scenes/ui/hud.tscn")
+    pause_menu = read("scripts/pause_menu.gd")
+    pause_scene = read("scenes/ui/pause_menu.tscn")
+
+    required = {
+        "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
+        "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
+        "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
+        "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
+        "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
+        "pause menu uses a styled command panel": "PausePanel" in pause_scene and "_apply_pause_panel_style" in pause_menu,
+        "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
+    }
+
+    for label, passed in required.items():
+        if not passed:
+            fail(f"missing gameplay UI polish: {label}")
+
+    print("OK gameplay UI polish")
 
 def read_wav_metrics(path: Path) -> tuple[float, float, float, float, float]:
     with wave.open(str(path), "rb") as wav:
@@ -456,6 +513,7 @@ def main() -> int:
     verify_level_select_locking()
     verify_context_music()
     verify_immersive_polish_assets()
+    verify_gameplay_ui_polish()
     verify_script_patterns()
     return 0
 

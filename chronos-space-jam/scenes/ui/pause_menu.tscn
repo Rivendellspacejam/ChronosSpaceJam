@@ -20,53 +20,74 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.588235)
+color = Color(0, 0.01, 0.018, 0.68)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="PausePanel" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = -120.0
-offset_right = 100.0
-offset_bottom = 120.0
+offset_left = -180.0
+offset_top = -190.0
+offset_right = 180.0
+offset_bottom = 190.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PausePanel"]
 layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PausePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Label" type="Label" parent="PausePanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.24, 0.34, 0.85)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 32
 text = "PAUSED"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="VBoxContainer"]
+[node name="SubLabel" type="Label" parent="PausePanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 45)
-theme_override_font_sizes/font_size = 20
-text = "RESUME"
+theme_override_colors/font_color = Color(0.72, 0.86, 1, 0.82)
+theme_override_font_sizes/font_size = 13
+text = "Chrono field suspended"
+horizontal_alignment = 1
 
-[node name="RestartButton" type="Button" parent="VBoxContainer"]
+[node name="Divider" type="ColorRect" parent="PausePanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
-custom_minimum_size = Vector2(0, 45)
-theme_override_font_sizes/font_size = 20
-text = "RESTART"
+color = Color(0.35, 0.92, 1, 0.34)
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+[node name="ResumeButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 45)
-theme_override_font_sizes/font_size = 20
-text = "SETTINGS"
+custom_minimum_size = Vector2(0, 46)
+text = "RESUME RUN"
 
-[node name="MainMenuButton" type="Button" parent="VBoxContainer"]
+[node name="RestartButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 45)
-theme_override_font_sizes/font_size = 20
+custom_minimum_size = Vector2(0, 46)
+text = "RESTART LEVEL"
+
+[node name="SettingsButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+text = "SYSTEM SETTINGS"
+
+[node name="MainMenuButton" type="Button" parent="PausePanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
 text = "MAIN MENU"
 
 [node name="SettingsMenu" parent="." instance=ExtResource("2")]
 visible = false
-

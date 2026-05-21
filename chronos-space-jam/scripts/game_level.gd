@@ -198,7 +198,6 @@ func _on_level_story_finished() -> void:
 	GameManager.set_state(GameManager.GameState.PLAYING)
 
 func _on_tick_advanced(_tick: int) -> void:
-	AudioManager.play_tick()
 	apply_shake(2.0, 0.1)
 
 func _on_level_loaded(_level_index: int) -> void:
