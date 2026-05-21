@@ -2,13 +2,17 @@ extends Control
 
 @onready var grid_container = $VBoxContainer/GridContainer
 @onready var back_button = $VBoxContainer/BackButton
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 func _ready() -> void:
-	AudioManager.start_menu_music()
+	AudioManager.configure_menu_music_player(background_music)
 	back_button.pressed.connect(_on_back)
 	back_button.mouse_entered.connect(AudioManager.play_ui_click)
 	_apply_button_style(back_button)
 	_build_level_buttons()
+
+func _exit_tree() -> void:
+	AudioManager.remember_menu_music_position(background_music)
 
 func _build_level_buttons() -> void:
 	_clear_level_buttons()

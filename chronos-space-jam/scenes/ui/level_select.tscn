@@ -1,6 +1,8 @@
-[gd_scene format=3 uid="uid://q55t5cdo25q1"]
+[gd_scene load_steps=4 format=3 uid="uid://q55t5cdo25q1"]
 
 [ext_resource type="Script" uid="uid://dm8jwq8jlfji2" path="res://scripts/level_select.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/menu_timescape.png" id="2"]
+[ext_resource type="AudioStream" path="res://assets/audio/menu_loop.wav" id="3"]
 
 [node name="LevelSelect" type="Control" unique_id=1865124854]
 layout_mode = 3
@@ -19,6 +21,29 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.04, 0.04, 0.08, 1)
+
+[node name="BackgroundArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(0.72, 0.9, 1, 0.62)
+
+[node name="AtmosphereShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.005, 0.01, 0.022, 0.42)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1711575914]
 layout_mode = 1
@@ -53,3 +78,8 @@ custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "BACK"
+
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3")
+volume_db = 2.0
+autoplay = true

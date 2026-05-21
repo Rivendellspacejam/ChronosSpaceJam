@@ -1,17 +1,35 @@
 extends Node2D
 
+const GAMEPLAY_GRAVITY_MUSIC := preload("res://assets/audio/gameplay_gravity_loop.wav")
+const GAMEPLAY_HAZARD_MUSIC := preload("res://assets/audio/gameplay_hazard_loop.wav")
+const GAMEPLAY_PATROL_MUSIC := preload("res://assets/audio/gameplay_patrol_loop.wav")
+const GAMEPLAY_GOLD_MUSIC := preload("res://assets/audio/gameplay_gold_loop.wav")
+const GAMEPLAY_BOUNCE_MUSIC := preload("res://assets/audio/gameplay_bounce_loop.wav")
+const GAMEPLAY_PHASE_MUSIC := preload("res://assets/audio/gameplay_phase_loop.wav")
+const MUSIC_TARGET_VOLUME_DB: float = 1.0
+const MUSIC_FADE_OUT_TIME: float = 0.5
+const MUSIC_TRANSITION_PAUSE: float = 0.18
+const MUSIC_FADE_IN_TIME: float = 0.85
+const MUSIC_SILENCE_DB: float = -34.0
+
 @onready var level_manager = $LevelManager
 @onready var player = $Player
 @onready var camera = $Camera2D
 @onready var hud = $HUD
 @onready var pause_menu = $HUD/PauseMenu
 @onready var arena_backdrop = $ArenaBackdrop
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _shake_intensity: float = 0.0
 var _shake_duration: float = 0.0
+var _music_transitioning: bool = false
+var _music_transition_id: int = 0
+var _current_music_stream: AudioStream
 
 func _ready() -> void:
 	AudioManager.stop_music()
+	background_music.stop()
+	background_music.volume_db = MUSIC_SILENCE_DB
 	player.add_to_group("player")
 	GameManager.level_loaded.connect(_on_level_loaded)
 	GameManager.player_died.connect(_on_player_died)
@@ -19,7 +37,24 @@ func _ready() -> void:
 	TickManager.tick_advanced.connect(_on_tick_advanced)
 	_load_current_level()
 
+func _ensure_background_music_playing() -> void:
+	if _music_transitioning:
+		return
+	_apply_background_music_volume()
+	if not background_music.playing:
+		background_music.play()
+
+func _apply_background_music_volume() -> void:
+	if SettingsManager.music_volume <= 0.0 or SettingsManager.mute_all:
+		background_music.volume_db = -80.0
+		return
+	background_music.volume_db = _target_music_volume_db()
+
+func _target_music_volume_db() -> float:
+	return MUSIC_TARGET_VOLUME_DB + linear_to_db(SettingsManager.music_volume / 100.0)
+
 func _process(delta: float) -> void:
+	_ensure_background_music_playing()
 	if _shake_duration <= 0:
 		return
 
@@ -49,6 +84,7 @@ func _load_current_level() -> void:
 	var level_bundle = GameManager.load_level_bundle(GameManager.current_level_index)
 	var start_tick = level_bundle.get("start_tick", 0)
 	TickManager.reset(start_tick)
+	_configure_level_music(GameManager.current_level_index)
 	var start_pos = level_manager.load_level(GameManager.current_level_index)
 	player.init_player(start_pos, level_manager)
 	_configure_arena_backdrop()
@@ -73,7 +109,59 @@ func _center_camera_on_level() -> void:
 
 func _configure_arena_backdrop() -> void:
 	if arena_backdrop and arena_backdrop.has_method("configure"):
+		if arena_backdrop.has_method("set_theme"):
+			arena_backdrop.set_theme(GameManager.current_level_index)
 		arena_backdrop.configure(level_manager.grid_width, level_manager.grid_height)
+
+func _configure_level_music(level_index: int) -> void:
+	var target_stream := _music_stream_for_level(level_index)
+	if _current_music_stream == target_stream and background_music.playing:
+		return
+	_transition_to_music(target_stream)
+
+func _transition_to_music(target_stream: AudioStream) -> void:
+	_music_transition_id += 1
+	var transition_id := _music_transition_id
+	_music_transitioning = true
+
+	if background_music.playing:
+		var fade_out := create_tween()
+		fade_out.tween_property(background_music, "volume_db", MUSIC_SILENCE_DB, MUSIC_FADE_OUT_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		await fade_out.finished
+		if transition_id != _music_transition_id:
+			return
+
+	await get_tree().create_timer(MUSIC_TRANSITION_PAUSE).timeout
+	if transition_id != _music_transition_id:
+		return
+
+	background_music.stop()
+	background_music.stream = target_stream
+	_current_music_stream = target_stream
+	background_music.volume_db = MUSIC_SILENCE_DB
+	background_music.play()
+
+	var fade_in := create_tween()
+	fade_in.tween_property(background_music, "volume_db", _target_music_volume_db(), MUSIC_FADE_IN_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	await fade_in.finished
+	if transition_id != _music_transition_id:
+		return
+
+	_music_transitioning = false
+	_apply_background_music_volume()
+
+func _music_stream_for_level(index: int) -> AudioStream:
+	if index <= 2:
+		return GAMEPLAY_GRAVITY_MUSIC
+	if index <= 4:
+		return GAMEPLAY_HAZARD_MUSIC
+	if index <= 11:
+		return GAMEPLAY_PATROL_MUSIC
+	if index <= 14:
+		return GAMEPLAY_GOLD_MUSIC
+	if index <= 19:
+		return GAMEPLAY_BOUNCE_MUSIC
+	return GAMEPLAY_PHASE_MUSIC
 
 func _can_restart() -> bool:
 	return GameManager.current_state in [
