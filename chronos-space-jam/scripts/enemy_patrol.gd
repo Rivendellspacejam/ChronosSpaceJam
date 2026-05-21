@@ -14,7 +14,6 @@ var current_grid_pos: Vector2i = Vector2i.ZERO
 var current_phase: int = 0
 
 func _ready() -> void:
-	_build_visual()
 	update_phase(0)
 
 func get_grid_pos_for_tick(tick: int) -> Vector2i:
@@ -33,19 +32,6 @@ func update_phase(current_tick: int) -> void:
 	current_phase = TickManager.phase_for_tick(current_tick, patrol_offsets.size())
 	current_grid_pos = get_grid_pos_for_tick(current_tick)
 	_snap_to_current_grid_pos()
-
-func _build_visual() -> void:
-	var body = _make_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
-	var core = _make_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
-	add_child(body)
-	add_child(core)
-
-func _make_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
-	var rect = ColorRect.new()
-	rect.size = size
-	rect.position = Vector2(-TILE_SIZE / 2.0 + inset, -TILE_SIZE / 2.0 + inset)
-	rect.color = color
-	return rect
 
 func _snap_to_current_grid_pos() -> void:
 	var objects_node = get_parent()
