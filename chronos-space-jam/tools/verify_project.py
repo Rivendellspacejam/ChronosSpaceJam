@@ -386,6 +386,7 @@ def verify_gameplay_ui_polish() -> None:
         "anchor capture draws energy ring and pull lines": "Line2D" in level_manager and "ANCHOR_CAPTURE_RING_POINTS" in level_manager and "_add_anchor_pull_lines" in level_manager,
         "laser has visible emitter weapon": "_build_emitter_visual" in laser and "_make_emitter_rect" in laser and "beam_axis == 1" in laser,
         "laser emitter has turret detail": "left_nozzle" in laser and "right_muzzle" in laser and "left_fin_top" in laser and "_emitter_core" in laser,
+        "laser emitter stays inside source tile": "Vector2(-23.0, 0.0)" in laser and "Vector2(23.0, 0.0)" in laser and "Vector2(38.0, 24.0)" in laser,
         "laser visual beam skips source tile": "_beam_overlays: Array[ColorRect]" in laser and "_fit_beam_segments_from_cells" in laser and "if cell == grid_pos:" in laser and "var first_cell: Vector2i = cells[0]" in laser,
         "laser source remains deadly": "cells.append(laser_pos)" in level_manager and "gpos in get_laser_beam_cells_for_tick(laser_pos, tick)" in level_manager,
         "laser phase changes animate": "_animate_laser_activation" in laser and "_animate_laser_deactivation" in laser and "LASER_CHARGE_TIME" in laser,

@@ -7,8 +7,8 @@ const LASER_RELEASE_TIME: float = 0.1
 const LASER_FADE_TIME: float = 0.16
 const LASER_ACTIVE_COLOR := Color(1.0, 0.16, 0.2, 0.78)
 const LASER_INACTIVE_COLOR := Color(0.45, 0.16, 0.18, 0.45)
-const LASER_CORE_ACTIVE_COLOR := Color(1.0, 0.24, 0.22, 1.0)
-const LASER_CORE_INACTIVE_COLOR := Color(0.42, 0.18, 0.2, 0.72)
+const LASER_CORE_ACTIVE_COLOR := Color(0.2, 0.95, 1.0, 1.0)
+const LASER_CORE_INACTIVE_COLOR := Color(0.12, 0.48, 0.62, 0.78)
 
 @export var phase_count: int = 2
 @export var active_pattern: Array[bool] = [false, true]
@@ -78,25 +78,25 @@ func _build_emitter_visual() -> void:
 	_emitter_visual.z_index = 2
 	add_child(_emitter_visual)
 
-	var shadow := _make_emitter_rect(Vector2(38.0, 25.0), Color(0.0, 0.0, 0.0, 0.42), Vector2(0.0, 3.0))
-	var base := _make_emitter_rect(Vector2(34.0, 22.0), Color(0.055, 0.018, 0.025, 0.96), Vector2.ZERO)
-	var top_plate := _make_emitter_rect(Vector2(25.0, 6.0), Color(0.18, 0.035, 0.045, 0.96), Vector2(0.0, -7.0))
-	var bottom_plate := _make_emitter_rect(Vector2(25.0, 5.0), Color(0.11, 0.025, 0.035, 0.96), Vector2(0.0, 8.0))
+	var shadow := _make_emitter_rect(Vector2(38.0, 24.0), Color(0.0, 0.0, 0.0, 0.42), Vector2(0.0, 3.0))
+	var base := _make_emitter_rect(Vector2(30.0, 22.0), Color(0.055, 0.035, 0.12, 0.96), Vector2.ZERO)
+	var top_plate := _make_emitter_rect(Vector2(23.0, 5.0), Color(0.18, 0.12, 0.28, 0.96), Vector2(0.0, -7.0))
+	var bottom_plate := _make_emitter_rect(Vector2(23.0, 5.0), Color(0.08, 0.06, 0.18, 0.96), Vector2(0.0, 8.0))
 	_emitter_visual.add_child(shadow)
 	_emitter_visual.add_child(base)
 	_emitter_visual.add_child(top_plate)
 	_emitter_visual.add_child(bottom_plate)
 
-	var left_barrel := _make_emitter_rect(Vector2(25.0, 9.0), Color(0.16, 0.035, 0.045, 0.96), Vector2(-20.0, 0.0))
-	var right_barrel := _make_emitter_rect(Vector2(25.0, 9.0), Color(0.16, 0.035, 0.045, 0.96), Vector2(20.0, 0.0))
-	var left_nozzle := _make_emitter_rect(Vector2(7.0, 18.0), Color(0.78, 0.055, 0.075, 0.98), Vector2(-33.0, 0.0))
-	var right_nozzle := _make_emitter_rect(Vector2(7.0, 18.0), Color(0.78, 0.055, 0.075, 0.98), Vector2(33.0, 0.0))
-	var left_muzzle := _make_emitter_rect(Vector2(3.0, 11.0), Color(1.0, 0.22, 0.22, 0.95), Vector2(-38.0, 0.0))
-	var right_muzzle := _make_emitter_rect(Vector2(3.0, 11.0), Color(1.0, 0.22, 0.22, 0.95), Vector2(38.0, 0.0))
-	var left_fin_top := _make_emitter_rect(Vector2(12.0, 4.0), Color(0.55, 0.02, 0.05, 0.9), Vector2(-19.0, -12.0))
-	var left_fin_bottom := _make_emitter_rect(Vector2(12.0, 4.0), Color(0.55, 0.02, 0.05, 0.9), Vector2(-19.0, 12.0))
-	var right_fin_top := _make_emitter_rect(Vector2(12.0, 4.0), Color(0.55, 0.02, 0.05, 0.9), Vector2(19.0, -12.0))
-	var right_fin_bottom := _make_emitter_rect(Vector2(12.0, 4.0), Color(0.55, 0.02, 0.05, 0.9), Vector2(19.0, 12.0))
+	var left_barrel := _make_emitter_rect(Vector2(17.0, 8.0), Color(0.12, 0.08, 0.22, 0.98), Vector2(-11.5, 0.0))
+	var right_barrel := _make_emitter_rect(Vector2(17.0, 8.0), Color(0.12, 0.08, 0.22, 0.98), Vector2(11.5, 0.0))
+	var left_nozzle := _make_emitter_rect(Vector2(5.0, 16.0), Color(0.95, 0.58, 0.16, 0.98), Vector2(-21.0, 0.0))
+	var right_nozzle := _make_emitter_rect(Vector2(5.0, 16.0), Color(0.95, 0.58, 0.16, 0.98), Vector2(21.0, 0.0))
+	var left_muzzle := _make_emitter_rect(Vector2(2.0, 10.0), Color(0.28, 0.95, 1.0, 0.96), Vector2(-23.0, 0.0))
+	var right_muzzle := _make_emitter_rect(Vector2(2.0, 10.0), Color(0.28, 0.95, 1.0, 0.96), Vector2(23.0, 0.0))
+	var left_fin_top := _make_emitter_rect(Vector2(10.0, 3.0), Color(0.32, 0.18, 0.62, 0.92), Vector2(-12.0, -11.0))
+	var left_fin_bottom := _make_emitter_rect(Vector2(10.0, 3.0), Color(0.32, 0.18, 0.62, 0.92), Vector2(-12.0, 11.0))
+	var right_fin_top := _make_emitter_rect(Vector2(10.0, 3.0), Color(0.32, 0.18, 0.62, 0.92), Vector2(12.0, -11.0))
+	var right_fin_bottom := _make_emitter_rect(Vector2(10.0, 3.0), Color(0.32, 0.18, 0.62, 0.92), Vector2(12.0, 11.0))
 	_emitter_visual.add_child(left_barrel)
 	_emitter_visual.add_child(right_barrel)
 	_emitter_visual.add_child(left_nozzle)
@@ -108,7 +108,7 @@ func _build_emitter_visual() -> void:
 	_emitter_visual.add_child(right_fin_top)
 	_emitter_visual.add_child(right_fin_bottom)
 
-	_emitter_core = _make_emitter_rect(Vector2(14.0, 14.0), LASER_CORE_INACTIVE_COLOR, Vector2.ZERO)
+	_emitter_core = _make_emitter_rect(Vector2(12.0, 12.0), LASER_CORE_INACTIVE_COLOR, Vector2.ZERO)
 	_emitter_visual.add_child(_emitter_core)
 	_emitter_visual.rotation = PI * 0.5 if beam_axis == 1 else 0.0
 
@@ -137,7 +137,7 @@ func _update_visual(was_active: bool) -> void:
 
 func _set_laser_active_visual() -> void:
 	_kill_laser_tween()
-	_sprite.modulate = Color(1.0, 0.4, 0.4, 1.0)
+	_sprite.modulate = Color(0.66, 0.48, 0.86, 0.88)
 	_show_beam_overlays(Color.WHITE)
 	_emitter_visual.scale = Vector2.ONE
 	_emitter_visual.modulate = Color.WHITE
@@ -146,7 +146,7 @@ func _set_laser_active_visual() -> void:
 
 func _set_laser_inactive_visual() -> void:
 	_kill_laser_tween()
-	_sprite.modulate = Color(0.5, 0.3, 0.3, 0.4)
+	_sprite.modulate = Color(0.34, 0.28, 0.46, 0.55)
 	_hide_beam_overlays()
 	_emitter_visual.scale = Vector2.ONE
 	_emitter_visual.modulate = Color(0.72, 0.5, 0.55, 0.78)
@@ -155,7 +155,7 @@ func _set_laser_inactive_visual() -> void:
 
 func _animate_laser_activation() -> void:
 	_kill_laser_tween()
-	_sprite.modulate = Color(1.0, 0.3, 0.32, 1.0)
+	_sprite.modulate = Color(0.72, 0.46, 0.9, 0.92)
 	_show_beam_overlays(Color(1.0, 1.0, 1.0, 0.0))
 	_emitter_visual.scale = Vector2(0.82, 0.82)
 	_emitter_visual.modulate = Color(1.0, 0.36, 0.38, 1.0)
@@ -172,7 +172,7 @@ func _animate_laser_activation() -> void:
 
 func _animate_laser_deactivation() -> void:
 	_kill_laser_tween()
-	_sprite.modulate = Color(0.5, 0.3, 0.3, 0.4)
+	_sprite.modulate = Color(0.34, 0.28, 0.46, 0.55)
 	_show_beam_overlays(Color.WHITE)
 	_emitter_visual.modulate = Color(0.72, 0.5, 0.55, 0.78)
 	if _emitter_core != null:
