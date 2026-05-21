@@ -360,12 +360,14 @@ def verify_gameplay_ui_polish() -> None:
     game_level = read("scripts/game_level.gd")
     level_manager = read("scripts/level_manager.gd")
     enemy_patrol = read("scripts/enemy_patrol.gd")
+    tick_manager = read("scripts/autoload/tick_manager.gd")
 
     required = {
         "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
         "HUD exposes stats safe rect": "func get_stats_panel_screen_rect() -> Rect2:" in hud and "stats_panel.global_position" in hud,
         "HUD stats use label/value rows": "GravityValue" in hud_scene and "TickValue" in hud_scene and "CoinsValue" in hud_scene,
         "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
+        "HUD does not display negative start tick": "func get_display_tick() -> int:" in tick_manager and "maxi(0, current_tick)" in tick_manager and "TickManager.get_display_tick()" in hud,
         "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
         "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
         "death overlay says restart and is compact": "R to restart this run" in hud_scene and "rebuild this run" not in hud_scene and "offset_top = -60.0" in hud_scene and "offset_bottom = 60.0" in hud_scene,
@@ -377,6 +379,7 @@ def verify_gameplay_ui_polish() -> None:
         "enemy remains fully visible over anchor": "ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy.z_index = ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy_overlay_alpha_for_cell" not in level_manager,
         "anchor future preview uses enemy occupancy": "_update_anchor_preview_overlap_visibility(next_tick)" in level_manager and "func _is_enemy_at_for_tick" in level_manager,
         "enemy update refreshes anchor opacity": "_update_anchor_overlap_visibility()" in enemy_patrol and "level_manager.update_anchor_overlap_visibility()" in enemy_patrol,
+        "enemy phase movement is animated": "_play_phase_transition" in enemy_patrol and "PHASE_FADE_OUT_TIME" in enemy_patrol and "tween_callback" in enemy_patrol,
     }
 
     for label, passed in required.items():

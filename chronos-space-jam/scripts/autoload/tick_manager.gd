@@ -13,6 +13,9 @@ func reset(start_tick: int = 0) -> void:
 	current_tick = start_tick
 	move_count = 0
 
+func get_display_tick() -> int:
+	return maxi(0, current_tick)
+
 func prepare_enemies_for_move() -> void:
 	_update_enemies(current_tick + 1)
 

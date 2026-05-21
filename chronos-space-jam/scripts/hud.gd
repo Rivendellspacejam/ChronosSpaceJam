@@ -94,7 +94,7 @@ func _update_hud() -> void:
 	var gravity = player.gravity_direction if player and "gravity_direction" in player else Vector2i.ZERO
 
 	gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))
-	tick_value_label.text = str(TickManager.current_tick)
+	tick_value_label.text = str(TickManager.get_display_tick())
 	shifts_value_label.text = str(TickManager.move_count)
 	level_label.text = "LEVEL " + str(GameManager.current_level_index + 1)
 	level_name_label.text = StoryManager.get_level_name(GameManager.current_level_index)
