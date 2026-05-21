@@ -11,6 +11,9 @@ const MUSIC_FADE_OUT_TIME: float = 0.5
 const MUSIC_TRANSITION_PAUSE: float = 0.18
 const MUSIC_FADE_IN_TIME: float = 0.85
 const MUSIC_SILENCE_DB: float = -34.0
+const PAUSE_MUFFLE_BUS := "PauseMuffledMusic"
+const PAUSE_MUFFLE_CUTOFF_HZ: float = 850.0
+const PAUSE_MUFFLE_RESONANCE: float = 0.45
 const CAMERA_REFERENCE_FIT: float = 800.0
 const CAMERA_MIN_ZOOM: float = 0.24
 const CAMERA_MAX_ZOOM: float = 2.0
@@ -29,10 +32,14 @@ var _shake_duration: float = 0.0
 var _music_transitioning: bool = false
 var _music_transition_id: int = 0
 var _current_music_stream: AudioStream
+var _pause_muffle_effect_index: int = -1
+var _pause_muffle_enabled: bool = false
 
 func _ready() -> void:
+	_ensure_pause_muffle_bus()
 	AudioManager.stop_music()
 	background_music.stop()
+	background_music.bus = PAUSE_MUFFLE_BUS
 	background_music.volume_db = MUSIC_SILENCE_DB
 	player.add_to_group("player")
 	GameManager.level_loaded.connect(_on_level_loaded)
@@ -58,6 +65,7 @@ func _target_music_volume_db() -> float:
 	return MUSIC_TARGET_VOLUME_DB + linear_to_db(SettingsManager.music_volume / 100.0)
 
 func _process(delta: float) -> void:
+	_set_pause_muffle(GameManager.current_state == GameManager.GameState.PAUSED)
 	_ensure_background_music_playing()
 	if _shake_duration <= 0:
 		return
@@ -85,6 +93,7 @@ func apply_shake(intensity: float, duration: float) -> void:
 	_shake_duration = duration
 
 func _load_current_level() -> void:
+	_set_pause_muffle(false)
 	var level_bundle = GameManager.load_level_bundle(GameManager.current_level_index)
 	var start_tick = level_bundle.get("start_tick", 0)
 	TickManager.reset(start_tick)
@@ -224,9 +233,49 @@ func _toggle_pause() -> void:
 
 func _set_paused(paused: bool) -> void:
 	GameManager.set_state(GameManager.GameState.PAUSED if paused else GameManager.GameState.PLAYING)
+	_set_pause_muffle(paused)
 	get_tree().paused = paused
 	if pause_menu:
 		pause_menu.visible = paused
+
+func _exit_tree() -> void:
+	_set_pause_muffle(false)
+
+func _ensure_pause_muffle_bus() -> void:
+	var bus_idx := AudioServer.get_bus_index(PAUSE_MUFFLE_BUS)
+	if bus_idx == -1:
+		bus_idx = AudioServer.bus_count
+		AudioServer.add_bus(bus_idx)
+		AudioServer.set_bus_name(bus_idx, PAUSE_MUFFLE_BUS)
+		AudioServer.set_bus_send(bus_idx, "Master")
+
+	_pause_muffle_effect_index = _find_pause_muffle_effect(bus_idx)
+	if _pause_muffle_effect_index == -1:
+		var effect := AudioEffectLowPassFilter.new()
+		effect.cutoff_hz = PAUSE_MUFFLE_CUTOFF_HZ
+		effect.resonance = PAUSE_MUFFLE_RESONANCE
+		AudioServer.add_bus_effect(bus_idx, effect)
+		_pause_muffle_effect_index = AudioServer.get_bus_effect_count(bus_idx) - 1
+
+	AudioServer.set_bus_effect_enabled(bus_idx, _pause_muffle_effect_index, false)
+
+func _find_pause_muffle_effect(bus_idx: int) -> int:
+	for effect_idx in range(AudioServer.get_bus_effect_count(bus_idx)):
+		var effect := AudioServer.get_bus_effect(bus_idx, effect_idx)
+		if effect is AudioEffectLowPassFilter:
+			return effect_idx
+	return -1
+
+func _set_pause_muffle(enabled: bool) -> void:
+	if _pause_muffle_enabled == enabled:
+		return
+
+	var bus_idx := AudioServer.get_bus_index(PAUSE_MUFFLE_BUS)
+	if bus_idx == -1 or _pause_muffle_effect_index == -1:
+		return
+
+	AudioServer.set_bus_effect_enabled(bus_idx, _pause_muffle_effect_index, enabled)
+	_pause_muffle_enabled = enabled
 
 func _start_level_story_or_play() -> void:
 	if hud and StoryManager.should_show_level_story(GameManager.current_level_index):
