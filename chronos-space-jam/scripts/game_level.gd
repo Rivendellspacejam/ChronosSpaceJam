@@ -47,6 +47,7 @@ func _ready() -> void:
 	GameManager.player_died.connect(_on_player_died)
 	GameManager.level_cleared.connect(_on_level_cleared)
 	TickManager.tick_advanced.connect(_on_tick_advanced)
+	SettingsManager.settings_changed.connect(_apply_background_music_volume)
 	_load_current_level()
 
 func _ensure_background_music_playing() -> void:
