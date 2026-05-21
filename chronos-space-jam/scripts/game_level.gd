@@ -34,6 +34,8 @@ var _music_transition_id: int = 0
 var _current_music_stream: AudioStream
 var _pause_muffle_effect_index: int = -1
 var _pause_muffle_enabled: bool = false
+# One-step undo only: this snapshot is the state before the latest accepted shift.
+var _undo_snapshot: Dictionary = {}
 
 func _ready() -> void:
 	_ensure_pause_muffle_bus()
@@ -46,8 +48,11 @@ func _ready() -> void:
 	GameManager.level_loaded.connect(_on_level_loaded)
 	GameManager.player_died.connect(_on_player_died)
 	GameManager.level_cleared.connect(_on_level_cleared)
+	GameManager.state_changed.connect(_on_game_state_changed_for_undo)
 	TickManager.tick_advanced.connect(_on_tick_advanced)
 	SettingsManager.settings_changed.connect(_apply_background_music_volume)
+	if hud.has_signal("undo_requested"):
+		hud.undo_requested.connect(_attempt_undo)
 	_load_current_level()
 
 func _ensure_background_music_playing() -> void:
@@ -78,6 +83,9 @@ func _process(delta: float) -> void:
 		camera.offset = Vector2.ZERO
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("undo_tick"):
+		_attempt_undo()
+		return
 	if event.is_action_pressed("restart") and _can_restart():
 		AudioManager.play_ui_click()
 		GameManager.restart_level()
@@ -96,6 +104,7 @@ func apply_shake(intensity: float, duration: float) -> void:
 
 func _load_current_level() -> void:
 	_set_pause_muffle(false)
+	_clear_undo_snapshot()
 	var level_bundle = GameManager.load_level_bundle(GameManager.current_level_index)
 	var start_tick = level_bundle.get("start_tick", 0)
 	TickManager.reset(start_tick)
@@ -110,6 +119,51 @@ func _load_current_level() -> void:
 
 	get_tree().paused = false
 	_start_level_story_or_play()
+
+func capture_undo_snapshot() -> void:
+	if GameManager.current_state != GameManager.GameState.PLAYING:
+		return
+
+	_undo_snapshot = {
+		"tick": TickManager.current_tick,
+		"move_count": TickManager.move_count,
+		"player": player.capture_undo_state() if player.has_method("capture_undo_state") else {},
+		"level": level_manager.capture_undo_state() if level_manager.has_method("capture_undo_state") else {},
+	}
+	_update_undo_available()
+
+func _attempt_undo() -> void:
+	if not _can_undo():
+		return
+
+	var snapshot := _undo_snapshot.duplicate(true)
+	_undo_snapshot.clear()
+	TickManager.restore_tick_state(int(snapshot.get("tick", TickManager.current_tick)), int(snapshot.get("move_count", TickManager.move_count)))
+	if level_manager.has_method("restore_undo_state"):
+		level_manager.restore_undo_state(snapshot.get("level", {}))
+	if player.has_method("restore_undo_state"):
+		player.restore_undo_state(snapshot.get("player", {}))
+	GameManager.set_state(GameManager.GameState.PLAYING)
+	AudioManager.play_ui_click()
+	_update_undo_available()
+
+func _can_undo() -> bool:
+	if _undo_snapshot.is_empty():
+		return false
+	if GameManager.current_state not in [GameManager.GameState.PLAYING, GameManager.GameState.DEAD]:
+		return false
+	return not player.is_sliding()
+
+func _clear_undo_snapshot() -> void:
+	_undo_snapshot.clear()
+	_update_undo_available()
+
+func _update_undo_available() -> void:
+	if hud != null and hud.has_method("set_undo_available"):
+		hud.set_undo_available(_can_undo())
+
+func _on_game_state_changed_for_undo(_new_state: int) -> void:
+	_update_undo_available()
 
 func _center_camera_on_level() -> void:
 	var level_size: Vector2 = Vector2(

@@ -163,6 +163,33 @@ func world_to_grid(world_pos: Vector2) -> Vector2i:
 func set_slide_direction(direction: Vector2i) -> void:
 	_current_slide_direction = direction
 
+func capture_undo_state() -> Dictionary:
+	return {
+		"collected_coins": _collected_coins.duplicate(),
+		"slide_direction": _current_slide_direction,
+	}
+
+func restore_undo_state(snapshot: Dictionary) -> void:
+	_current_slide_direction = snapshot.get("slide_direction", Vector2i.ZERO)
+	_collected_coins.clear()
+	var collected_snapshot: Dictionary = snapshot.get("collected_coins", {})
+	for coin_pos in collected_snapshot:
+		_collected_coins[coin_pos] = collected_snapshot[coin_pos]
+
+	_restore_coin_visuals()
+	_update_coin_gate_visuals()
+	_clear_bounce_impacts()
+	_clear_anchor_capture_tweens()
+	_clear_all_previews()
+	_update_goal_visual_for_tick(TickManager.current_tick)
+	update_anchor_overlap_visibility()
+
+func _restore_coin_visuals() -> void:
+	for gpos in _coin_nodes:
+		var coin_node := _coin_nodes[gpos] as Sprite2D
+		if is_instance_valid(coin_node):
+			coin_node.visible = not _collected_coins.has(gpos)
+
 func get_tile_at(gpos: Vector2i) -> String:
 	if _is_out_of_bounds(gpos) or gpos.y >= grid.size():
 		return SYM_WALL
