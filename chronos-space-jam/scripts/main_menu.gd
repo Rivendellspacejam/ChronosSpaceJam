@@ -8,11 +8,12 @@ extends Control
 @onready var quit_button = $VBoxContainer/QuitButton
 @onready var settings_menu = $SettingsMenu
 @onready var title_label = $VBoxContainer/TitleLabel
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _title_phase: float = 0.0
 
 func _ready() -> void:
-	AudioManager.start_menu_music()
+	AudioManager.configure_menu_music_player(background_music)
 	start_button.pressed.connect(_on_start)
 	level_select_button.pressed.connect(_on_level_select)
 	credits_button.pressed.connect(_on_credits)
@@ -26,8 +27,11 @@ func _process(delta: float) -> void:
 	var pulse := (sin(_title_phase) + 1.0) * 0.5
 	title_label.modulate = Color(0.75, lerpf(0.86, 1.0, pulse), 1.0, 1.0)
 
+func _exit_tree() -> void:
+	AudioManager.remember_menu_music_position(background_music)
+
 func _on_start() -> void:
-	AudioManager.play_ui_click()
+	AudioManager.play_start_stinger()
 	GameManager.current_level_index = 0
 	get_tree().change_scene_to_file("res://scenes/ui/intro.tscn")
 

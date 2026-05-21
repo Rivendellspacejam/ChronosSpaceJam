@@ -6,6 +6,7 @@ const TYPE_SPEED: float = 42.0
 @onready var body_label: Label = $StoryBox/MarginContainer/VBoxContainer/BodyLabel
 @onready var hint_label: Label = $StoryBox/MarginContainer/VBoxContainer/HintLabel
 @onready var story_box: PanelContainer = $StoryBox
+@onready var background_music: AudioStreamPlayer = $BackgroundMusic
 
 var _lines: Array[String] = []
 var _line_index: int = 0
@@ -13,10 +14,15 @@ var _visible_chars: float = 0.0
 var _typing: bool = false
 
 func _ready() -> void:
-	AudioManager.start_menu_music()
+	AudioManager.configure_menu_music_player(background_music)
 	_apply_story_box_style()
+	gui_input.connect(_on_dialog_gui_input)
+	story_box.gui_input.connect(_on_dialog_gui_input)
 	_lines = StoryManager.get_intro_lines()
 	_show_line(0)
+
+func _exit_tree() -> void:
+	AudioManager.remember_menu_music_position(background_music)
 
 func _process(delta: float) -> void:
 	if not _typing:
@@ -36,6 +42,11 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel") or _is_click(event):
 		_advance()
+
+func _on_dialog_gui_input(event: InputEvent) -> void:
+	if _is_click(event):
+		_advance()
+		accept_event()
 
 func _advance() -> void:
 	if _typing:
