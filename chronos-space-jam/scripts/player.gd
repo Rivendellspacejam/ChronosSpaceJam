@@ -184,6 +184,7 @@ func _arrive_at_tile() -> void:
 		_die()
 		return
 	if tile_info.is_anchor:
+		level_manager.play_anchor_capture(grid_pos, gravity_direction)
 		AudioManager.play_anchor_stop()
 		_finish_slide()
 		return

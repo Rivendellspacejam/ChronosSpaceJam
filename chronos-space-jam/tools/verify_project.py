@@ -361,6 +361,7 @@ def verify_gameplay_ui_polish() -> None:
     level_manager = read("scripts/level_manager.gd")
     enemy_patrol = read("scripts/enemy_patrol.gd")
     tick_manager = read("scripts/autoload/tick_manager.gd")
+    player = read("scripts/player.gd")
 
     required = {
         "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
@@ -380,6 +381,8 @@ def verify_gameplay_ui_polish() -> None:
         "anchor future preview uses enemy occupancy": "_update_anchor_preview_overlap_visibility(next_tick)" in level_manager and "func _is_enemy_at_for_tick" in level_manager,
         "enemy update refreshes anchor opacity": "_update_anchor_overlap_visibility()" in enemy_patrol and "level_manager.update_anchor_overlap_visibility()" in enemy_patrol,
         "enemy phase movement is animated": "_play_phase_transition" in enemy_patrol and "PHASE_FADE_OUT_TIME" in enemy_patrol and "tween_callback" in enemy_patrol,
+        "anchor stop has magnetic capture effect": "play_anchor_capture(grid_pos, gravity_direction)" in player and "func play_anchor_capture" in level_manager and "_spawn_anchor_capture_effect" in level_manager,
+        "anchor capture draws energy ring and pull lines": "Line2D" in level_manager and "ANCHOR_CAPTURE_RING_POINTS" in level_manager and "_add_anchor_pull_lines" in level_manager,
     }
 
     for label, passed in required.items():
