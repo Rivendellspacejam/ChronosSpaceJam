@@ -40,6 +40,7 @@ func update_phase(current_tick: int) -> void:
 	current_grid_pos = get_grid_pos_for_tick(current_tick)
 	_update_direction_frame(current_tick)
 	_snap_to_current_grid_pos()
+	_update_overlap_visibility()
 
 func _update_direction_frame(current_tick: int) -> void:
 	var next_grid_pos := get_grid_pos_for_tick(current_tick + 1)
@@ -61,3 +62,16 @@ func _snap_to_current_grid_pos() -> void:
 	var level_manager = objects_node.get_parent()
 	if level_manager != null and level_manager.has_method("grid_to_world"):
 		position = level_manager.grid_to_world(current_grid_pos)
+
+func _update_overlap_visibility() -> void:
+	var objects_node = get_parent()
+	if objects_node == null:
+		return
+
+	var level_manager = objects_node.get_parent()
+	if level_manager == null or not level_manager.has_method("enemy_overlay_alpha_for_cell"):
+		_visual.modulate = Color.WHITE
+		return
+
+	var alpha: float = level_manager.enemy_overlay_alpha_for_cell(current_grid_pos)
+	_visual.modulate = Color(1.0, 1.0, 1.0, alpha)

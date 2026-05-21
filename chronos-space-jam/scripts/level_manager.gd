@@ -34,6 +34,8 @@ const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
 const LASER_TEXTURE := preload("res://assets/laser_tile.png")
 const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
+const ENEMY_OVER_ANCHOR_ALPHA: float = 0.46
+const ENEMY_NORMAL_ALPHA: float = 1.0
 
 var grid: Array = []
 var grid_width: int = 0
@@ -346,6 +348,11 @@ func is_enemy_at(gpos: Vector2i) -> bool:
 		if _enemies[enemy_pos].current_grid_pos == gpos:
 			return true
 	return false
+
+func enemy_overlay_alpha_for_cell(gpos: Vector2i) -> float:
+	if get_tile_at(gpos) == SYM_ANCHOR:
+		return ENEMY_OVER_ANCHOR_ALPHA
+	return ENEMY_NORMAL_ALPHA
 
 func _base_tile_info(gpos: Vector2i, extra_collected_coins: int = 0) -> TileInfo:
 	return _base_tile_info_for_tick(gpos, _current_slide_direction, TickManager.current_tick, extra_collected_coins)
@@ -760,11 +767,13 @@ func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
 	if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
 		return
 
+	var next_grid_pos: Vector2i = enemy.get_grid_pos_for_tick(next_tick)
 	var sprite := Sprite2D.new()
 	sprite.texture = ENEMY_TEXTURE
 	sprite.hframes = 5
 	sprite.frame = 0
-	sprite.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
+	sprite.position = grid_to_world(next_grid_pos)
+	sprite.modulate = Color(1.0, 1.0, 1.0, enemy_overlay_alpha_for_cell(next_grid_pos))
 	future_preview_layer.add_child(sprite)
 
 

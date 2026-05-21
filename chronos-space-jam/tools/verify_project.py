@@ -358,6 +358,8 @@ def verify_gameplay_ui_polish() -> None:
     pause_menu = read("scripts/pause_menu.gd")
     pause_scene = read("scenes/ui/pause_menu.tscn")
     game_level = read("scripts/game_level.gd")
+    level_manager = read("scripts/level_manager.gd")
+    enemy_patrol = read("scripts/enemy_patrol.gd")
 
     required = {
         "HUD uses a styled stats panel": "StatsPanel" in hud_scene and "_apply_hud_panel_style" in hud,
@@ -371,6 +373,8 @@ def verify_gameplay_ui_polish() -> None:
         "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
         "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
         "gameplay camera fits large levels beside HUD": "_zoom_to_fit_level(level_size, safe_rect.size)" in game_level and "_camera_position_for_screen_center" in game_level,
+        "enemy fades when overlapping anchor tile": "func enemy_overlay_alpha_for_cell" in level_manager and "SYM_ANCHOR" in level_manager and "_update_overlap_visibility()" in enemy_patrol,
+        "enemy future preview uses overlap alpha": "enemy_overlay_alpha_for_cell(next_grid_pos)" in level_manager and "sprite.modulate" in level_manager,
     }
 
     for label, passed in required.items():
