@@ -18,6 +18,7 @@ const CAMERA_REFERENCE_FIT: float = 800.0
 const CAMERA_MIN_ZOOM: float = 0.24
 const CAMERA_MAX_ZOOM: float = 2.0
 const CAMERA_SAFE_MARGIN: float = 24.0
+const MAX_UNDO_SNAPSHOTS: int = 10
 
 @onready var level_manager = $LevelManager
 @onready var player = $Player
@@ -34,8 +35,7 @@ var _music_transition_id: int = 0
 var _current_music_stream: AudioStream
 var _pause_muffle_effect_index: int = -1
 var _pause_muffle_enabled: bool = false
-# One-step undo only: this snapshot is the state before the latest accepted shift.
-var _undo_snapshot: Dictionary = {}
+var _undo_stack: Array[Dictionary] = []
 
 func _ready() -> void:
 	_ensure_pause_muffle_bus()
@@ -124,20 +124,22 @@ func capture_undo_snapshot() -> void:
 	if GameManager.current_state != GameManager.GameState.PLAYING:
 		return
 
-	_undo_snapshot = {
+	_undo_stack.append({
 		"tick": TickManager.current_tick,
 		"move_count": TickManager.move_count,
 		"player": player.capture_undo_state() if player.has_method("capture_undo_state") else {},
 		"level": level_manager.capture_undo_state() if level_manager.has_method("capture_undo_state") else {},
-	}
+	})
+	if _undo_stack.size() > MAX_UNDO_SNAPSHOTS:
+		_undo_stack.remove_at(0)
 	_update_undo_available()
 
 func _attempt_undo() -> void:
 	if not _can_undo():
 		return
 
-	var snapshot := _undo_snapshot.duplicate(true)
-	_undo_snapshot.clear()
+	var snapshot: Dictionary = _undo_stack[_undo_stack.size() - 1].duplicate(true)
+	_undo_stack.remove_at(_undo_stack.size() - 1)
 	TickManager.restore_tick_state(int(snapshot.get("tick", TickManager.current_tick)), int(snapshot.get("move_count", TickManager.move_count)))
 	if level_manager.has_method("restore_undo_state"):
 		level_manager.restore_undo_state(snapshot.get("level", {}))
@@ -148,14 +150,14 @@ func _attempt_undo() -> void:
 	_update_undo_available()
 
 func _can_undo() -> bool:
-	if _undo_snapshot.is_empty():
+	if _undo_stack.is_empty():
 		return false
 	if GameManager.current_state not in [GameManager.GameState.PLAYING, GameManager.GameState.DEAD]:
 		return false
 	return not player.is_sliding()
 
 func _clear_undo_snapshot() -> void:
-	_undo_snapshot.clear()
+	_undo_stack.clear()
 	_update_undo_available()
 
 func _update_undo_available() -> void:
