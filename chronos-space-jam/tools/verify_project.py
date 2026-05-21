@@ -313,6 +313,14 @@ def verify_immersive_polish_assets() -> None:
         if rms < 1200.0:
             fail(f"gameplay sfx too quiet: {asset} rms={rms:.0f}")
 
+    coin_duration, coin_rms, coin_high_ratio, _coin_harsh_ratio, _coin_tonal = read_wav_metrics(ROOT / "assets/audio/coin_pickup.wav")
+    if coin_duration < 0.16 or coin_duration > 0.35:
+        fail(f"coin pickup should be a crisp arcade chime: duration={coin_duration:.2f}s")
+    if coin_high_ratio < 0.45:
+        fail(f"coin pickup should be high-pitched and bright: high={coin_high_ratio:.3f}")
+    if coin_rms < 3000.0:
+        fail(f"coin pickup should cut through the mix: rms={coin_rms:.0f}")
+
     required = {
         "AudioManager exposes start stinger": "func play_start_stinger() -> void:" in audio_manager,
         "AudioManager exposes gameplay sfx": all(f"func play_{name}() -> void:" in audio_manager for name in gameplay_sfx),
@@ -358,6 +366,7 @@ def verify_gameplay_ui_polish() -> None:
         "HUD updates values instead of plain text block": 'gravity_value_label.text = str(GRAVITY_LABELS.get(gravity, "NONE"))' in hud,
         "HUD stat rows get capsule styling": "_apply_stat_row_style" in hud and "CoinsRow" in hud_scene,
         "clear overlay has styled result rows": "ClearStats" in hud_scene and "_apply_result_row_style" in hud,
+        "death overlay says restart and is compact": "R to restart this run" in hud_scene and "rebuild this run" not in hud_scene and "offset_top = -60.0" in hud_scene and "offset_bottom = 60.0" in hud_scene,
         "pause menu uses a styled command panel": "PausePanel" in pause_scene and "_apply_pause_panel_style" in pause_menu,
         "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
         "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
