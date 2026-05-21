@@ -373,7 +373,8 @@ def verify_gameplay_ui_polish() -> None:
         "pause buttons use themed styles": "_apply_button_style" in pause_menu and "RESUME RUN" in pause_scene,
         "gameplay camera protects HUD safe area": "_hud_safe_rect()" in game_level and "_gameplay_safe_rect" in game_level and "default_screen_rect.intersects(hud_rect)" in game_level,
         "gameplay camera fits large levels beside HUD": "_zoom_to_fit_level(level_size, safe_rect.size)" in game_level and "_camera_position_for_screen_center" in game_level,
-        "enemy fades when overlapping anchor tile": "func enemy_overlay_alpha_for_cell" in level_manager and "SYM_ANCHOR" in level_manager and "_update_overlap_visibility()" in enemy_patrol,
+        "enemy fades when overlapping anchor tile": "func enemy_overlay_alpha_for_cell" in level_manager and "SYM_ANCHOR" in level_manager and "ENEMY_OVER_ANCHOR_ALPHA: float = 0.72" in level_manager and "_update_overlap_visibility()" in enemy_patrol,
+        "enemy renders above anchor before fading": "ENEMY_OBJECT_Z_INDEX" in level_manager and "enemy.z_index = ENEMY_OBJECT_Z_INDEX" in level_manager,
         "enemy future preview uses overlap alpha": "enemy_overlay_alpha_for_cell(next_grid_pos)" in level_manager and "sprite.modulate" in level_manager,
     }
 

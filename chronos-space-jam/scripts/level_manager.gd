@@ -34,7 +34,8 @@ const ENEMY_SCENE := preload("res://scenes/objects/enemy_patrol.tscn")
 const TIME_GATE_TEXTURE := preload("res://assets/time_gate_tile.png")
 const LASER_TEXTURE := preload("res://assets/laser_tile.png")
 const SPIKE_TEXTURE := preload("res://assets/spike_tile.png")
-const ENEMY_OVER_ANCHOR_ALPHA: float = 0.46
+const ENEMY_OBJECT_Z_INDEX: int = 2
+const ENEMY_OVER_ANCHOR_ALPHA: float = 0.72
 const ENEMY_NORMAL_ALPHA: float = 1.0
 
 var grid: Array = []
@@ -612,6 +613,7 @@ func _create_enemy(gpos: Vector2i, world_pos: Vector2) -> void:
 	enemy.grid_pos = gpos
 	enemy.current_grid_pos = gpos
 	enemy.patrol_offsets = _patrol_path_for_next_enemy()
+	enemy.z_index = ENEMY_OBJECT_Z_INDEX
 	objects_container.add_child(enemy)
 	_enemies[gpos] = enemy
 	TickManager.register_enemy_object(enemy)
