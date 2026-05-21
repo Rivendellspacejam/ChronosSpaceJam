@@ -24,6 +24,8 @@ const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdsh
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
 const COIN_TEXTURE := preload("res://assets/coin.png")
 const BOUNCE_TEXTURE := preload("res://assets/bounce.png")
+const HORIZONTAL_BLOCKER_TEXTURE := preload("res://assets/horizontal_blocker.png")
+const VERTICAL_BLOCKER_TEXTURE := preload("res://assets/vertical_blocker.png")
 const ENEMY_TEXTURE := preload("res://assets/enemy-new.png")
 const BOUNCE_IMPACT_SHADER := preload("res://assets/shaders/bounce_tile_impact.gdshader")
 const TIME_GATE_SCENE := preload("res://scenes/objects/time_gate.tscn")
@@ -540,9 +542,9 @@ func _build_visuals() -> void:
 				SYM_ENEMY:
 					_create_enemy(gpos, world_pos)
 				SYM_BLOCKER_H:
-					_create_blocker(world_pos, true)
+					_create_blocker(HORIZONTAL_BLOCKER_TEXTURE, world_pos)
 				SYM_BLOCKER_V:
-					_create_blocker(world_pos, false)
+					_create_blocker(VERTICAL_BLOCKER_TEXTURE, world_pos)
 
 func _create_sprite(texture: Texture2D, world_pos: Vector2, parent: Node) -> Sprite2D:
 	var sprite = Sprite2D.new()
@@ -643,19 +645,8 @@ func _update_goal_visual_for_tick(tick: int) -> void:
 	if shader_material != null:
 		shader_material.set_shader_parameter("pulse_strength", 1.0 if active else 0.15)
 
-func _create_blocker(world_pos: Vector2, horizontal: bool) -> void:
-	var ts = float(TILE_SIZE)
-	var rect = ColorRect.new()
-
-	if horizontal:
-		rect.size = Vector2(ts - 4.0, ts / 3.0)
-		rect.position = world_pos - Vector2(ts / 2.0 - 2.0, ts / 6.0)
-	else:
-		rect.size = Vector2(ts / 3.0, ts - 4.0)
-		rect.position = world_pos - Vector2(ts / 6.0, ts / 2.0 - 2.0)
-
-	rect.color = Color(0.6, 0.4, 0.8, 0.9)
-	objects_container.add_child(rect)
+func _create_blocker(texture: Texture2D, world_pos: Vector2) -> void:
+	_create_sprite(texture, world_pos, objects_container)
 
 func _create_bounce_tile(gpos: Vector2i, world_pos: Vector2) -> void:
 	var sprite := _create_sprite(BOUNCE_TEXTURE, world_pos, objects_container)
