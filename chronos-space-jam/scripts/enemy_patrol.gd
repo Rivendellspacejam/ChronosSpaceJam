@@ -1,6 +1,11 @@
 extends Node2D
 
 const TILE_SIZE: int = 48
+const FRAME_IDLE: int = 0
+const FRAME_NORTH: int = 1
+const FRAME_EAST: int = 2
+const FRAME_SOUTH: int = 3
+const FRAME_WEST: int = 4
 
 @export var patrol_offsets: Array[Vector2i] = [
 	Vector2i(0, 0),
@@ -13,8 +18,9 @@ var grid_pos: Vector2i = Vector2i.ZERO
 var current_grid_pos: Vector2i = Vector2i.ZERO
 var current_phase: int = 0
 
+@onready var _visual: Sprite2D = $EnemyVisual
+
 func _ready() -> void:
-	_build_visual()
 	update_phase(0)
 
 func get_grid_pos_for_tick(tick: int) -> Vector2i:
@@ -32,20 +38,20 @@ func update_phase(current_tick: int) -> void:
 		return
 	current_phase = TickManager.phase_for_tick(current_tick, patrol_offsets.size())
 	current_grid_pos = get_grid_pos_for_tick(current_tick)
+	_update_direction_frame(current_tick)
 	_snap_to_current_grid_pos()
 
-func _build_visual() -> void:
-	var body = _make_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
-	var core = _make_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
-	add_child(body)
-	add_child(core)
+func _update_direction_frame(current_tick: int) -> void:
+	var next_grid_pos := get_grid_pos_for_tick(current_tick + 1)
+	var move_delta := next_grid_pos - current_grid_pos
+	_visual.frame = _frame_for_move_delta(move_delta)
 
-func _make_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
-	var rect = ColorRect.new()
-	rect.size = size
-	rect.position = Vector2(-TILE_SIZE / 2.0 + inset, -TILE_SIZE / 2.0 + inset)
-	rect.color = color
-	return rect
+func _frame_for_move_delta(move_delta: Vector2i) -> int:
+	if move_delta == Vector2i.ZERO:
+		return FRAME_IDLE
+	if abs(move_delta.x) >= abs(move_delta.y):
+		return FRAME_EAST if move_delta.x > 0 else FRAME_WEST
+	return FRAME_SOUTH if move_delta.y > 0 else FRAME_NORTH
 
 func _snap_to_current_grid_pos() -> void:
 	var objects_node = get_parent()

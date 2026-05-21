@@ -24,6 +24,7 @@ const GOAL_PORTAL_SHADER := preload("res://assets/shaders/goal_portal_pulse.gdsh
 const ANCHOR_TEXTURE := preload("res://assets/anchor_tile.png")
 const COIN_TEXTURE := preload("res://assets/coin.png")
 const BOUNCE_TEXTURE := preload("res://assets/bounce.png")
+const ENEMY_TEXTURE := preload("res://assets/enemy-new.png")
 const BOUNCE_IMPACT_SHADER := preload("res://assets/shaders/bounce_tile_impact.gdshader")
 const TIME_GATE_SCENE := preload("res://scenes/objects/time_gate.tscn")
 const LASER_SCENE := preload("res://scenes/objects/laser.tscn")
@@ -759,14 +760,12 @@ func _add_enemy_future_preview(enemy: Node, next_tick: int) -> void:
 	if not is_instance_valid(enemy) or not enemy.has_method("get_grid_pos_for_tick"):
 		return
 
-	var preview := Node2D.new()
-	preview.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
-	future_preview_layer.add_child(preview)
-
-	var body := _make_preview_rect(Vector2(TILE_SIZE - 8.0, TILE_SIZE - 8.0), 4.0, Color(1.0, 0.3, 0.7, 0.8))
-	var core := _make_preview_rect(Vector2(TILE_SIZE - 24.0, TILE_SIZE - 24.0), 12.0, Color(1.0, 0.1, 0.5, 1.0))
-	preview.add_child(body)
-	preview.add_child(core)
+	var sprite := Sprite2D.new()
+	sprite.texture = ENEMY_TEXTURE
+	sprite.hframes = 5
+	sprite.frame = 0
+	sprite.position = grid_to_world(enemy.get_grid_pos_for_tick(next_tick))
+	future_preview_layer.add_child(sprite)
 
 
 func _make_preview_rect(size: Vector2, inset: float, color: Color) -> ColorRect:
