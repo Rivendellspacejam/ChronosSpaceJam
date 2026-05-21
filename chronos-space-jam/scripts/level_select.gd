@@ -1,5 +1,7 @@
 extends Control
 
+const LEVEL_SELECT_CARD_SCENE: PackedScene = preload("res://scenes/ui/level_select_card.tscn")
+
 @onready var grid_container = $VBoxContainer/GridContainer
 @onready var back_button = $VBoxContainer/BackButton
 @onready var background_music: AudioStreamPlayer = $BackgroundMusic
@@ -18,16 +20,17 @@ func _build_level_buttons() -> void:
 	_clear_level_buttons()
 	for i in range(GameManager.TOTAL_LEVELS):
 		var unlocked := GameManager.is_level_unlocked(i)
-		var button = Button.new()
-		button.text = str(i + 1) + "\n" + (StoryManager.get_level_name(i) if unlocked else "LOCKED")
-		button.custom_minimum_size = Vector2(96, 52)
-		button.add_theme_font_size_override("font_size", 15)
-		button.disabled = not unlocked
+		var completed := GameManager.best_moves.has(i)
+		var medal := ""
+		if completed:
+			var best := int(GameManager.best_moves[i])
+			medal = GameManager.get_medal_for_moves(i, best)
+		var button := LEVEL_SELECT_CARD_SCENE.instantiate() as Button
+		grid_container.add_child(button)
+		button.call("setup", i, unlocked, completed, StoryManager.get_level_name(i), medal)
 		if unlocked:
 			button.pressed.connect(_make_level_callback(i))
 			button.mouse_entered.connect(AudioManager.play_ui_click)
-		_apply_button_style(button)
-		grid_container.add_child(button)
 
 func _clear_level_buttons() -> void:
 	for child in grid_container.get_children():

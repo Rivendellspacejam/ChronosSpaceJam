@@ -132,11 +132,12 @@ def verify_scene_flow() -> None:
 def verify_level_select_locking() -> None:
     game_manager = read("scripts/autoload/game_manager.gd")
     level_select = read("scripts/level_select.gd")
+    level_select_card = read("scripts/level_select_card.gd")
 
     required = {
         "GameManager level unlock query": "func is_level_unlocked(index: int) -> bool:" in game_manager,
         "GameManager dev unlock all": "func unlock_all_levels() -> void:" in game_manager,
-        "Level select disables locked buttons": "button.disabled = not unlocked" in level_select,
+        "Level select disables locked buttons": "button.disabled = not unlocked" in level_select or "disabled = not is_unlocked" in level_select_card,
         "Level select ignores locked selections": "not GameManager.is_level_unlocked(index)" in level_select,
         "Ctrl+Q dev unlock shortcut": "KEY_Q" in level_select and "ctrl_pressed" in level_select,
     }
