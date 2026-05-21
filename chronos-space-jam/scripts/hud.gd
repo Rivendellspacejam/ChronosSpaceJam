@@ -142,7 +142,7 @@ func _on_level_cleared(move_count: int, best_moves: int, medal_data: Dictionary)
 	clear_shifts_label.text = "Time Shifts: " + str(move_count)
 	clear_best_label.text = "Best: " + str(best_moves)
 	clear_medal_icon.texture = MEDAL_TEXTURES.get(medal, MEDAL_TEXTURES["Bronze"])
-	clear_medal_label.text = medal + " Medal"
+	clear_medal_label.text = medal
 	clear_medal_label.add_theme_color_override("font_color", MEDAL_COLORS.get(medal, MEDAL_COLORS["Bronze"]))
 
 func _on_level_loaded(level_index: int) -> void:
