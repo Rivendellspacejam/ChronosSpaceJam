@@ -1,8 +1,32 @@
-[gd_scene format=3 uid="uid://cmshiorbo7w0h"]
+[gd_scene load_steps=5 format=3 uid="uid://cmshiorbo7w0h"]
 
 [ext_resource type="Script" uid="uid://qoyt2f0qvmqk" path="res://scripts/hud.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://pubs7n5wwgjy" path="res://assets/first-gold.png" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_undo_normal"]
+bg_color = Color(0.02, 0.07, 0.11, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.9, 1, 0.58)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_undo_disabled"]
+bg_color = Color(0.04, 0.055, 0.08, 0.48)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.32, 0.46, 0.42)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="HUD" type="CanvasLayer" unique_id=448392102]
 script = ExtResource("1")
@@ -11,7 +35,7 @@ script = ExtResource("1")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 304.0
-offset_bottom = 222.0
+offset_bottom = 258.0
 
 [node name="MarginContainer" type="MarginContainer" parent="StatsPanel"]
 layout_mode = 2
@@ -112,6 +136,20 @@ theme_override_font_sizes/font_size = 17
 text = "0"
 horizontal_alignment = 2
 
+[node name="UndoButton" type="Button" parent="StatsPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.95, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.43, 0.52, 0.66, 0.76)
+theme_override_colors/font_hover_color = Color(0.95, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.1, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_undo_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_undo_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_undo_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_undo_disabled")
+text = "UNDO (Z)"
+
 [node name="CoinsRow" type="PanelContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
@@ -191,7 +229,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.88, 0.98, 0.92)
 theme_override_font_sizes/font_size = 16
-text = "R to restart this run"
+text = "Z to undo last shift  |  R to restart"
 horizontal_alignment = 1
 
 [node name="ClearPanel" type="PanelContainer" parent="." unique_id=1594804335]

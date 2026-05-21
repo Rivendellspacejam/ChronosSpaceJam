@@ -94,6 +94,9 @@ func _input_to_direction(event: InputEvent) -> Vector2i:
 		return Vector2i(1, 0)
 	return Vector2i.ZERO
 
+func is_sliding() -> bool:
+	return state == PlayerState.SLIDING
+
 func _is_blocked_before_tick(direction: Vector2i) -> bool:
 	return level_manager.is_static_blocked_before_tick(grid_pos + direction, direction)
 
@@ -115,6 +118,10 @@ func _start_slide(direction: Vector2i) -> void:
 		level_manager.set_slide_direction(Vector2i.ZERO)
 		AudioManager.play_blocked_move()
 		return
+
+	var game_level := get_parent()
+	if game_level != null and game_level.has_method("capture_undo_snapshot"):
+		game_level.capture_undo_snapshot()
 
 	gravity_direction = direction
 	_move_tick_committed = false
@@ -226,6 +233,30 @@ func _commit_move_tick() -> void:
 
 	_move_tick_committed = true
 	TickManager.advance_tick()
+
+func capture_undo_state() -> Dictionary:
+	return {
+		"grid_pos": grid_pos,
+		"position": position,
+		"gravity_direction": gravity_direction,
+		"visible": visible,
+	}
+
+func restore_undo_state(snapshot: Dictionary) -> void:
+	grid_pos = snapshot.get("grid_pos", grid_pos)
+	position = snapshot.get("position", position)
+	gravity_direction = snapshot.get("gravity_direction", Vector2i.ZERO)
+	visible = snapshot.get("visible", true)
+	state = PlayerState.IDLE
+	_slide_path.clear()
+	_slide_index = 0
+	_slide_from = position
+	_slide_to = position
+	_slide_progress = 0.0
+	_move_tick_committed = false
+	buffered_direction = Vector2i.ZERO
+	buffer_timer = 0.0
+	_update_visual_pulse(0.0)
 
 func _is_killed_by_enemy() -> bool:
 	return level_manager.is_enemy_at(grid_pos)

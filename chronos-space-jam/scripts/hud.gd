@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal undo_requested()
+
 const TUTORIAL_TEXTS: Dictionary = {
 	0: "WASD shifts gravity.\nYou slide until something stops you.",
 	1: "Every move advances time by 1 tick.\nGates open and close with time.",
@@ -24,6 +26,7 @@ const GRAVITY_LABELS: Dictionary = {
 @onready var gravity_value_label: Label = $StatsPanel/MarginContainer/VBoxContainer/GravityRow/HBoxContainer/GravityValue
 @onready var tick_value_label: Label = $StatsPanel/MarginContainer/VBoxContainer/TickRow/HBoxContainer/TickValue
 @onready var shifts_value_label: Label = $StatsPanel/MarginContainer/VBoxContainer/ShiftsRow/HBoxContainer/ShiftsValue
+@onready var undo_button: Button = $StatsPanel/MarginContainer/VBoxContainer/UndoButton
 @onready var coins_row: PanelContainer = $StatsPanel/MarginContainer/VBoxContainer/CoinsRow
 @onready var coins_value_label: Label = $StatsPanel/MarginContainer/VBoxContainer/CoinsRow/HBoxContainer/CoinsValue
 @onready var future_preview_label = $FuturePreviewLabel
@@ -78,6 +81,8 @@ func _ready() -> void:
 	GameManager.level_cleared.connect(_on_level_cleared)
 	GameManager.level_loaded.connect(_on_level_loaded)
 	TickManager.tick_advanced.connect(_on_tick_pulse)
+	undo_button.pressed.connect(_on_undo_button_pressed)
+	set_undo_available(false)
 
 func _process(_delta: float) -> void:
 	_update_story_typewriter(_delta)
@@ -120,6 +125,12 @@ func show_level_story(level_index: int, finished_callback: Callable) -> void:
 
 func set_future_preview_visible(is_visible: bool) -> void:
 	future_preview_label.visible = is_visible
+
+func set_undo_available(is_available: bool) -> void:
+	undo_button.disabled = not is_available
+
+func _on_undo_button_pressed() -> void:
+	undo_requested.emit()
 
 func get_stats_panel_screen_rect() -> Rect2:
 	return Rect2(stats_panel.global_position, stats_panel.size).grow(14.0)

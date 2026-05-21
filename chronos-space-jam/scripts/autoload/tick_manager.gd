@@ -32,6 +32,14 @@ func advance_tick() -> void:
 	phase_update_requested.emit(current_tick)
 	tick_advanced.emit(current_tick)
 
+func restore_tick_state(tick: int, moves: int) -> void:
+	current_tick = tick
+	move_count = moves
+	_update_environment_objects()
+	_update_enemies(current_tick)
+	phase_update_requested.emit(current_tick)
+	tick_advanced.emit(current_tick)
+
 func register_environment_object(obj: Node) -> void:
 	if obj not in _environment_objects:
 		_environment_objects.append(obj)
