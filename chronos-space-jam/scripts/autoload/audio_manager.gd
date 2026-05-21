@@ -125,7 +125,7 @@ func play_ui_back() -> void:
 	_play_sfx(UI_BACK, -4.0)
 
 func play_slide_start() -> void:
-	_play_sfx(SLIDE_START, -6.0)
+	_play_sfx(SLIDE_START, -9.0)
 
 func play_tick() -> void:
 	_play_sfx(TICK, -12.0)
@@ -152,13 +152,13 @@ func play_bounce_pad() -> void:
 	_play_sfx(BOUNCE_PAD, -3.0)
 
 func play_goal_enter() -> void:
-	_play_sfx(GOAL_ENTER, -2.0)
+	_play_sfx(GOAL_ENTER, -8.0)
 
 func play_anchor_stop() -> void:
-	_play_sfx(ANCHOR_STOP, -6.0)
+	_play_sfx(ANCHOR_STOP, -10.0)
 
 func play_blocked_move() -> void:
-	_play_sfx(BLOCKED_MOVE, -8.0)
+	_play_sfx(BLOCKED_MOVE, -12.0)
 
 func play_time_gate_shift() -> void:
 	_play_sfx(TIME_GATE_SHIFT, -12.0)
